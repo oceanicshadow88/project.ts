@@ -47,7 +47,7 @@ const statusSchema = new Schema<IStatusDocument>(
 
 type StatusModel = Model<IStatusDocument, {}, {}>;
 
-export const getModel = (dbConnection: Mongoose): StatusModel => {
+export const getModel = (dbConnection: any): StatusModel => {
   if (!dbConnection) throw new Error('No connection');
 
   return dbConnection.model('statuses', statusSchema);
