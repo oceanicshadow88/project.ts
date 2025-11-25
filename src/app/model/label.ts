@@ -34,7 +34,7 @@ labelSchema.methods.toJSON = function () {
   return labelObject;
 };
 
-export const getModel = (connection: Mongoose): Model<ILabelDocument> => {
+export const getModel = (connection: any): Model<ILabelDocument> => {
   if (!connection) {
     throw new Error('No connection');
   }
