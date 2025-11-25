@@ -1,4 +1,4 @@
-import { Model, Mongoose, Schema, Document } from 'mongoose';
+import { Model, Schema, Document } from 'mongoose';
 
 export interface IStatus {
   name: string;
