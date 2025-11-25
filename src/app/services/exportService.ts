@@ -162,37 +162,44 @@ export const exportProjectData = async (
 
   // Clean up data - remove sensitive fields and convert to plain objects
   const cleanUsers = users.map((user: any) => {
-    const { password, refreshToken, activeCode, __v, ...cleanUser } = user;
+    const { password, refreshToken, activeCode, ...cleanUser } = user;
+    delete (cleanUser as any).__v;
     return cleanUser;
   });
 
   const cleanStatuses = statuses.map((status: any) => {
-    const { __v, ...cleanStatus } = status;
+    const cleanStatus = { ...status };
+    delete (cleanStatus as any).__v;
     return cleanStatus;
   });
 
   const cleanLabels = labels.map((label: any) => {
-    const { __v, ...cleanLabel } = label;
+    const cleanLabel = { ...label };
+    delete (cleanLabel as any).__v;
     return cleanLabel;
   });
 
   const cleanTypes = types.map((type: any) => {
-    const { __v, ...cleanType } = type;
+    const cleanType = { ...type };
+    delete (cleanType as any).__v;
     return cleanType;
   });
 
   const cleanSprints = sprints.map((sprint: any) => {
-    const { __v, ...cleanSprint } = sprint;
+    const cleanSprint = { ...sprint };
+    delete (cleanSprint as any).__v;
     return cleanSprint;
   });
 
   const cleanEpics = epics.map((epic: any) => {
-    const { __v, ...cleanEpic } = epic;
+    const cleanEpic = { ...epic };
+    delete (cleanEpic as any).__v;
     return cleanEpic;
   });
 
   const cleanTickets = tickets.map((ticket: any) => {
-    const { __v, ...cleanTicket } = ticket;
+    const cleanTicket = { ...ticket };
+    delete (cleanTicket as any).__v;
     return cleanTicket;
   });
 
