@@ -1,4 +1,4 @@
-import mongoose, { Model, Mongoose, Schema, Types } from 'mongoose';
+import mongoose, { Model, Schema, Types } from 'mongoose';
 
 export interface ILabel {
   name: string;
