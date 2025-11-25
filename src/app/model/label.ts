@@ -3,6 +3,7 @@ import mongoose, { Model, Schema, Types } from 'mongoose';
 export interface ILabel {
   name: string;
   slug: string;
+  color: string;
   tenant: Types.ObjectId;
 }
 
@@ -17,6 +18,10 @@ export const labelSchema = new Schema<ILabelDocument>(
     slug: {
       type: String,
       required: true,
+    },
+    color: {
+      type: String,
+      default: '#6a2add',
     },
     tenant: {
       type: mongoose.Schema.Types.ObjectId,

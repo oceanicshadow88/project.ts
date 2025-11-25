@@ -7,6 +7,8 @@ import * as Status from '../model/status';
 import * as Sprint from '../model/sprint';
 import * as Epic from '../model/epic';
 import * as Project from '../model/project';
+import * as Role from '../model/role';
+import * as Permission from '../model/permission';
 import mongoose from 'mongoose';
 import { format } from '@fast-csv/format';
 import { Response } from 'express';
@@ -84,6 +86,9 @@ export interface ExportData {
     projectName?: string;
   };
   data: {
+    project: any;
+    permissions: any[];
+    roles: any[];
     users: any[];
     statuses: any[];
     labels: any[];
@@ -112,7 +117,48 @@ export const exportProjectData = async (
   const statusModel = await Status.getModel(dbConnection);
   const sprintModel = await Sprint.getModel(dbConnection);
   const epicModel = await Epic.getModel(dbConnection);
+  const roleModel = await Role.getModel(dbConnection as any);
+  const permissionModel = await Permission.getModel(dbConnection as any);
   const userModel = await User.getModel(tenantConnection);
+
+  // Get project with populated roles
+  const projectWithRoles = await projectModel
+    .findById(projectId)
+    .populate({ path: 'roles', model: roleModel })
+    .lean();
+
+  if (!projectWithRoles) {
+    throw new Error('Project not found');
+  }
+
+  // Get all roles from the project
+  const projectRoleIds = (projectWithRoles as any).roles || [];
+  const roleIds = projectRoleIds.map((role: any) =>
+    typeof role === 'object' ? role._id.toString() : role.toString(),
+  );
+
+  // Get all roles with populated permissions
+  const roles = roleIds.length > 0
+    ? await roleModel.find({ _id: { $in: roleIds } })
+      .populate({ path: 'permissions', model: permissionModel })
+      .lean()
+    : [];
+
+  // Collect all permission IDs from roles
+  const permissionIds = new Set<string>();
+  roles.forEach((role: any) => {
+    if (role.permissions && Array.isArray(role.permissions)) {
+      role.permissions.forEach((perm: any) => {
+        const permId = typeof perm === 'object' ? perm._id.toString() : perm.toString();
+        permissionIds.add(permId);
+      });
+    }
+  });
+
+  // Get all permissions
+  const permissions = permissionIds.size > 0
+    ? await permissionModel.find({ _id: { $in: Array.from(permissionIds) } }).lean()
+    : [];
 
   // Get all tickets for the project
   const tickets = await TicketModel.find({ project: projectId }).lean();
@@ -203,14 +249,39 @@ export const exportProjectData = async (
     return cleanTicket;
   });
 
+  // Clean project data
+  const cleanProject = { ...projectWithRoles };
+  delete (cleanProject as any).__v;
+  // Store role IDs (not populated objects) in project data
+  const projectData = { ...cleanProject };
+  // Keep the role IDs array for import
+  projectData.roles = roleIds;
+
+  // Clean roles data
+  const cleanRoles = roles.map((role: any) => {
+    const cleanRole = { ...role };
+    delete (cleanRole as any).__v;
+    return cleanRole;
+  });
+
+  // Clean permissions data
+  const cleanPermissions = permissions.map((permission: any) => {
+    const cleanPermission = { ...permission };
+    delete (cleanPermission as any).__v;
+    return cleanPermission;
+  });
+
   return {
     metadata: {
       version: '1.0',
       exportDate: new Date().toISOString(),
       projectId: projectId,
-      projectName: (project as any).name,
+      projectName: (projectWithRoles as any).name,
     },
     data: {
+      project: projectData,
+      permissions: cleanPermissions,
+      roles: cleanRoles,
       users: cleanUsers,
       statuses: cleanStatuses,
       labels: cleanLabels,
@@ -235,9 +306,14 @@ export const importProjectData = async (
   const sprintModel = await Sprint.getModel(dbConnection);
   const epicModel = await Epic.getModel(dbConnection);
   const TicketModel = Ticket.getModel(dbConnection);
+  const roleModel = await Role.getModel(dbConnection as any);
+  const permissionModel = await Permission.getModel(dbConnection as any);
+  const projectModel = Project.getModel(dbConnection);
   const userModel = await User.getModel(tenantConnection);
 
   const idMapping: { [entityType: string]: { [oldId: string]: string } } = {
+    permissions: {},
+    roles: {},
     users: {},
     statuses: {},
     labels: {},
@@ -248,6 +324,8 @@ export const importProjectData = async (
 
   const errors: string[] = [];
   const imported: { [key: string]: number } = {
+    permissions: 0,
+    roles: 0,
     users: 0,
     statuses: 0,
     labels: 0,
@@ -258,6 +336,83 @@ export const importProjectData = async (
   };
 
   try {
+    // 0. Import permissions (match by slug, create if not exists)
+    for (const permission of exportData.data.permissions || []) {
+      try {
+        const existingPermission = await permissionModel.findOne({ slug: permission.slug });
+        if (existingPermission) {
+          idMapping.permissions[permission._id.toString()] = existingPermission._id.toString();
+        } else {
+          const newPermission = await permissionModel.create({
+            slug: permission.slug,
+            description: permission.description,
+          });
+          idMapping.permissions[permission._id.toString()] = newPermission._id.toString();
+          imported.permissions++;
+        }
+      } catch (error: any) {
+        errors.push(`Error importing permission ${permission.slug}: ${error.message}`);
+      }
+    }
+
+    // 0.5. Import roles (match by slug + tenant, create if not exists, map permissions)
+    for (const role of exportData.data.roles || []) {
+      try {
+        const existingRole = await roleModel.findOne({
+          slug: role.slug,
+          tenant: tenantId,
+        });
+        if (existingRole) {
+          idMapping.roles[role._id.toString()] = existingRole._id.toString();
+        } else {
+          // Map permissions from old IDs to new IDs
+          const mappedPermissions = role.permissions
+            ? role.permissions
+              .map((permId: any) => {
+                const permIdStr = typeof permId === 'object' ? permId._id.toString() : permId.toString();
+                return idMapping.permissions[permIdStr];
+              })
+              .filter(Boolean)
+            : [];
+
+          const newRole = await roleModel.create({
+            name: role.name,
+            slug: role.slug,
+            permissions: mappedPermissions,
+            isPublic: role.isPublic || false,
+            tenant: tenantId,
+          });
+          idMapping.roles[role._id.toString()] = newRole._id.toString();
+          imported.roles++;
+        }
+      } catch (error: any) {
+        errors.push(`Error importing role ${role.name}: ${error.message}`);
+      }
+    }
+
+    // 0.6. Update project with roles (if project data exists)
+    if (exportData.data.project) {
+      try {
+        const project = await projectModel.findById(targetProjectId);
+        if (project) {
+          // Map roles from old IDs to new IDs
+          const exportedRoleIds = exportData.data.project.roles || [];
+          const mappedRoleIds = exportedRoleIds
+            .map((roleId: any) => {
+              const roleIdStr = typeof roleId === 'object' ? roleId._id.toString() : roleId.toString();
+              return idMapping.roles[roleIdStr];
+            })
+            .filter(Boolean);
+
+          // Update project with mapped roles
+          project.roles = mappedRoleIds as any;
+          await project.save();
+        }
+      } catch (error: any) {
+        errors.push(`Error updating project roles: ${error.message}`);
+      }
+    }
+
     // 1. Import users (match by email, create if not exists)
     for (const user of exportData.data.users) {
       try {
