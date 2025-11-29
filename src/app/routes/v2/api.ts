@@ -430,7 +430,11 @@ router.post(
 router.get('/export-project/fields', exportController.exportTicketFields);
 router.get('/export-project/:projectId/tickets', exportController.exportTicketsCsv);
 router.get('/export-project/:projectId/data', exportController.exportProjectData);
-router.post('/import-project/data', exportController.importProjectData);
+router.post(
+  '/import-project/data',
+  multerMiddleware.jsonFileUpload.single('file'),
+  exportController.importProjectData,
+);
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);
 // router.get(

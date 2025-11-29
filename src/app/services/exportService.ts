@@ -79,23 +79,23 @@ export const exportTicketsCsvStream = async (
 };
 
 export interface ExportData {
-  metadata: {
+  metadata?: {
     version: string;
     exportDate: string;
     projectId: string;
     projectName?: string;
   };
   data: {
-    project: any;
-    permissions: any[];
-    roles: any[];
-    users: any[];
-    statuses: any[];
-    labels: any[];
-    types: any[];
-    sprints: any[];
-    epics: any[];
-    tickets: any[];
+    project?: any;
+    permissions?: any[];
+    roles?: any[];
+    users?: any[];
+    statuses?: any[];
+    labels?: any[];
+    types?: any[];
+    sprints?: any[];
+    epics?: any[];
+    tickets?: any[];
   };
 }
 
@@ -295,11 +295,11 @@ export const exportProjectData = async (
 
 export const importProjectData = async (
   exportData: ExportData,
-  targetProjectId: string,
   tenantId: string,
   dbConnection: mongoose.Connection,
   tenantConnection: mongoose.Connection,
-): Promise<{ imported: { [key: string]: number }; errors: string[] }> => {
+  ownerId?: string,
+): Promise<{ imported: { [key: string]: number }; errors: string[]; projectId?: string }> => {
   const labelModel = await Label.getModel(dbConnection);
   const typeModel = await Type.getModel(dbConnection);
   const statusModel = await Status.getModel(dbConnection);
@@ -335,7 +335,71 @@ export const importProjectData = async (
     tickets: 0,
   };
 
+  // Validate project data exists
+  if (!exportData.data.project) {
+    return {
+      imported: {
+        permissions: 0,
+        roles: 0,
+        users: 0,
+        statuses: 0,
+        labels: 0,
+        types: 0,
+        sprints: 0,
+        epics: 0,
+        tickets: 0,
+      },
+      errors: ['Project data is required in export data. Cannot import without project information.'],
+    };
+  }
+
+  let targetProjectId: string | undefined;
+
   try {
+    // 0. Import users first (needed for project owner/lead mapping)
+    for (const user of exportData.data.users || []) {
+      try {
+        const existingUser = await userModel.findOne({ email: user.email });
+        if (existingUser) {
+          idMapping.users[user._id.toString()] = existingUser._id.toString();
+        } else {
+          // Create new user without password (they'll need to reset)
+          const newUser = await userModel.create({
+            email: user.email,
+            name: user.name,
+            jobTitle: user.jobTitle,
+            department: user.department,
+            location: user.location,
+            avatarIcon: user.avatarIcon,
+            abbreviation: user.abbreviation,
+            userName: user.userName,
+            active: false, // Require activation
+          });
+          idMapping.users[user._id.toString()] = newUser._id.toString();
+          imported.users++;
+        }
+      } catch (error: any) {
+        errors.push(`Error importing user ${user.email}: ${error.message}`);
+      }
+    }
+
+    // 0.5. Create project from exported data (after users are imported)
+    const projectData = exportData.data.project;
+    const newProject = await projectModel.create({
+      name: projectData.name || 'Imported Project',
+      key: projectData.key || `IMP-${Date.now()}`,
+      description: projectData.description,
+      iconUrl: projectData.iconUrl,
+      websiteUrl: projectData.websiteUrl,
+      tenant: tenantId,
+      owner: ownerId || (projectData.owner ? idMapping.users[projectData.owner.toString()] : undefined),
+      projectLead: projectData.projectLead ? idMapping.users[projectData.projectLead.toString()] : ownerId,
+      shortcut: projectData.shortcut || [],
+      ticketCounter: 0, // Reset counter for new project
+      isDelete: false,
+    });
+    targetProjectId = newProject._id.toString();
+
     // 0. Import permissions (match by slug, create if not exists)
     for (const permission of exportData.data.permissions || []) {
       try {
@@ -390,58 +454,29 @@ export const importProjectData = async (
       }
     }
 
-    // 0.6. Update project with roles (if project data exists)
-    if (exportData.data.project) {
-      try {
-        const project = await projectModel.findById(targetProjectId);
-        if (project) {
-          // Map roles from old IDs to new IDs
-          const exportedRoleIds = exportData.data.project.roles || [];
-          const mappedRoleIds = exportedRoleIds
-            .map((roleId: any) => {
-              const roleIdStr = typeof roleId === 'object' ? roleId._id.toString() : roleId.toString();
-              return idMapping.roles[roleIdStr];
-            })
-            .filter(Boolean);
+    // 0.6. Update project with roles
+    try {
+      const project = await projectModel.findById(targetProjectId);
+      if (project) {
+        // Map roles from old IDs to new IDs
+        const exportedRoleIds = exportData.data.project?.roles || [];
+        const mappedRoleIds = exportedRoleIds
+          .map((roleId: any) => {
+            const roleIdStr = typeof roleId === 'object' ? roleId._id.toString() : roleId.toString();
+            return idMapping.roles[roleIdStr];
+          })
+          .filter(Boolean);
 
-          // Update project with mapped roles
-          project.roles = mappedRoleIds as any;
-          await project.save();
-        }
-      } catch (error: any) {
-        errors.push(`Error updating project roles: ${error.message}`);
+        // Update project with mapped roles
+        project.roles = mappedRoleIds as any;
+        await project.save();
       }
-    }
-
-    // 1. Import users (match by email, create if not exists)
-    for (const user of exportData.data.users) {
-      try {
-        const existingUser = await userModel.findOne({ email: user.email });
-        if (existingUser) {
-          idMapping.users[user._id.toString()] = existingUser._id.toString();
-        } else {
-          // Create new user without password (they'll need to reset)
-          const newUser = await userModel.create({
-            email: user.email,
-            name: user.name,
-            jobTitle: user.jobTitle,
-            department: user.department,
-            location: user.location,
-            avatarIcon: user.avatarIcon,
-            abbreviation: user.abbreviation,
-            userName: user.userName,
-            active: false, // Require activation
-          });
-          idMapping.users[user._id.toString()] = newUser._id.toString();
-          imported.users++;
-        }
-      } catch (error: any) {
-        errors.push(`Error importing user ${user.email}: ${error.message}`);
-      }
+    } catch (error: any) {
+      errors.push(`Error updating project roles: ${error.message}`);
     }
 
     // 2. Import statuses (match by slug + tenant, create if not exists)
-    for (const status of exportData.data.statuses) {
+    for (const status of exportData.data.statuses || []) {
       try {
         const existingStatus = await statusModel.findOne({
           slug: status.slug,
@@ -466,7 +501,7 @@ export const importProjectData = async (
     }
 
     // 3. Import labels (match by slug + tenant, create if not exists)
-    for (const label of exportData.data.labels) {
+    for (const label of exportData.data.labels || []) {
       try {
         const existingLabel = await labelModel.findOne({
           slug: label.slug,
@@ -489,7 +524,7 @@ export const importProjectData = async (
     }
 
     // 4. Import types (match by slug, create if not exists)
-    for (const type of exportData.data.types) {
+    for (const type of exportData.data.types || []) {
       try {
         const existingType = await typeModel.findOne({ slug: type.slug });
         if (existingType) {
@@ -509,7 +544,7 @@ export const importProjectData = async (
     }
 
     // 5. Import epics (always create new for the target project)
-    for (const epic of exportData.data.epics) {
+    for (const epic of exportData.data.epics || []) {
       try {
         const newEpic = await epicModel.create({
           title: epic.title,
@@ -535,7 +570,7 @@ export const importProjectData = async (
     }
 
     // 6. Import sprints (always create new for the target project)
-    for (const sprint of exportData.data.sprints) {
+    for (const sprint of exportData.data.sprints || []) {
       try {
         const newSprint = await sprintModel.create({
           name: sprint.name,
@@ -555,7 +590,7 @@ export const importProjectData = async (
     }
 
     // 7. Import tickets (always create new for the target project)
-    for (const ticket of exportData.data.tickets) {
+    for (const ticket of exportData.data.tickets || []) {
       try {
         const mappedLabels = ticket.labels
           ? ticket.labels
@@ -590,5 +625,9 @@ export const importProjectData = async (
     errors.push(`Fatal error during import: ${error.message}`);
   }
 
-  return { imported, errors };
+  return {
+    imported,
+    errors,
+    projectId: targetProjectId || undefined,
+  };
 };
