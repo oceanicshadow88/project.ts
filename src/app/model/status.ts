@@ -6,6 +6,7 @@ export interface IStatus {
   order: number;
   tenant: Schema.Types.ObjectId;
   isDefault: boolean;
+  color: string
 }
 
 export type IStatusDocument = Document & IStatus;
@@ -35,6 +36,10 @@ const statusSchema = new Schema<IStatusDocument>(
     isDefault: {
       type: Boolean,
       default: false,
+    },
+    color: {
+      type: String,
+      default: '#6a2add',
     },
   },
   {

@@ -357,6 +357,7 @@ router.get('/projects/:projectId/sprints/current', sprintController.currentSprin
 
 // statuses
 router.get('/projects/:projectId/statuses', statuseValidation.index, statusesController.index);
+router.put('/projects/:projectId/statuses/:id', statuseValidation.update, statusesController.update);
 
 //TODO:
 //activities
