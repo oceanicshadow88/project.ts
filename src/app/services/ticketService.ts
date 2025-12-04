@@ -265,7 +265,7 @@ export const updateTicket = async (req: Request) => {
   const fieldsToUpdate = { ...req.body };
   const TicketModel = Ticket.getModel(req.dbConnection);
   const UserModel = User.getModel(req.tenantsConnection);
-  
+
   // Ensure all required models are registered before populate operations
   const TypeModel = Type.getModel(req.dbConnection);
   const ProjectModel = Project.getModel(req.dbConnection);

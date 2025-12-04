@@ -60,6 +60,10 @@ import * as epicController from '../../controllers/v1/epicController';
 import * as epicValidator from '../../validations/epicValidation';
 import * as importController from '../../controllers/v1/importController';
 import * as exportController from '../../controllers/v1/exportController';
+import * as questionController from '../../controllers/v1/questionController';
+import * as questionValidation from '../../validations/questionValidation';
+import * as replyController from '../../controllers/v1/replyController';
+import * as replyValidation from '../../validations/replyValidation';
 import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
 
@@ -138,6 +142,44 @@ router.put('/comments/:id', commentValidation.update, commentControllers.update)
 router.delete('/comments/:id', commentValidation.remove, commentControllers.destroy);
 
 router.delete('/comments/:id', commentControllers.destroy);
+
+// questions
+router.get(
+  '/tickets/:ticketId/questions',
+  authenticationTokenMiddleware,
+  questionValidation.index,
+  questionController.index,
+);
+router.get(
+  '/projects/:projectId/questions',
+  authenticationTokenMiddleware,
+  questionController.getByProject,
+);
+router.get('/questions/:id', authenticationTokenMiddleware, questionValidation.show, questionController.show);
+router.post('/questions', authenticationTokenMiddleware, questionValidation.store, questionController.store);
+router.put(
+  '/questions/:id',
+  authenticationTokenMiddleware,
+  questionValidation.update,
+  questionController.update,
+);
+router.delete(
+  '/questions/:id',
+  authenticationTokenMiddleware,
+  questionValidation.destroy,
+  questionController.destroy,
+);
+
+// replies
+router.get(
+  '/questions/:questionId/replies',
+  authenticationTokenMiddleware,
+  replyValidation.index,
+  replyController.index,
+);
+router.post('/replies', authenticationTokenMiddleware, replyValidation.store, replyController.store);
+router.put('/replies/:id', authenticationTokenMiddleware, replyValidation.update, replyController.update);
+router.delete('/replies/:id', authenticationTokenMiddleware, replyValidation.destroy, replyController.destroy);
 
 router.get(
   '/tickets/project/:id',
@@ -357,6 +399,7 @@ router.get('/projects/:projectId/sprints/current', sprintController.currentSprin
 
 // statuses
 router.get('/projects/:projectId/statuses', statuseValidation.index, statusesController.index);
+router.put('/projects/:projectId/statuses/:id', statuseValidation.update, statusesController.update);
 
 //TODO:
 //activities
@@ -430,7 +473,11 @@ router.post(
 router.get('/export-project/fields', exportController.exportTicketFields);
 router.get('/export-project/:projectId/tickets', exportController.exportTicketsCsv);
 router.get('/export-project/:projectId/data', exportController.exportProjectData);
-router.post('/import-project/data', exportController.importProjectData);
+router.post(
+  '/import-project/data',
+  multerMiddleware.jsonFileUpload.single('file'),
+  exportController.importProjectData,
+);
 // dashboard
 router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboardController.show);
 // router.get(

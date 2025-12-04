@@ -50,3 +50,15 @@ export const diskUpload = multer({
     cb(null, true);
   },
 });
+
+export const jsonFileUpload = multer({
+  storage: memoryStorage,
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ext !== '.json') {
+      return cb(new Error('Only JSON files are allowed'));
+    }
+    cb(null, true);
+  },
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for JSON files
+});
