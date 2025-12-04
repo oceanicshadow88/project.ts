@@ -8,6 +8,7 @@ import {
   getQuestionById,
   updateQuestion,
   deleteQuestion,
+  getQuestionsByProject,
 } from '../../services/questionService';
 
 export const index = asyncHandler(async (req: Request, res: Response) => {
@@ -53,5 +54,14 @@ export const destroy = asyncHandler(async (req: Request, res: Response) => {
   }
   await deleteQuestion(req);
   return res.sendStatus(status.OK);
+});
+
+export const getByProject = asyncHandler(async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.sendStatus(status.UNPROCESSABLE_ENTITY);
+  }
+  const result = await getQuestionsByProject(req);
+  return res.status(status.OK).json(result);
 });
 

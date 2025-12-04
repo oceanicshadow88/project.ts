@@ -5,6 +5,7 @@ export interface IQuestion {
     priority: string;
     assignee?: Types.ObjectId;
     isResolved: boolean;
+    waitingForStakeholder: boolean;
     ticket: Types.ObjectId;
     createdBy: Types.ObjectId;
 }
@@ -29,6 +30,10 @@ const questionSchema = new Schema<IQuestionDocument>(
             default: null,
         },
         isResolved: {
+            type: Boolean,
+            default: false,
+        },
+        waitingForStakeholder: {
             type: Boolean,
             default: false,
         },

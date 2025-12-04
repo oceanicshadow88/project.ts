@@ -150,6 +150,11 @@ router.get(
   questionValidation.index,
   questionController.index
 );
+router.get(
+  '/projects/:projectId/questions',
+  authenticationTokenMiddleware,
+  questionController.getByProject
+);
 router.get('/questions/:id', authenticationTokenMiddleware, questionValidation.show, questionController.show);
 router.post('/questions', authenticationTokenMiddleware, questionValidation.store, questionController.store);
 router.put(
