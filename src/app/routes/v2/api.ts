@@ -148,12 +148,12 @@ router.get(
   '/tickets/:ticketId/questions',
   authenticationTokenMiddleware,
   questionValidation.index,
-  questionController.index
+  questionController.index,
 );
 router.get(
   '/projects/:projectId/questions',
   authenticationTokenMiddleware,
-  questionController.getByProject
+  questionController.getByProject,
 );
 router.get('/questions/:id', authenticationTokenMiddleware, questionValidation.show, questionController.show);
 router.post('/questions', authenticationTokenMiddleware, questionValidation.store, questionController.store);
@@ -161,13 +161,13 @@ router.put(
   '/questions/:id',
   authenticationTokenMiddleware,
   questionValidation.update,
-  questionController.update
+  questionController.update,
 );
 router.delete(
   '/questions/:id',
   authenticationTokenMiddleware,
   questionValidation.destroy,
-  questionController.destroy
+  questionController.destroy,
 );
 
 // replies
@@ -175,7 +175,7 @@ router.get(
   '/questions/:questionId/replies',
   authenticationTokenMiddleware,
   replyValidation.index,
-  replyController.index
+  replyController.index,
 );
 router.post('/replies', authenticationTokenMiddleware, replyValidation.store, replyController.store);
 router.put('/replies/:id', authenticationTokenMiddleware, replyValidation.update, replyController.update);
