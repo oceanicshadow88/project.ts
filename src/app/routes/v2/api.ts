@@ -60,6 +60,10 @@ import * as epicController from '../../controllers/v1/epicController';
 import * as epicValidator from '../../validations/epicValidation';
 import * as importController from '../../controllers/v1/importController';
 import * as exportController from '../../controllers/v1/exportController';
+import * as questionController from '../../controllers/v1/questionController';
+import * as questionValidation from '../../validations/questionValidation';
+import * as replyController from '../../controllers/v1/replyController';
+import * as replyValidation from '../../validations/replyValidation';
 import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
 
@@ -138,6 +142,39 @@ router.put('/comments/:id', commentValidation.update, commentControllers.update)
 router.delete('/comments/:id', commentValidation.remove, commentControllers.destroy);
 
 router.delete('/comments/:id', commentControllers.destroy);
+
+// questions
+router.get(
+  '/tickets/:ticketId/questions',
+  authenticationTokenMiddleware,
+  questionValidation.index,
+  questionController.index
+);
+router.get('/questions/:id', authenticationTokenMiddleware, questionValidation.show, questionController.show);
+router.post('/questions', authenticationTokenMiddleware, questionValidation.store, questionController.store);
+router.put(
+  '/questions/:id',
+  authenticationTokenMiddleware,
+  questionValidation.update,
+  questionController.update
+);
+router.delete(
+  '/questions/:id',
+  authenticationTokenMiddleware,
+  questionValidation.destroy,
+  questionController.destroy
+);
+
+// replies
+router.get(
+  '/questions/:questionId/replies',
+  authenticationTokenMiddleware,
+  replyValidation.index,
+  replyController.index
+);
+router.post('/replies', authenticationTokenMiddleware, replyValidation.store, replyController.store);
+router.put('/replies/:id', authenticationTokenMiddleware, replyValidation.update, replyController.update);
+router.delete('/replies/:id', authenticationTokenMiddleware, replyValidation.destroy, replyController.destroy);
 
 router.get(
   '/tickets/project/:id',
