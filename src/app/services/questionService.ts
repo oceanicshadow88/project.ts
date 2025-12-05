@@ -13,8 +13,8 @@ export const getQuestionsByTicket = async (req: Request) => {
 
   const questions = await questionModel
     .find({ ticket: ticketId })
-    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon' })
-    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon' })
+    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
+    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon _id' })
     .sort({ createdAt: -1 });
 
   return replaceId(questions);
@@ -27,8 +27,8 @@ export const getQuestionById = async (req: Request) => {
 
   const question = await questionModel
     .findById(id)
-    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon' })
-    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon' });
+    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
+    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon _id' });
 
   if (!question) {
     throw new NotFoundError('Question not found');
@@ -58,8 +58,8 @@ export const createQuestion = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
   const populatedQuestion = await questionModel
     .findById(newQuestion._id)
-    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon' })
-    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon' });
+    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
+    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon _id' });
 
   return replaceId(populatedQuestion);
 };
@@ -85,8 +85,8 @@ export const updateQuestion = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
   const populatedQuestion = await questionModel
     .findById(updatedQuestion._id)
-    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon' })
-    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon' });
+    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
+    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon _id' });
 
   return replaceId(populatedQuestion);
 };
@@ -121,8 +121,8 @@ export const getQuestionsByProject = async (req: Request) => {
   // Get all questions for these tickets, populate ticket info
   const questions = await questionModel
     .find({ ticket: { $in: ticketIds } })
-    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon' })
-    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon' })
+    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
+    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon _id' })
     .populate({
       path: 'ticket',
       model: ticketModel,
