@@ -130,7 +130,7 @@ export const getQuestionsByProject = async (req: Request) => {
       populate: {
         path: 'sprint',
         model: sprintModel,
-        select: 'name currentSprint',
+        select: 'name status',
       },
     })
     .sort({ createdAt: 1 }); // Oldest first

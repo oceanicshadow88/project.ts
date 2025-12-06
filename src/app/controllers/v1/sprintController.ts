@@ -28,8 +28,8 @@ export const show = asyncHandler(async (req: Request, res: Response) => {
     return res.sendStatus(status.UNPROCESSABLE_ENTITY);
   }
   const { projectId } = req.params;
-  const isCompleted = req.query.isCompleted === 'true';
-  const sprints = await findSprints(projectId, isCompleted, req.dbConnection);
+  const sprintStatus = req.query.status as 'active' | 'planning' | 'completed' | undefined;
+  const sprints = await findSprints(projectId, req.dbConnection, sprintStatus);
   res.status(status.OK).send(sprints);
 });
 
