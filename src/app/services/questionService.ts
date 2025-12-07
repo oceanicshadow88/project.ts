@@ -336,7 +336,6 @@ export const sendQuestionsToPO = async (req: Request) => {
   const { projectId } = req.params;
   const { email, questionIds } = req.body;
   const questionModel = Question.getModel(req.dbConnection);
-  const userModel = await User.getModel(req.tenantsConnection);
   const ticketModel = Ticket.getModel(req.dbConnection);
 
   if (!questionIds || !Array.isArray(questionIds) || questionIds.length === 0) {

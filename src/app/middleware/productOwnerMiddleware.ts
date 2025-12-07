@@ -1,7 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import * as Role from '../model/role';
 import * as Project from '../model/project';
-import { IProjectRole } from '../model/user';
 import status from 'http-status';
 
 const checkIsOwner = async (projectId: string, userId: string, req: Request) => {
@@ -10,15 +9,16 @@ const checkIsOwner = async (projectId: string, userId: string, req: Request) => 
   return project.owner.toString() === userId;
 };
 
-const getProjectRoleId = (projectId: string, projectsRoles: IProjectRole[]) => {
-  let roleId = null;
-  projectsRoles.forEach((element: { project: { toString: () => string }; role: any }) => {
-    if (element.project.toString() === projectId.toString()) {
-      roleId = element.role;
-    }
-  });
-  return roleId;
-};
+// Unused function - kept for potential future use
+// const getProjectRoleId = (projectId: string, projectsRoles: IProjectRole[]) => {
+//   let roleId = null;
+//   projectsRoles.forEach((element: { project: { toString: () => string }; role: any }) => {
+//     if (element.project.toString() === projectId.toString()) {
+//       roleId = element.role;
+//     }
+//   });
+//   return roleId;
+// };
 
 export const requireProductOwner = async (req: Request, res: Response, next: NextFunction) => {
   const user: any = req.user;
