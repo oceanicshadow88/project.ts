@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { Response, Request, NextFunction } from 'express';
 import * as User from '../../model/user';
+import * as Role from '../../model/role';
 
 import { validationResult } from 'express-validator';
 import { asyncHandler } from '../../utils/helper';
@@ -29,6 +30,16 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   );
   if (user === null) return res.status(status.UNAUTHORIZED).send();
   if (user === undefined) return res.status(status.UNAUTHORIZED).send();
+
+  // Populate roles in projectsRoles
+  const roleModel = Role.getModel(req.dbConnection);
+  const userDoc = user as any; // Cast to any to access populate method
+  await userDoc.populate({
+    path: 'projectsRoles.role',
+    model: roleModel,
+    select: 'name slug',
+  });
+
   // check the if the domain is in user's tenants when user login
   if (config.environment.toLowerCase() === 'local') {
     const token = await user.generateAuthToken();
@@ -52,6 +63,23 @@ export const autoFetchUserInfo = asyncHandler(
 
     try {
       if (!req.userId) return res.status(status.FORBIDDEN).send();
+
+      // Populate roles in projectsRoles
+      if (req.user) {
+        const roleModel = Role.getModel(req.dbConnection);
+        const userModel = User.getModel(req.tenantsConnection);
+        const userDoc = await userModel.findById(req.userId);
+        if (userDoc) {
+          await userDoc.populate({
+            path: 'projectsRoles.role',
+            model: roleModel,
+            select: 'name slug',
+          });
+          // Update req.user with populated data
+          req.user = userDoc as any;
+        }
+      }
+
       res.send({ user: req.user, token: req.token, refreshToken: req.refreshToken });
     } catch (e) {
       next(e);

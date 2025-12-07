@@ -1,0 +1,24 @@
+{
+  "backupDate": "2025-12-07T05:25:52.958Z",
+  "tenants": [],
+  "globalDatabase": {
+    "database": "publicdb",
+    "collections": [
+      "projects",
+      "tickets",
+      "labels",
+      "types",
+      "statuses",
+      "sprints",
+      "epics",
+      "roles",
+      "permissions",
+      "boards",
+      "comments",
+      "questions",
+      "replies",
+      "retroBoards",
+      "retroItems"
+    ]
+  }
+}
