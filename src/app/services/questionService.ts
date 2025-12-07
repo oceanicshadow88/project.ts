@@ -198,16 +198,19 @@ const getProductOwnersForProject = async (
   userModel: unknown,
   projectModel: unknown,
   roleModel: unknown,
+  tenantId: string,
 ): Promise<ProductOwner[]> => {
   const productOwners: ProductOwner[] = [];
 
-  // Find Product Owner role
+  // Find Product Owner role - check both public roles and tenant-specific roles
   const roleModelTyped = roleModel as Model<Document>;
   const productOwnerRole = await roleModelTyped
     .findOne({
       $or: [
-        { name: { $regex: /product.*owner/i } },
-        { slug: { $regex: /product.*owner/i } },
+        { name: { $regex: /product.*owner/i }, isPublic: true },
+        { slug: { $regex: /product.*owner/i }, isPublic: true },
+        { name: { $regex: /product.*owner/i }, tenant: tenantId },
+        { slug: { $regex: /product.*owner/i }, tenant: tenantId },
       ],
     })
     .lean();
@@ -235,29 +238,6 @@ const getProductOwnersForProject = async (
     }
   }
 
-  // Also include project owner
-  const projectModelTyped = projectModel as Model<Document>;
-  const project = await projectModelTyped.findById(projectId).select('owner').lean();
-  if (project && 'owner' in project && project.owner) {
-    const userModelTyped = userModel as Model<Document>;
-    const owner = await userModelTyped.findById(project.owner).select('email name active').lean();
-    if (
-      owner &&
-      owner._id &&
-      'active' in owner &&
-      owner.active === true &&
-      'email' in owner &&
-      typeof owner.email === 'string' &&
-      !productOwners.some((po) => po._id?.toString() === owner._id?.toString())
-    ) {
-      productOwners.push({
-        _id: owner._id as mongoose.Types.ObjectId,
-        email: owner.email,
-        name: 'name' in owner && typeof owner.name === 'string' ? owner.name : undefined,
-      });
-    }
-  }
-
   return productOwners;
 };
 
@@ -267,7 +247,7 @@ export const updateQuestion = async (req: Request) => {
   const questionModel = Question.getModel(req.dbConnection);
   const userModel = await User.getModel(req.tenantsConnection);
   const projectModel = Project.getModel(req.dbConnection);
-  const roleModel = Role.getModel(req.tenantsConnection);
+  const roleModel = Role.getModel(req.dbConnection);
   const ticketModel = Ticket.getModel(req.dbConnection);
 
   // Get the question before update to check if waitingForStakeholder is changing to true
@@ -316,6 +296,7 @@ export const updateQuestion = async (req: Request) => {
             userModel,
             projectModel,
             roleModel,
+            req.tenantId,
           );
 
           if (productOwners.length > 0) {
@@ -349,6 +330,7 @@ export const updateQuestion = async (req: Request) => {
                 projectUrl: `${req.domain}/projects/${projectId}/questions/po-reply`,
                 emailTitle,
               };
+              console.log(productOwners)
               // Send email to all Product Owners
               for (const po of productOwners) {
                 if (po.email) {
