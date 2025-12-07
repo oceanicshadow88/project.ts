@@ -44,8 +44,12 @@ export const store = [
 
   body('assignee')
     .optional()
-    .custom((value) => !value || mongoose.Types.ObjectId.isValid(value))
-    .withMessage('Assignee must be a valid ObjectId'),
+    .custom((value) => {
+      if (!value) return true;
+      if (value === 'automatic') return true;
+      return mongoose.Types.ObjectId.isValid(value);
+    })
+    .withMessage('Assignee must be "automatic" or a valid ObjectId'),
 ];
 
 export const update = [
@@ -71,8 +75,12 @@ export const update = [
 
   body('assignee')
     .optional()
-    .custom((value) => !value || mongoose.Types.ObjectId.isValid(value))
-    .withMessage('Assignee must be a valid ObjectId'),
+    .custom((value) => {
+      if (!value) return true;
+      if (value === 'automatic') return true;
+      return mongoose.Types.ObjectId.isValid(value);
+    })
+    .withMessage('Assignee must be "automatic" or a valid ObjectId'),
 
   body('isResolved')
     .optional()

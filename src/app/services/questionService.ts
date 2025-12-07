@@ -5,6 +5,8 @@ import * as User from '../model/user';
 import * as Ticket from '../model/ticket';
 import * as Sprint from '../model/sprint';
 import * as Reply from '../model/reply';
+import * as Project from '../model/project';
+import * as Role from '../model/role';
 import { replaceId } from './replaceService';
 import NotFoundError from '../error/notFound';
 import { emailRecipientTemplate } from '../utils/emailSender';
@@ -86,11 +88,75 @@ export const getQuestionById = async (req: Request) => {
 export const createQuestion = async (req: Request) => {
   const { title, priority, assignee, ticket } = req.body;
   const questionModel = Question.getModel(req.dbConnection);
+  const ticketModel = Ticket.getModel(req.dbConnection);
+  const sprintModel = Sprint.getModel(req.dbConnection);
+  const userModel = await User.getModel(req.tenantsConnection);
+  const projectModel = Project.getModel(req.dbConnection);
+  const roleModel = Role.getModel(req.dbConnection);
+
+  // Get ticket to check sprint status
+  const ticketDoc = await ticketModel.findById(ticket).populate({
+    path: 'sprint',
+    model: sprintModel,
+    select: 'status',
+  });
+
+  // Determine priority: if ticket is in active sprint, set to Highest
+  let finalPriority = priority || 'Medium';
+  if (ticketDoc?.sprint && typeof ticketDoc.sprint === 'object' && 'status' in ticketDoc.sprint) {
+    if (ticketDoc.sprint.status === 'active') {
+      finalPriority = 'Highest';
+    }
+  }
+
+  // Determine assignee: if "automatic", find Product Owner or project owner
+  let finalAssignee: string | null = assignee && assignee !== 'automatic' ? assignee : null;
+  if (assignee === 'automatic') {
+    // Get project ID from ticket
+    const ticketWithProject = await ticketModel.findById(ticket).select('project').lean();
+    const projectId = ticketWithProject?.project;
+
+    if (projectId) {
+      // Find Product Owner role
+      const productOwnerRole = await roleModel
+        .findOne({
+          $or: [
+            { name: { $regex: /product.*owner/i } },
+            { slug: { $regex: /product.*owner/i } },
+          ],
+        })
+        .lean();
+
+      if (productOwnerRole) {
+        // Find users with Product Owner role in this project
+        const usersWithPORole = await userModel
+          .find({
+            'projectsRoles.project': new mongoose.Types.ObjectId(projectId),
+            'projectsRoles.role': productOwnerRole._id,
+          })
+          .select('_id')
+          .lean();
+
+        if (usersWithPORole.length > 0) {
+          // Assign to first Product Owner
+          finalAssignee = usersWithPORole[0]._id.toString();
+        }
+      }
+
+      // If no Product Owner found, assign to project owner
+      if (!finalAssignee) {
+        const project = await projectModel.findById(projectId).select('owner').lean();
+        if (project?.owner) {
+          finalAssignee = project.owner.toString();
+        }
+      }
+    }
+  }
 
   const newQuestion = await questionModel.create({
     title,
-    priority: priority || 'Medium',
-    assignee: assignee || null,
+    priority: finalPriority,
+    assignee: finalAssignee,
     ticket,
     createdBy: req.userId,
     isResolved: false,
@@ -101,7 +167,6 @@ export const createQuestion = async (req: Request) => {
     throw new NotFoundError('Failed to create question');
   }
 
-  const userModel = await User.getModel(req.tenantsConnection);
   const populatedQuestion = await questionModel
     .findById(newQuestion._id)
     .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
