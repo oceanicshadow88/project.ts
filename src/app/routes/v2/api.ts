@@ -169,6 +169,18 @@ router.delete(
   questionValidation.destroy,
   questionController.destroy,
 );
+router.post(
+  '/questions/:id/send-to-po',
+  authenticationTokenMiddleware,
+  questionValidation.sendToPO,
+  questionController.sendToPO,
+);
+router.post(
+  '/projects/:projectId/questions/send-to-po',
+  authenticationTokenMiddleware,
+  questionValidation.sendAllToPO,
+  questionController.sendAllToPO,
+);
 
 // replies
 router.get(
