@@ -1,3 +1,5 @@
+//aws sesv2 create-email-template --cli-input-json file://mytemplate.json
+// aws sesv2 update-email-template --cli-input-json file://questions-to-po.json
 import { invalidSubdomains } from '../controllers/v1/registerV2Controller';
 import { SES } from '@aws-sdk/client-ses';
 import config from '../config/app';
@@ -56,24 +58,49 @@ export const subscriptionSender = (email: string, validationCode: string, domain
   emailSenderTemplate(email, templateData, 'Subscription', cb);
 };
 
+export const emailContactUsTemplate = (
+  data: {},
+) => {
+  return new Promise((resolve, reject) => {
+    // Use the first email address for emailSenderTemplate (it expects a single email string)
+    const email = 'kitmanwork@gmail.com';
+    if (!email) {
+      reject(new Error('No email address provided'));
+      return;
+    }
+
+    emailSenderTemplate(email, data, 'contactPageEmailTemplate', (email_err: any, email_data: any) => {
+      if (email_err) {
+        reject(email_err);
+      } else {
+        resolve(email_data);
+      }
+    });
+  });
+};
+
+
 export const emailRecipientTemplate = (
-  emailFrom: string,
   emailTo: string[],
   data: {},
   templateName: string,
 ) => {
-  const ses = new SES(awsConfig);
+  return new Promise((resolve, reject) => {
+    // Use the first email address for emailSenderTemplate (it expects a single email string)
+    const email = emailTo[0];
+    if (!email) {
+      reject(new Error('No email address provided'));
+      return;
+    }
 
-  let params = {
-    Source: emailFrom,
-    Destination: {
-      ToAddresses: emailTo,
-    },
-    Template: templateName,
-    TemplateData: JSON.stringify(data),
-  };
-
-  return ses.sendTemplatedEmail(params);
+    emailSenderTemplate(email, data, templateName, (email_err: any, email_data: any) => {
+      if (email_err) {
+        reject(email_err);
+      } else {
+        resolve(email_data);
+      }
+    });
+  });
 };
 
 export const emailSender = (email: string, validationCode: string, domain: string = '') => {

@@ -7,6 +7,7 @@ import * as tenantControllers from '../../controllers/v1/tenantController';
 import { authenticationTokenMiddleware } from '../../middleware/authMiddleware';
 import { authenticationEmailTokenMiddlewareV2 } from '../../middleware/registerMiddlewareV2';
 import { authenticationForgetPasswordMiddleware } from '../../middleware/forgetPasswordMiddleware';
+import { requireProductOwner } from '../../middleware/productOwnerMiddleware';
 import * as loginControllerV2 from '../../controllers/v1/loginControllerV2';
 import * as loginValidation from '../../validations/login';
 import * as registerValidation from '../../validations/register';
@@ -155,6 +156,12 @@ router.get(
   authenticationTokenMiddleware,
   questionController.getByProject,
 );
+router.get(
+  '/projects/:projectId/questions/po-reply',
+  authenticationTokenMiddleware,
+  requireProductOwner,
+  questionController.getByProject,
+);
 router.get('/questions/:id', authenticationTokenMiddleware, questionValidation.show, questionController.show);
 router.post('/questions', authenticationTokenMiddleware, questionValidation.store, questionController.store);
 router.put(
@@ -168,6 +175,18 @@ router.delete(
   authenticationTokenMiddleware,
   questionValidation.destroy,
   questionController.destroy,
+);
+router.post(
+  '/questions/:id/send-to-po',
+  authenticationTokenMiddleware,
+  questionValidation.sendToPO,
+  questionController.sendToPO,
+);
+router.post(
+  '/projects/:projectId/questions/send-to-po',
+  authenticationTokenMiddleware,
+  questionValidation.sendAllToPO,
+  questionController.sendAllToPO,
 );
 
 // replies

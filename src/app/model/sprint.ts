@@ -1,12 +1,13 @@
 import mongoose, { Schema, Types } from 'mongoose';
 
+export type SprintStatus = 'active' | 'planning' | 'completed';
+
 export interface ISprint {
   name: string;
   startDate?: Date;
   endDate?: Date | null;
   description?: string;
-  currentSprint?: boolean;
-  isComplete?: boolean;
+  status?: SprintStatus;
   project?: Types.ObjectId;
   sprintGoal?: string;
   board?: Types.ObjectId;
@@ -32,13 +33,10 @@ const sprintSchema = new Schema<ISprintDocument>(
     description: {
       type: String,
     },
-    currentSprint: {
-      type: Boolean,
-      default: false,
-    },
-    isComplete: {
-      type: Boolean,
-      default: false,
+    status: {
+      type: String,
+      enum: ['active', 'planning', 'completed'],
+      default: 'planning',
     },
     project: {
       ref: 'projects',
@@ -60,7 +58,7 @@ const sprintSchema = new Schema<ISprintDocument>(
 );
 
 sprintSchema.statics.findLatestSprints = async function (projectId: string) {
-  const result = await this.find({ project: projectId, currentSprint: true });
+  const result = await this.find({ project: projectId, status: 'active' });
   return result;
 };
 

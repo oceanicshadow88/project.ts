@@ -1,5 +1,5 @@
 import sinon from 'sinon';
-import dbHandler from './dbHandler';
+import dbHandler from '../test/setup/dbHandler';
 import * as sassMiddleware from '../src/app/middleware/saasMiddlewareV2';
 import * as authMiddleware from '../src/app/middleware/authMiddleware';
 const seed = require('./seed');

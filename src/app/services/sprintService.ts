@@ -2,12 +2,13 @@ import { Mongoose, ObjectId, Types } from 'mongoose';
 import * as Sprint from '../model/sprint';
 import * as Ticket from '../model/ticket';
 
+type SprintStatus = 'active' | 'planning' | 'completed';
+
 interface ISprintData {
   name: string;
   startDate: Date | null;
   endDate: Date | null;
-  currentSprint: boolean;
-  isComplete: boolean;
+  status?: SprintStatus;
   projectId: Types.ObjectId;
   board: string;
 }
@@ -28,14 +29,16 @@ export const findLatestSprints = (dbConnection: Mongoose, projectId: string) => 
 
 export const findSprints = async (
   projectId: string,
-  isCompleted: boolean,
   dbConnection: Mongoose,
+  status?: SprintStatus,
 ) => {
   const projectObjectId = new Types.ObjectId(projectId);
   const sprintModel = Sprint.getModel(dbConnection);
-  const result = await sprintModel
-    .find({ project: projectObjectId, isComplete: isCompleted })
-    .sort({ currentSprint: -1 });
+  const query: any = { project: projectObjectId };
+  if (status) {
+    query.status = status;
+  }
+  const result = await sprintModel.find(query).sort({ status: -1, createdAt: -1 });
   return result;
 };
 

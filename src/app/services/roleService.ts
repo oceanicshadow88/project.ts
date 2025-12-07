@@ -80,11 +80,53 @@ export const deleteProjectRole = async (req: Request) => {
 export const removeRoleFromProject = async (req: Request) => {
   const { userId, projectId } = req.params;
   const userModel = await User.getModel(req.tenantsConnection);
+  const projectModel = Project.getModel(req.dbConnection);
+
+  // Get the project to find its tenant
+  const project = await projectModel.findById(projectId);
+  if (!project) {
+    throw new Error('Project not found');
+  }
+
   const user = await userModel.findById(userId);
   const updatedProjectRoles = user.projectsRoles.filter((item: any) => {
     return item.project?.toString() !== projectId;
   });
   user.projectsRoles = updatedProjectRoles;
+
+  // Check if user has any other projects in the same tenant
+  const remainingProjectIds = updatedProjectRoles.map((pr: any) => pr.project?.toString());
+  if (remainingProjectIds.length > 0) {
+    const otherProjectsInTenant = await projectModel.find({
+      _id: { $in: remainingProjectIds },
+      tenant: project.tenant,
+    });
+
+    // If user has no other projects in this tenant, remove tenant from user's tenants array
+    if (otherProjectsInTenant.length === 0) {
+      const tenantIdStr = project.tenant?.toString() || String(project.tenant);
+      const tenantIdObj = mongoose.Types.ObjectId.isValid(tenantIdStr)
+        ? new mongoose.Types.ObjectId(tenantIdStr)
+        : null;
+      if (tenantIdObj) {
+        user.tenants = user.tenants?.filter(
+          (t: any) => t?.toString() !== tenantIdObj.toString(),
+        ) || [];
+      }
+    }
+  } else {
+    // User has no projects left, remove tenant
+    const tenantIdStr = project.tenant?.toString() || String(project.tenant);
+    const tenantIdObj = mongoose.Types.ObjectId.isValid(tenantIdStr)
+      ? new mongoose.Types.ObjectId(tenantIdStr)
+      : null;
+    if (tenantIdObj) {
+      user.tenants = user.tenants?.filter(
+        (t: any) => t?.toString() !== tenantIdObj.toString(),
+      ) || [];
+    }
+  }
+
   const updateUser = await user.save();
   return updateUser;
 };
@@ -123,21 +165,34 @@ export const inviteUserToProject = async (req: Request) => {
     await user.save();
   }
 
-  const permission = await userModel.findOne({
-    email: email,
-    'projectsRoles.project': new mongoose.Types.ObjectId(projectId),
-  });
-  if (!permission) {
-    user = await userModel.findByIdAndUpdate(
-      user._id,
-      {
-        $push: {
-          tenants: req.tenantId,
-          projectsRoles: [{ project: projectId, role: roleId }],
-        },
+  // Check if user already has this project role
+  const hasProjectRole = user.projectsRoles?.some(
+    (pr: any) => pr?.project?.toString() === projectId.toString(),
+  );
+
+  if (!hasProjectRole) {
+    // Check if user already has this tenant
+    const tenantIdStr = req.tenantId?.toString() || String(req.tenantId);
+    const tenantIdObj = mongoose.Types.ObjectId.isValid(tenantIdStr)
+      ? new mongoose.Types.ObjectId(tenantIdStr)
+      : null;
+
+    const hasTenant = tenantIdObj
+      ? user.tenants?.some((t: any) => t?.toString() === tenantIdObj.toString())
+      : false;
+
+    const updateData: any = {
+      $push: {
+        projectsRoles: [{ project: projectId, role: roleId }],
       },
-      { new: true },
-    );
+    };
+
+    // Only add tenant if user doesn't already have it
+    if (!hasTenant && tenantIdObj) {
+      updateData.$push.tenants = tenantIdObj;
+    }
+
+    user = await userModel.findByIdAndUpdate(user._id, updateData, { new: true });
   }
 
   if (user.active) {

@@ -44,8 +44,12 @@ export const store = [
 
   body('assignee')
     .optional()
-    .custom((value) => !value || mongoose.Types.ObjectId.isValid(value))
-    .withMessage('Assignee must be a valid ObjectId'),
+    .custom((value) => {
+      if (!value) return true;
+      if (value === 'automatic') return true;
+      return mongoose.Types.ObjectId.isValid(value);
+    })
+    .withMessage('Assignee must be "automatic" or a valid ObjectId'),
 ];
 
 export const update = [
@@ -71,8 +75,12 @@ export const update = [
 
   body('assignee')
     .optional()
-    .custom((value) => !value || mongoose.Types.ObjectId.isValid(value))
-    .withMessage('Assignee must be a valid ObjectId'),
+    .custom((value) => {
+      if (!value) return true;
+      if (value === 'automatic') return true;
+      return mongoose.Types.ObjectId.isValid(value);
+    })
+    .withMessage('Assignee must be "automatic" or a valid ObjectId'),
 
   body('isResolved')
     .optional()
@@ -87,5 +95,47 @@ export const destroy = [
     .bail()
     .custom((value) => mongoose.Types.ObjectId.isValid(value))
     .withMessage('ID must be a valid ObjectId'),
+];
+
+export const sendToPO = [
+  param('id')
+    .notEmpty()
+    .withMessage('ID is required')
+    .bail()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage('ID must be a valid ObjectId'),
+
+  body('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .bail()
+    .isEmail()
+    .withMessage('Email must be a valid email address'),
+];
+
+export const sendAllToPO = [
+  param('projectId')
+    .notEmpty()
+    .withMessage('Project ID is required')
+    .bail()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage('Project ID must be a valid ObjectId'),
+
+  body('email')
+    .notEmpty()
+    .withMessage('Email is required')
+    .bail()
+    .isEmail()
+    .withMessage('Email must be a valid email address'),
+
+  body('questionIds')
+    .notEmpty()
+    .withMessage('Question IDs are required')
+    .bail()
+    .isArray()
+    .withMessage('Question IDs must be an array')
+    .bail()
+    .custom((value) => value.every((id: string) => mongoose.Types.ObjectId.isValid(id)))
+    .withMessage('All question IDs must be valid ObjectIds'),
 ];
 

@@ -294,6 +294,12 @@ export const init = async (dbConnection: any) => {
     isPublic: true,
     permissions: productManagerPermissions,
   });
+  const productOwnerRole = new roleModel({
+    name: 'Product Owner',
+    slug: 'product-owner',
+    isPublic: true,
+    permissions: productManagerPermissions,
+  });
   const guestRole = new roleModel({
     name: 'Guest',
     slug: 'guest',
@@ -304,6 +310,7 @@ export const init = async (dbConnection: any) => {
   await adminRole.save();
   await developerRole.save();
   await productManagerRole.save();
+  await productOwnerRole.save();
   await guestRole.save();
 
   retroBoardServices.initGlobalRetro(dbConnection);

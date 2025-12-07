@@ -1,0 +1,202 @@
+[
+  {
+    "_id": "6830599a7e95c4f7726a1db4",
+    "origin": "https://www.techscrumapp.com",
+    "__v": 0,
+    "active": true,
+    "createdAt": "2025-05-23T11:18:49.208Z",
+    "plan": "Free",
+    "tenantTrialHistory": [
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "687dedd3a2af8384f0fec1d0"
+      }
+    ],
+    "updatedAt": "2025-07-21T07:35:47.172Z",
+    "owner": "6830599a7e95c4f7726a1db5"
+  },
+  {
+    "_id": "68514f0d0e76b304059b9141",
+    "origin": "https://asd.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "687dedd4a2af8384f0fec1d4"
+      }
+    ],
+    "createdAt": "2025-06-17T11:18:37.173Z",
+    "updatedAt": "2025-07-21T07:35:48.662Z",
+    "__v": 0,
+    "owner": "6832d2487e95c4f7726a2907"
+  },
+  {
+    "_id": "68529a070e76b304059b9327",
+    "origin": "https://lumaai.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "687dedd6a2af8384f0fec1d8"
+      }
+    ],
+    "createdAt": "2025-06-18T10:50:47.481Z",
+    "updatedAt": "2025-07-21T07:35:50.135Z",
+    "__v": 0,
+    "owner": "68529a070e76b304059b932a"
+  },
+  {
+    "_id": "685568a2c3feab32ca5e2070",
+    "origin": "https://victor.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "687dedd7a2af8384f0fec1dc"
+      }
+    ],
+    "createdAt": "2025-06-20T13:56:50.109Z",
+    "updatedAt": "2025-07-21T07:35:51.740Z",
+    "__v": 0,
+    "owner": "685568a2c3feab32ca5e2082"
+  },
+  {
+    "_id": "68556ba5c3feab32ca5e213c",
+    "origin": "https://victorwei.techscrumapp.com",
+    "plan": "Free",
+    "active": false,
+    "tenantTrialHistory": [
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "687dedd9a2af8384f0fec1e0"
+      }
+    ],
+    "createdAt": "2025-06-20T14:09:41.833Z",
+    "updatedAt": "2025-07-21T07:35:53.085Z",
+    "__v": 0,
+    "owner": "68555597c3feab32ca5e1f4c"
+  },
+  {
+    "_id": "6881b78cddeac125d36b6ed2",
+    "origin": "https://eden.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "6881b7d1ddeac125d36b6f13"
+      }
+    ],
+    "createdAt": "2025-07-24T04:33:16.273Z",
+    "updatedAt": "2025-07-24T04:34:26.878Z",
+    "__v": 0,
+    "owner": "6881b78cddeac125d36b6ed6",
+    "email": "keith@eden.pm"
+  },
+  {
+    "_id": "68dfd28d6c8b19037dc4679f",
+    "origin": "https://helloworld.techscrumapp.com",
+    "plan": "Free",
+    "active": false,
+    "tenantTrialHistory": [],
+    "createdAt": "2025-10-03T13:41:33.289Z",
+    "updatedAt": "2025-10-03T13:41:33.819Z",
+    "__v": 0,
+    "owner": "68dfd28d6c8b19037dc467a2"
+  },
+  {
+    "_id": "68fa9ae36c8b19037dc46899",
+    "origin": "https://zendulge.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "691465825ffd4c8542302332"
+      },
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "6917123d1a820d2f91f2066b"
+      },
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "691ac0a51a820d2f91f24f2a"
+      },
+      {
+        "productId": "prod_SifboeaRqD9XZH",
+        "priceIds": [
+          "price_1RnEGA2KQLl2YaZUR86kMgSv"
+        ],
+        "_id": "69268c19f29b15bfecf25b5d"
+      }
+    ],
+    "createdAt": "2025-10-23T21:15:15.878Z",
+    "updatedAt": "2025-11-26T05:11:54.133Z",
+    "__v": 0,
+    "owner": "68529a070e76b304059b932a",
+    "email": "freyaxu161425@gmail.com"
+  },
+  {
+    "_id": "68fa9b246c8b19037dc468a8",
+    "origin": "https://zendulge1.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [],
+    "createdAt": "2025-10-23T21:16:20.382Z",
+    "updatedAt": "2025-10-23T21:20:01.237Z",
+    "__v": 0,
+    "owner": "68529a070e76b304059b932a"
+  },
+  {
+    "_id": "69222d00796e1f70b6fb7fa5",
+    "origin": "https://ts.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [],
+    "createdAt": "2025-11-22T21:37:04.760Z",
+    "updatedAt": "2025-11-22T21:37:40.527Z",
+    "__v": 0,
+    "owner": "68529a070e76b304059b932a"
+  },
+  {
+    "_id": "692608d9b3219158340dfe3d",
+    "origin": "https://testimport.techscrumapp.com",
+    "plan": "Free",
+    "active": true,
+    "tenantTrialHistory": [],
+    "createdAt": "2025-11-25T19:51:53.411Z",
+    "updatedAt": "2025-11-25T19:52:14.763Z",
+    "__v": 0,
+    "owner": "68529a070e76b304059b932a"
+  }
+]

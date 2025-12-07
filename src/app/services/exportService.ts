@@ -572,14 +572,22 @@ export const importProjectData = async (
     // 6. Import sprints (always create new for the target project)
     for (const sprint of exportData.data.sprints || []) {
       try {
+        // Map old fields to new status field
+        let sprintStatus: 'active' | 'planning' | 'completed' = 'planning';
+        if ((sprint as any).isComplete) {
+          sprintStatus = 'completed';
+        } else if ((sprint as any).currentSprint) {
+          sprintStatus = 'active';
+        } else if ((sprint as any).status) {
+          sprintStatus = (sprint as any).status;
+        }
         const newSprint = await sprintModel.create({
           name: sprint.name,
           project: targetProjectId,
           startDate: sprint.startDate,
           endDate: sprint.endDate,
           description: sprint.description,
-          currentSprint: sprint.currentSprint || false,
-          isComplete: sprint.isComplete || false,
+          status: sprintStatus,
           sprintGoal: sprint.sprintGoal,
         });
         idMapping.sprints[sprint._id.toString()] = newSprint._id.toString();

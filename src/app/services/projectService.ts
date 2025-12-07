@@ -123,7 +123,7 @@ export const projectDetails = async (req: Request) => {
       getLabels(req),
       getUserProjectRole(req),
       typeService.getTicketType(req),
-      findSprints(req.params.id, false, req.dbConnection),
+      findSprints(req.params.id, req.dbConnection),
       getAllStatus(req),
       getAllBoards(req),
       getEpicByProject(req.params.id, req.dbConnection),

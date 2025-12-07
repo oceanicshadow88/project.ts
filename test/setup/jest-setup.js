@@ -15,6 +15,8 @@ beforeAll(async () => {
     req.tenantsConnection = db.tenantsConnection;
     req.tenantId = db.defaultTenant._id;
     req.userId = db.defaultUser._id;
+    req.ownerId = db.defaultUser._id; // Default user is the owner
+    req.user = { id: db.defaultUser._id, _id: db.defaultUser._id, projectsRoles: [] };
     return next();
   });
 
