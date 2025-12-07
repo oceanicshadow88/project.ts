@@ -9,7 +9,6 @@ import {
   updateQuestion,
   deleteQuestion,
   getQuestionsByProject,
-  sendQuestionToPO,
   sendQuestionsToPO,
 } from '../../services/questionService';
 
@@ -64,15 +63,6 @@ export const getByProject = asyncHandler(async (req: Request, res: Response) => 
     return res.sendStatus(status.UNPROCESSABLE_ENTITY);
   }
   const result = await getQuestionsByProject(req);
-  return res.status(status.OK).json(result);
-});
-
-export const sendToPO = asyncHandler(async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.sendStatus(status.UNPROCESSABLE_ENTITY);
-  }
-  const result = await sendQuestionToPO(req);
   return res.status(status.OK).json(result);
 });
 

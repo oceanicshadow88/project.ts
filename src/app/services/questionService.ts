@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import mongoose from 'mongoose';
+import mongoose, { Model, Document } from 'mongoose';
 import * as Question from '../model/question';
 import * as User from '../model/user';
 import * as Ticket from '../model/ticket';
@@ -9,7 +9,24 @@ import * as Project from '../model/project';
 import * as Role from '../model/role';
 import { replaceId } from './replaceService';
 import NotFoundError from '../error/notFound';
-import { emailRecipientTemplate } from '../utils/emailSender';
+import { sendQuestionsToPOEmail, QuestionsToPOEmailData } from '../utils/emailSender';
+import { winstonLogger } from '../../loaders/logger';
+
+interface ProductOwner {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  name?: string;
+  active?: boolean;
+}
+
+interface QuestionWithId {
+  id?: string;
+  _id?: string | mongoose.Types.ObjectId;
+}
+
+interface ReplyWithId {
+  question: string | mongoose.Types.ObjectId | { id?: string; _id?: string | mongoose.Types.ObjectId };
+}
 
 export const getQuestionsByTicket = async (req: Request) => {
   const { ticketId } = req.params;
@@ -24,7 +41,7 @@ export const getQuestionsByTicket = async (req: Request) => {
     .sort({ createdAt: -1 });
 
   const questionsWithIds = replaceId(questions);
-  const questionIds = questionsWithIds.map((q: any) => q.id || q._id);
+  const questionIds = questionsWithIds.map((q: QuestionWithId) => q.id || q._id);
 
   // Get all replies for these questions in a single query
   const allReplies = await replyModel
@@ -35,14 +52,14 @@ export const getQuestionsByTicket = async (req: Request) => {
   const repliesWithIds = replaceId(allReplies);
 
   // Group replies by question ID
-  const repliesByQuestion: { [questionId: string]: any[] } = {};
-  repliesWithIds.forEach((reply: any) => {
+  const repliesByQuestion: { [questionId: string]: ReplyWithId[] } = {};
+  repliesWithIds.forEach((reply: ReplyWithId) => {
     // reply.question could be an ObjectId, string, or object with id/_id
     let questionId: string;
     if (typeof reply.question === 'string') {
       questionId = reply.question;
-    } else if (reply.question?.id) {
-      questionId = reply.question.id;
+    } else if (reply.question && typeof reply.question === 'object' && 'id' in reply.question) {
+      questionId = String(reply.question.id);
     } else if (reply.question?._id) {
       questionId = reply.question._id.toString();
     } else if (reply.question) {
@@ -175,12 +192,102 @@ export const createQuestion = async (req: Request) => {
   return replaceId(populatedQuestion);
 };
 
+// Helper function to get Product Owners for a project
+const getProductOwnersForProject = async (
+  projectId: string,
+  userModel: unknown,
+  projectModel: unknown,
+  roleModel: unknown,
+): Promise<ProductOwner[]> => {
+  const productOwners: ProductOwner[] = [];
+
+  // Find Product Owner role
+  const roleModelTyped = roleModel as Model<Document>;
+  const productOwnerRole = await roleModelTyped
+    .findOne({
+      $or: [
+        { name: { $regex: /product.*owner/i } },
+        { slug: { $regex: /product.*owner/i } },
+      ],
+    })
+    .lean();
+
+  if (productOwnerRole && productOwnerRole._id) {
+    // Find users with Product Owner role in this project
+    const userModelTyped = userModel as Model<Document>;
+    const usersWithPORole = await userModelTyped
+      .find({
+        'projectsRoles.project': new mongoose.Types.ObjectId(projectId),
+        'projectsRoles.role': productOwnerRole._id,
+        active: true,
+      })
+      .select('email name')
+      .lean();
+
+    for (const user of usersWithPORole) {
+      if (user._id && 'email' in user && typeof user.email === 'string') {
+        productOwners.push({
+          _id: user._id as mongoose.Types.ObjectId,
+          email: user.email,
+          name: 'name' in user && typeof user.name === 'string' ? user.name : undefined,
+        });
+      }
+    }
+  }
+
+  // Also include project owner
+  const projectModelTyped = projectModel as Model<Document>;
+  const project = await projectModelTyped.findById(projectId).select('owner').lean();
+  if (project && 'owner' in project && project.owner) {
+    const userModelTyped = userModel as Model<Document>;
+    const owner = await userModelTyped.findById(project.owner).select('email name active').lean();
+    if (
+      owner &&
+      owner._id &&
+      'active' in owner &&
+      owner.active === true &&
+      'email' in owner &&
+      typeof owner.email === 'string' &&
+      !productOwners.some((po) => po._id?.toString() === owner._id?.toString())
+    ) {
+      productOwners.push({
+        _id: owner._id as mongoose.Types.ObjectId,
+        email: owner.email,
+        name: 'name' in owner && typeof owner.name === 'string' ? owner.name : undefined,
+      });
+    }
+  }
+
+  return productOwners;
+};
+
 export const updateQuestion = async (req: Request) => {
   const { id } = req.params;
   const { title, priority, assignee, isResolved, waitingForStakeholder } = req.body;
   const questionModel = Question.getModel(req.dbConnection);
+  const userModel = await User.getModel(req.tenantsConnection);
+  const projectModel = Project.getModel(req.dbConnection);
+  const roleModel = Role.getModel(req.tenantsConnection);
+  const ticketModel = Ticket.getModel(req.dbConnection);
 
-  const updateData: any = {};
+  // Get the question before update to check if waitingForStakeholder is changing to true
+  const oldQuestion = await questionModel.findById(id).populate({
+    path: 'ticket',
+    model: ticketModel,
+    select: 'project title',
+  });
+
+  if (!oldQuestion) {
+    throw new NotFoundError('Question not found');
+  }
+
+  const updateData: {
+    title?: string;
+    priority?: string;
+    assignee?: string | null;
+    isResolved?: boolean;
+    waitingForStakeholder?: boolean;
+  } = {};
   if (title !== undefined) updateData.title = title;
   if (priority !== undefined) updateData.priority = priority;
   if (assignee !== undefined) updateData.assignee = assignee;
@@ -193,7 +300,71 @@ export const updateQuestion = async (req: Request) => {
     throw new NotFoundError('Question not found');
   }
 
-  const userModel = await User.getModel(req.tenantsConnection);
+  // Send email if waitingForStakeholder was set to true (changed from false)
+  if (
+    waitingForStakeholder === true &&
+    oldQuestion.waitingForStakeholder === false &&
+    !updatedQuestion.isResolved
+  ) {
+    try {
+      const ticket = oldQuestion.ticket;
+      if (ticket && typeof ticket === 'object' && 'project' in ticket) {
+        const projectId = ticket.project?.toString();
+        if (projectId) {
+          const productOwners = await getProductOwnersForProject(
+            projectId,
+            userModel,
+            projectModel,
+            roleModel,
+          );
+
+          if (productOwners.length > 0) {
+            // Get all questions awaiting PO response for this project
+            const allTickets = await ticketModel.find({ project: projectId }).select('_id').lean();
+            const ticketIds = allTickets.map((t: { _id: mongoose.Types.ObjectId }) => t._id);
+
+            if (ticketIds.length > 0) {
+              const allAwaitingQuestions = await questionModel
+                .find({
+                  ticket: { $in: ticketIds },
+                  waitingForStakeholder: true,
+                  isResolved: false,
+                })
+                .select('priority')
+                .lean();
+
+              const totalQuestionsCount = allAwaitingQuestions.length;
+              const urgentQuestionsCount = allAwaitingQuestions.filter(
+                (q: { priority: string }) => q.priority === 'Highest' || q.priority === 'High',
+              ).length;
+
+              const isUrgent = updatedQuestion.priority === 'Highest' || updatedQuestion.priority === 'High';
+              const emailTitle = isUrgent
+                ? `You have 1 Urgent Question: ${updatedQuestion.title}`
+                : `You have 1 New Question: ${updatedQuestion.title}`;
+
+              const emailData: QuestionsToPOEmailData = {
+                questionsCount: totalQuestionsCount,
+                urgentQuestionsCount,
+                projectUrl: `${req.domain}/projects/${projectId}/questions/po-reply`,
+                emailTitle,
+              };
+              // Send email to all Product Owners
+              for (const po of productOwners) {
+                if (po.email) {
+                  await sendQuestionsToPOEmail([po.email], emailData);
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      // Log error but don't fail the update
+      winstonLogger.error('Failed to send email notification for question:', error);
+    }
+  }
+
   const populatedQuestion = await questionModel
     .findById(updatedQuestion._id)
     .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
@@ -224,7 +395,7 @@ export const getQuestionsByProject = async (req: Request) => {
   // Get all tickets for the project
   const tickets = await ticketModel.find({ project: projectId }).select('_id sprint').lean();
 
-  const ticketIds = tickets.map((ticket: any) => ticket._id);
+  const ticketIds = tickets.map((ticket: { _id: mongoose.Types.ObjectId }) => ticket._id);
 
   if (ticketIds.length === 0) {
     return [];
@@ -248,7 +419,7 @@ export const getQuestionsByProject = async (req: Request) => {
     .sort({ createdAt: 1 }); // Oldest first
 
   const questionsWithIds = replaceId(questions);
-  const questionIds = questionsWithIds.map((q: any) => q.id || q._id);
+  const questionIds = questionsWithIds.map((q: QuestionWithId) => q.id || q._id);
 
   // Get all replies for these questions in a single query
   const allReplies = await replyModel
@@ -259,14 +430,14 @@ export const getQuestionsByProject = async (req: Request) => {
   const repliesWithIds = replaceId(allReplies);
 
   // Group replies by question ID
-  const repliesByQuestion: { [questionId: string]: any[] } = {};
-  repliesWithIds.forEach((reply: any) => {
+  const repliesByQuestion: { [questionId: string]: ReplyWithId[] } = {};
+  repliesWithIds.forEach((reply: ReplyWithId) => {
     // reply.question could be an ObjectId, string, or object with id/_id
     let questionId: string;
     if (typeof reply.question === 'string') {
       questionId = reply.question;
-    } else if (reply.question?.id) {
-      questionId = reply.question.id;
+    } else if (reply.question && typeof reply.question === 'object' && 'id' in reply.question) {
+      questionId = String(reply.question.id);
     } else if (reply.question?._id) {
       questionId = reply.question._id.toString();
     } else if (reply.question) {
@@ -292,45 +463,6 @@ export const getQuestionsByProject = async (req: Request) => {
   return questionsWithReplies;
 };
 
-export const sendQuestionToPO = async (req: Request) => {
-  const { id } = req.params;
-  const { email } = req.body;
-  const questionModel = Question.getModel(req.dbConnection);
-  const userModel = await User.getModel(req.tenantsConnection);
-  const ticketModel = Ticket.getModel(req.dbConnection);
-
-  const question = await questionModel
-    .findById(id)
-    .populate({ path: 'createdBy', model: userModel, select: 'name email avatarIcon _id' })
-    .populate({ path: 'assignee', model: userModel, select: 'name email avatarIcon _id' })
-    .populate({
-      path: 'ticket',
-      model: ticketModel,
-      select: 'title project',
-    });
-
-  if (!question) {
-    throw new NotFoundError('Question not found');
-  }
-
-  const emailTo = [email];
-
-  const ticket = typeof question.ticket === 'object' && question.ticket ? question.ticket : null;
-  const ticketTitle = ticket && 'title' in ticket ? ticket.title : 'Unknown Ticket';
-
-  const createdBy = question.createdBy && typeof question.createdBy === 'object' && 'name' in question.createdBy ? question.createdBy.name : 'Unknown';
-  const emailData = {
-    questionTitle: question.title,
-    questionId: question._id.toString(),
-    createdBy,
-    ticketTitle,
-    projectUrl: `${req.protocol}://${req.get('host')}/projects/${ticket && 'project' in ticket ? ticket.project : ''}/questions`,
-  };
-
-  await emailRecipientTemplate(emailTo, emailData, 'QuestionsToPO');
-
-  return { message: 'Question sent to Product Owner successfully' };
-};
 
 export const sendQuestionsToPO = async (req: Request) => {
   const { projectId } = req.params;
@@ -344,7 +476,7 @@ export const sendQuestionsToPO = async (req: Request) => {
 
   // Get all tickets for the project to find all questions
   const tickets = await ticketModel.find({ project: projectId }).select('_id').lean();
-  const ticketIds = tickets.map((ticket: any) => ticket._id);
+  const ticketIds = tickets.map((ticket: { _id: mongoose.Types.ObjectId }) => ticket._id);
 
   if (ticketIds.length === 0) {
     throw new Error('No tickets found for this project');
@@ -352,7 +484,7 @@ export const sendQuestionsToPO = async (req: Request) => {
 
   // Get all questions for this project
   const allProjectQuestions = await questionModel.find({ ticket: { $in: ticketIds } }).select('_id');
-  const allQuestionIds = allProjectQuestions.map((q: any) => q._id.toString());
+  const allQuestionIds = allProjectQuestions.map((q: { _id: mongoose.Types.ObjectId }) => q._id.toString());
 
   // Update waitingForStakeholder: true for selected questions, false for others
   const selectedQuestionIds = questionIds.map((id: string) => new mongoose.Types.ObjectId(id));
@@ -384,7 +516,7 @@ export const sendQuestionsToPO = async (req: Request) => {
 
   const questionsCount = questions.length;
   const urgentQuestionsCount = questions.filter(
-    (q: any) => q.priority === 'Highest' || q.priority === 'High',
+    (q: { priority: string }) => q.priority === 'Highest' || q.priority === 'High',
   ).length;
 
   if (questionsCount === 0) {
@@ -393,13 +525,14 @@ export const sendQuestionsToPO = async (req: Request) => {
 
   const emailTo = [email];
 
-  const emailData = {
+  const emailData: QuestionsToPOEmailData = {
     questionsCount,
     urgentQuestionsCount,
-    projectUrl: `${req.protocol}://${req.get('host')}/projects/${projectId}/questions/po-reply`,
+    projectUrl: `${req.domain}/projects/${projectId}/questions/po-reply`,
+    emailTitle: `Reminder: ${questionsCount} Question(s) Remaining - ${urgentQuestionsCount} Urgent`,
   };
 
-  await emailRecipientTemplate(emailTo, emailData, 'QuestionsToPO');
+  await sendQuestionsToPOEmail(emailTo, emailData);
 
   return { message: 'All questions sent to Product Owner successfully' };
 };

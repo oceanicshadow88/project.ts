@@ -93,7 +93,7 @@ export const emailRecipientTemplate = (
       return;
     }
 
-    emailSenderTemplate(email, data, templateName, (email_err: any, email_data: any) => {
+    emailSenderTemplate(email, data, templateName, (email_err: unknown, email_data: unknown) => {
       if (email_err) {
         reject(email_err);
       } else {
@@ -101,6 +101,22 @@ export const emailRecipientTemplate = (
       }
     });
   });
+};
+
+// Interface for QuestionsToPO email template data
+export interface QuestionsToPOEmailData {
+  questionsCount: number;
+  urgentQuestionsCount: number;
+  projectUrl: string;
+  emailTitle: string;
+}
+
+// Typed function to send QuestionsToPO email
+export const sendQuestionsToPOEmail = async (
+  emailTo: string[],
+  emailData: QuestionsToPOEmailData,
+): Promise<unknown> => {
+  return emailRecipientTemplate(emailTo, emailData, 'QuestionsToPO');
 };
 
 export const emailSender = (email: string, validationCode: string, domain: string = '') => {
