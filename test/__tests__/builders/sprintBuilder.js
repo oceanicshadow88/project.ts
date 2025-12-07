@@ -38,17 +38,31 @@ export default class SprintBuilder extends BaseBuilder {
     return this;
   }
 
-  withIsActive(isActive) {
-    this.properties.isActive = isActive;
+  withStatus(status) {
+    this.properties.status = status;
+    return this;
+  }
+
+  withBoard(board) {
+    this.properties.board = board._id || board;
+    return this;
+  }
+
+  withDescription(description) {
+    this.properties.description = description;
     return this;
   }
 
   async buildDefault() {
     const project = await new ProjectBuilder().save();
+    // Create a simple board ID for testing (board is required)
+    const boardId = new (await import('mongoose')).default.Types.ObjectId();
     return {
       name: 'Sprint Title',
       project: project._id,
+      board: boardId,
       tenant: db.defaultTenant._id,
+      status: 'planning',
     };
   }
 
@@ -56,11 +70,13 @@ export default class SprintBuilder extends BaseBuilder {
     return {
       name: this.properties.name,
       project: this.properties.project,
+      board: this.properties.board,
       tenant: this.properties.tenant,
       startDate: this.properties.startDate,
       endDate: this.properties.endDate,
       goal: this.properties.goal,
-      isActive: this.properties.isActive ?? false,
+      status: this.properties.status ?? 'planning',
+      description: this.properties.description,
     };
   }
 

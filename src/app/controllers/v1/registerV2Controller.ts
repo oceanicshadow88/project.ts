@@ -38,7 +38,6 @@ const canRegisterCompany = (company: string) => {
 };
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  res.sendStatus(status.INTERNAL_SERVER_ERROR);
   // check Validation
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
