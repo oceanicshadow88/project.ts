@@ -330,7 +330,6 @@ export const updateQuestion = async (req: Request) => {
                 projectUrl: `${req.domain}/projects/${projectId}/questions/po-reply`,
                 emailTitle,
               };
-              console.log(productOwners)
               // Send email to all Product Owners
               for (const po of productOwners) {
                 if (po.email) {
