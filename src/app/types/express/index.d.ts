@@ -8,5 +8,6 @@ declare namespace Express {
     tenantsConnection: any;
     ownerId: string;
     isOwner: boolean;
+    domain: string;
   }
 }
