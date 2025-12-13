@@ -48,16 +48,6 @@ export const findTickets = async (
         select: 'name slug',
       })
       .populate({
-        path: 'reporter',
-        model: userModel,
-        select: UserFields,
-      })
-      .populate({
-        path: 'assign',
-        model: userModel,
-        select: UserFields,
-      })
-      .populate({
         path: 'comments',
         model: commentModel,
       })
