@@ -53,7 +53,7 @@ const permission = (slug: string) => {
     if (!(await hasPermission(role, slug, req))) {
       res.status(403).send('nothing');
     }
-    next();
+    next(); //TODO: need test
   };
 };
 
