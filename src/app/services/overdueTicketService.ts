@@ -65,7 +65,7 @@ export class OverdueTicketService {
           ProjectModel, 
           UserModel,
           ReviewReportModel,
-          tenantDb
+          tenantDb,
         );
         totalOverdueTickets += overdueCount;
 
@@ -77,7 +77,7 @@ export class OverdueTicketService {
       }
     }
 
-    console.log(`\n=== Processing Summary ===`);
+    console.log('\n=== Processing Summary ===');
     console.log(`Total broken tickets found: ${totalBrokenTickets}`);
     console.log(`Total broken tickets cleaned: ${totalCleanedTickets}`);
     console.log(`Total overdue tickets processed: ${totalOverdueTickets}`);
@@ -89,8 +89,6 @@ export class OverdueTicketService {
    */
   private static async cleanupBrokenTicketReferences(
     TicketModel: any,
-    UserModel: any,
-    ProjectModel: any
   ): Promise<{ cleanedCount: number; brokenCount: number }> {
     const brokenTicketSamples: BrokenTicketSample[] = [];
     let cleanedCount = 0;
@@ -99,7 +97,7 @@ export class OverdueTicketService {
     try {
       // Find tickets with assigned users
       const ticketsWithAssignees = await TicketModel.find({
-        assign: { $ne: null }
+        assign: { $ne: null },
       }).populate('assign', 'name email').populate('project', 'name');
 
       console.log(`Checking ${ticketsWithAssignees.length} tickets with assignees for broken references...`);
@@ -135,19 +133,19 @@ export class OverdueTicketService {
               projectName: ticket.project?.name || 'Unknown Project',
               assigneeName: ticket.assign?.name || 'Unknown User',
               dueDate: ticket.dueDate,
-              reason: brokenReason
+              reason: brokenReason,
             });
           }
         }
       }
 
       if (brokenCount > 0) {
-        console.log(`\n🔍 Data Integrity Report:`);
+        console.log('\n🔍 Data Integrity Report:');
         console.log(`Found ${brokenCount} tickets with broken references`);
         console.log(`Cleaned ${cleanedCount} tickets (set assign to null for broken user references)`);
         
         if (brokenTicketSamples.length > 0) {
-          console.log(`\nSample broken tickets:`);
+          console.log('\nSample broken tickets:');
           brokenTicketSamples.forEach((sample, index) => {
             console.log(`${index + 1}. Ticket: ${sample.ticketTitle} (ID: ${sample.ticketId})`);
             console.log(`   Project: ${sample.projectName}`);
@@ -160,7 +158,7 @@ export class OverdueTicketService {
         winstonLogger.warn('Data integrity issues found', {
           brokenTicketsCount: brokenCount,
           cleanedTicketsCount: cleanedCount,
-          sampleBrokenTickets: brokenTicketSamples
+          sampleBrokenTickets: brokenTicketSamples,
         });
       }
 
@@ -180,7 +178,7 @@ export class OverdueTicketService {
     ProjectModel: any,
     UserModel: any,
     ReviewReportModel: any,
-    tenantId: string
+    tenantId: string,
   ): Promise<number> {
     const now = new Date();
     
@@ -270,7 +268,7 @@ export class OverdueTicketService {
         assigneeId: ticket.assign._id,
         reportContent,
         status: 'pending',
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
     } catch (error) {

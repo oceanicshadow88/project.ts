@@ -31,10 +31,6 @@ export const findTickets = async (
 
     const labelModel = Label.getModel(dbConnection);
 
-    const UserFields = 'avatarIcon name email';
-
-    const userModel = await User.getModel(tenantConnection);
-
     const commentModel = await Comment.getModel(dbConnection);
 
     const projectModel = await Project.getModel(dbConnection);
