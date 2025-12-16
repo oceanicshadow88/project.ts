@@ -31,10 +31,6 @@ export const findTickets = async (
 
     const labelModel = Label.getModel(dbConnection);
 
-    const UserFields = 'avatarIcon name email';
-
-    const userModel = await User.getModel(tenantConnection);
-
     const commentModel = await Comment.getModel(dbConnection);
 
     const projectModel = await Project.getModel(dbConnection);
@@ -46,16 +42,6 @@ export const findTickets = async (
         path: 'labels',
         model: labelModel,
         select: 'name slug',
-      })
-      .populate({
-        path: 'reporter',
-        model: userModel,
-        select: UserFields,
-      })
-      .populate({
-        path: 'assign',
-        model: userModel,
-        select: UserFields,
       })
       .populate({
         path: 'comments',
