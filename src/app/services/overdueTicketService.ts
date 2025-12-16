@@ -55,7 +55,7 @@ export class OverdueTicketService {
         const ReviewReportModel = ReviewReport.getModel(connection);
 
         // Clean up broken ticket references first
-        const cleanupResult = await this.cleanupBrokenTicketReferences(TicketModel, UserModel, ProjectModel);
+        const cleanupResult = await this.cleanupBrokenTicketReferences(TicketModel);
         totalCleanedTickets += cleanupResult.cleanedCount;
         totalBrokenTickets += cleanupResult.brokenCount;
 
