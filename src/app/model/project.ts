@@ -56,6 +56,51 @@ const projectSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Pre-save middleware to validate projectLead and owner are not null
+projectSchema.pre('save', function (next) {
+  if (!this.projectLead) {
+    const error = new Error('Project lead cannot be null or undefined');
+    return next(error);
+  }
+  
+  if (!this.owner) {
+    const error = new Error('Project owner cannot be null or undefined');
+    return next(error);
+  }
+  
+  next();
+});
+
+// Pre-update middleware to validate projectLead and owner are not set to null
+projectSchema.pre(['updateOne', 'findOneAndUpdate'], function (next) {
+  const update = this.getUpdate() as any;
+  
+  // Check if projectLead is being set to null/undefined
+  if (update.$set && (update.$set.projectLead === null || update.$set.projectLead === undefined)) {
+    const error = new Error('Project lead cannot be set to null or undefined');
+    return next(error);
+  }
+  
+  // Check if owner is being set to null/undefined
+  if (update.$set && (update.$set.owner === null || update.$set.owner === undefined)) {
+    const error = new Error('Project owner cannot be set to null or undefined');
+    return next(error);
+  }
+  
+  // Check direct update without $set
+  if (update.projectLead === null || update.projectLead === undefined) {
+    const error = new Error('Project lead cannot be set to null or undefined');
+    return next(error);
+  }
+  
+  if (update.owner === null || update.owner === undefined) {
+    const error = new Error('Project owner cannot be set to null or undefined');
+    return next(error);
+  }
+  
+  next();
+});
+
 const getModel = (connection: any) => {
   if (!connection) {
     throw new Error('No connection');
