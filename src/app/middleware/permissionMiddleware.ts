@@ -39,20 +39,21 @@ const permission = (slug: string) => {
       next();
       return;
     }
+ 
     const roleId = getProjectRoleId(projectId, projectsRoles);
-
     if (!roleId) {
       res.status(403).send('no role id');
+      return;
     }
     const role: IRole | null = await Role.getModel(req.dbConnection).findById(roleId);
     if (!role) {
       res.status(403).send('Cannot find role');
       return;
     }
-
     if (!(await hasPermission(role, slug, req))) {
       res.status(403).send('nothing');
     }
+    next();
   };
 };
 
