@@ -1,4 +1,4 @@
-import express, { NextFunction } from 'express';
+import express, { Application, NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import config from '../app/config/app';
 
@@ -7,7 +7,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { errorHandler } = require('./errorHandler');
 import status from 'http-status';
-import { globalAsyncErrorHandler } from './routes';
+import { globalAsyncErrorHandler } from './http/routes';
 const compression = require('compression');
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -16,24 +16,26 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = () => {
-  const app = express();
+export function startHttp(appCtx: any): express.Express {
 
-  app.use(compression());
-  app.use(cors({
+  const server = express();
+
+  server.use(compression());
+  server.use(cors({
     exposedHeaders: ['Content-Disposition'], 
   }));
-  app.use(express.json());
+  server.use(express.json());
   if (process.env.LIMITER?.toString() === true.toString()) {
-    app.use(limiter);
+    server.use(limiter);
   }
-  app.use(helmet());
-  app.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
-  app.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
+  server.use(helmet());
+  server.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
+  server.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
     errorHandler.handleError(err, res);
     res.status(status.INTERNAL_SERVER_ERROR).send();
     next();
   });
 
-  return app;
-};
+  appCtx.addInstance('httpServer', server);
+  return appCtx.getInstance<express.Express>('httpServer');
+}

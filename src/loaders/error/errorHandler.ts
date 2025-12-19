@@ -1,4 +1,4 @@
-import { logger } from './logger/winston/logger';
+import { logger } from '../logger/winston/logger';
 
 class ErrorHandler {
   public handleError(error: Error): void {

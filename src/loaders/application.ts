@@ -9,4 +9,4 @@ class Application extends Container {
   }
 }
 
-export const application = new Application();
+export { Application };

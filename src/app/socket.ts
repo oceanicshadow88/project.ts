@@ -1,6 +1,6 @@
-import { Server, Socket } from 'socket.io';
+import {  Server, Socket } from 'socket.io';
+import { createSocketServer } from '../loaders/socket';
 
-// Allocate users to the project room
 function registerRetroSprintRoomHandler(io: Server, socket: Socket) {
   socket.on('join_retro_sprint_room', (sprintId: string) => {
     socket.join(`retro_sprint_room_${sprintId}`);
@@ -12,7 +12,12 @@ function registerRetroItemBoardcastHandler(io: Server, socket: Socket) {
     io.to(`retro_sprint_room_${sprintId}`).emit('retro_item_updated', sprintId);
   });
 }
-export { 
-  registerRetroSprintRoomHandler,
-  registerRetroItemBoardcastHandler,
-};
+
+const socketServer = createSocketServer();
+socketServer.on('connection', (socketIo: Socket) => {
+  registerRetroSprintRoomHandler(socketServer, socketIo);
+  registerRetroItemBoardcastHandler(socketServer, socketIo);
+    
+  socketIo.on('disconnect', () => {
+  });
+});

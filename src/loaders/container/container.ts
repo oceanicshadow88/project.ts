@@ -19,6 +19,14 @@ class Container {
     this.instances.set(token, instance);
     return this;
   }
+
+  public getInstance<T>(token: string): T {
+    const instance = this.instances.get(token);
+    if (!instance) {
+      throw new Error(`No instance found for "${token}"`);
+    }
+    return instance;
+  }
 }
 
 export { Container };
