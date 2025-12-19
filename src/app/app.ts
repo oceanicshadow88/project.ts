@@ -95,3 +95,5 @@ server.listen(config.port, () => {
   // eslint-disable-next-line no-console
   console.log('Error', e);
 });
+
+export default appCtx;
