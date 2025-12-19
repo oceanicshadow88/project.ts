@@ -2,6 +2,8 @@
 import { startHttp } from '../loaders/http';
 import config from '../app/config/app';
 import { Application } from '../loaders/application';
+import { winstonLogger } from '../loaders/logger';
+
 require('./src/app/utils/arrayUtils');
 
 const checkEnvironment = () => {
@@ -84,6 +86,7 @@ checkPayment();
 checkAWS();
 checkSecret();
 const appCtx = new Application();
+appCtx.addInstance('logger', winstonLogger);
 const server = startHttp(appCtx);
 server.listen(config.port, () => {
   // eslint-disable-next-line no-console
