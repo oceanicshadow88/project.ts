@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import * as User from '../model/user';
 import status from 'http-status';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 import config from '../../app/config/app';
 declare module 'express-serve-static-core' {
   interface Request {

@@ -1,10 +1,9 @@
 /* eslint-disable no-console */
-import { startHttp } from '../loaders/http';
+import { startHttp } from '../bootstrap/http';
 import config from '../app/config/app';
-import { Application } from '../loaders/application';
-import { winstonLogger } from '../loaders/logger';
-
-require('./src/app/utils/arrayUtils');
+import { Application } from '../bootstrap/application';
+import { winstonLogger } from '../bootstrap/logger';
+import './utils/arrayUtils';
 
 const checkEnvironment = () => {
   if (

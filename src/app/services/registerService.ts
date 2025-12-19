@@ -3,7 +3,7 @@ import { emailSender } from '../utils/emailSender';
 import * as User from '../model/user';
 import jwt from 'jsonwebtoken';
 import config from '../config/app';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 
 const emailRegister = async (email: string, dbConnection: any, domain: string) => {
   const activeCode = randomStringGenerator(16);

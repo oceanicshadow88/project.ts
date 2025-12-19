@@ -6,7 +6,7 @@ import status from 'http-status';
 import * as Tenant from '../../model/tenants';
 import * as User from '../../model/user';
 import { emailRegister, createSubscription } from '../../services/registerServiceV2';
-import { winstonLogger } from '../../../loaders/logger';
+import { winstonLogger } from '../../../bootstrap/logger';
 import config from '../../config/app';
 
 export const invalidSubdomains: { [key: string]: boolean } = {

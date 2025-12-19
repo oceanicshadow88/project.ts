@@ -2,7 +2,7 @@ import { CallbackWithoutResultAndOptionalError, Schema, Types } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import config from '../config/app';
 import bcrypt from 'bcrypt';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 
 export interface IProjectRole {
   project: Types.ObjectId;

@@ -1,5 +1,5 @@
 import {  Server, Socket } from 'socket.io';
-import { createSocketServer } from '../loaders/socket';
+import { createSocketServer } from '../bootstrap/socket';
 
 function registerRetroSprintRoomHandler(io: Server, socket: Socket) {
   socket.on('join_retro_sprint_room', (sprintId: string) => {

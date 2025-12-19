@@ -7,7 +7,7 @@ import status from 'http-status';
 import * as Tenant from '../model/tenants';
 import config from '../../app/config/app';
 import { dataConnectionPool } from '../utils/dbContext';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 import { tenantsDBConnection, tenantDBConnection, PUBLIC_DB } from '../database/connections';
 
 enum Plans {

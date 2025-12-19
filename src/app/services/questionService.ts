@@ -10,7 +10,7 @@ import * as Role from '../model/role';
 import { replaceId } from './replaceService';
 import NotFoundError from '../error/notFound';
 import { sendQuestionsToPOEmail, QuestionsToPOEmailData } from '../utils/emailSender';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 
 interface ProductOwner {
   _id: mongoose.Types.ObjectId;

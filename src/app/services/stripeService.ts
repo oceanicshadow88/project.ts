@@ -3,7 +3,7 @@ import * as StripePrice from '../model/stripePrice';
 import * as StripeSession from '../model/stripeSession';
 import * as StripeSubscription from '../model/stripeSubscription';
 import * as Tenant from '../model/tenants';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 import mongoose, { Mongoose } from 'mongoose';
 import { getStripe } from '../lib/stripe';
 import { Stripe } from 'stripe';

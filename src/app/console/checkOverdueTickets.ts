@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 import config from '../config/app';
 import { OverdueTicketService } from '../services/overdueTicketService';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 mongoose.set('strictQuery', true);
 /**
  * Scheduled job to check for overdue tickets and process them

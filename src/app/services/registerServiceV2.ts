@@ -1,6 +1,6 @@
 import { emailSender, getDomain } from '../utils/emailSender';
 import jwt from 'jsonwebtoken';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 import mongoose from 'mongoose';
 import * as User from '../model/user';
 import config from '../config/app';
