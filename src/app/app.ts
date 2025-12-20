@@ -85,6 +85,7 @@ checkPayment();
 checkAWS();
 checkSecret();
 const appCtx = new Application();
+appCtx.init();
 appCtx.addInstance('logger', winstonLogger);
 const server = startHttp(appCtx);
 server.listen(config.port, () => {

@@ -20,6 +20,8 @@
     "loggly": "node --inspect dist/loggly.js",
     "start": "node dist/index.js",
     "dev:web": "ts-node-dev --respawn --transpile-only src/app/app.ts",
+    "dev:worker": "ts-node-dev --respawn --transpile-only src/bootstrap/worker.ts",
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:worker\"",
     "lint": "eslint src/",
     "prepare": "husky install",
     "postinstall": "node -e \"try { require('husky').install() } catch (e) {if (e.code !== 'MODULE_NOT_FOUND') throw e}\"",
