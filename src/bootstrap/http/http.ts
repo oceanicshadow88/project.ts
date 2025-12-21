@@ -3,15 +3,14 @@ import express, { NextFunction } from 'express';
 import rateLimit from 'express-rate-limit';
 import cors from 'cors';
 import helmet from 'helmet';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const compression = require('compression');
-import config from '../app/config/app';
-import { errorHandler } from './error/errorHandler';
+import { config } from '../../app/config/app';
+import { errorHandler } from '../error/errorHandler';
+import { globalAsyncErrorHandler } from './routes';
 import status from 'http-status';
-import { globalAsyncErrorHandler } from './http/routes';
-import { Application as AppContext } from './application';
-
-const apiRouterV2 = require('../app/routes/v2/api');
+import { Application as AppContext } from '../application';
+import compression from 'compression';
+import apiRouterV2 from '../../app/routes/v2/api';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,

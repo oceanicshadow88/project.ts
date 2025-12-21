@@ -11,6 +11,7 @@ import { replaceId } from './replaceService';
 import NotFoundError from '../error/notFound';
 import { sendQuestionsToPOEmail, QuestionsToPOEmailData } from '../utils/emailSender';
 import { winstonLogger } from '../../bootstrap/logger';
+import { QuestionJob } from '../jobs/questionJob';
 
 interface ProductOwner {
   _id: mongoose.Types.ObjectId;
@@ -183,6 +184,10 @@ export const createQuestion = async (req: Request) => {
   if (!newQuestion) {
     throw new NotFoundError('Failed to create question');
   }
+
+  QuestionJob.dispatch({
+    questionId: newQuestion._id.toString(),
+  });
 
   const populatedQuestion = await questionModel
     .findById(newQuestion._id)

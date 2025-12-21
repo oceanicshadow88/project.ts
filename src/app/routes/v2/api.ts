@@ -67,6 +67,7 @@ import * as replyController from '../../controllers/v1/replyController';
 import * as replyValidation from '../../validations/replyValidation';
 import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
+import exp from 'constants';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -511,4 +512,5 @@ router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 router.post('/ai/optimize', aiController.optimize);
 
 //code review: Some endpoints may not require saas middleware
-module.exports = router;
+
+export default router;
