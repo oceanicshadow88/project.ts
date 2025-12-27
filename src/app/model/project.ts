@@ -72,33 +72,19 @@ projectSchema.pre('save', function (next) {
 });
 
 // Pre-update middleware to validate projectLead and owner are not set to null
-projectSchema.pre(['updateOne', 'findOneAndUpdate'], function (next) {
-  const update = this.getUpdate() as any;
-  
-  // Check if projectLead is being set to null/undefined
-  if (update.$set && (update.$set.projectLead === null || update.$set.projectLead === undefined)) {
+projectSchema.pre('save', function (next) {
+  if (!this.isModified('projectLead') && !this.isModified('owner')) {
+    next();
+    return;
+  }
+  if (this?.projectLead === null || this?.projectLead === undefined) {
     const error = new Error('Project lead cannot be set to null or undefined');
     return next(error);
   }
-  
-  // Check if owner is being set to null/undefined
-  if (update.$set && (update.$set.owner === null || update.$set.owner === undefined)) {
+  if (this?.owner === null || this?.owner === undefined) {
     const error = new Error('Project owner cannot be set to null or undefined');
     return next(error);
   }
-  
-  // Check direct update without $set
-  if (update.projectLead === null || update.projectLead === undefined) {
-    const error = new Error('Project lead cannot be set to null or undefined');
-    return next(error);
-  }
-  
-  if (update.owner === null || update.owner === undefined) {
-    const error = new Error('Project owner cannot be set to null or undefined');
-    return next(error);
-  }
-  
-  next();
 });
 
 const getModel = (connection: any) => {

@@ -107,8 +107,6 @@ const JOBS_DIR = path.join(process.cwd(), 'src/app/jobs');
 export async function main(app: Application) {
   
   // Initialize job provider
-  
-  console.log('[worker] started');
 
   while (true) {
     try {
@@ -133,7 +131,6 @@ export async function main(app: Application) {
         //   }),
         // );
         const envelope = JSON.parse(msg.Body) as Envelope;
-        console.log(envelope);
         const mod = await safeImportJobModule(JOBS_DIR, envelope.data.jobName);
         
         // Look for the job class - try multiple naming conventions
@@ -153,14 +150,12 @@ export async function main(app: Application) {
           await job.handle();
 
           //   // ✅ 成功才 delete
-          //   await sqs.send(
-          //     new DeleteMessageCommand({
-          //       QueueUrl: QUEUE_URL,
-          //       ReceiptHandle: msg.ReceiptHandle,
-          //     }),
-          //   );
-
-          console.log('[worker] job done:', envelope.data.jobName);
+          await sqs.send(
+            new DeleteMessageCommand({
+              QueueUrl: QUEUE_URL,
+              ReceiptHandle: msg.ReceiptHandle,
+            }),
+          );
         } catch (err) {
           console.error('[worker] job failed:', envelope.data.jobName, err);
           // ❌ 不 delete → SQS 自动重试

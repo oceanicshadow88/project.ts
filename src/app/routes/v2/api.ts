@@ -67,7 +67,8 @@ import * as replyController from '../../controllers/v1/replyController';
 import * as replyValidation from '../../validations/replyValidation';
 import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
-import exp from 'constants';
+import * as promptValidation from '../../validations/promptValidation';
+import * as promptController from '../../controllers/v1/promptController';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -508,8 +509,38 @@ router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboa
 
 router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 
-//openAi Funciton call
+//openAi Function call
 router.post('/ai/optimize', aiController.optimize);
+
+// Prompts CRUD API
+router.get('/prompts', 
+  authenticationTokenMiddleware,
+  promptValidation.listPromptsValidation,
+  promptController.index,
+);
+
+router.get('/prompts/:id', 
+  authenticationTokenMiddleware,
+  promptValidation.getPromptValidation,
+  promptController.show,
+);
+
+router.post('/prompts', 
+  authenticationTokenMiddleware,
+  promptValidation.createPromptValidation,
+  promptController.store,
+);
+
+router.put('/prompts/:id', 
+  authenticationTokenMiddleware,
+  promptValidation.updatePromptValidation,
+  promptController.update,
+);
+
+router.delete('/prompts/:id', 
+  authenticationTokenMiddleware,
+  promptController.destroy,
+);
 
 //code review: Some endpoints may not require saas middleware
 

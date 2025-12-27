@@ -187,6 +187,8 @@ export const createQuestion = async (req: Request) => {
 
   QuestionJob.dispatch({
     questionId: newQuestion._id.toString(),
+    ticketTitle: ticketDoc.title,
+    tenantId: req.tenantId,
   });
 
   const populatedQuestion = await questionModel
