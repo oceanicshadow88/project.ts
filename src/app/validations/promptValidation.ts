@@ -16,11 +16,7 @@ export const createPromptValidation = [
     .trim(),
 ];
 
-export const updatePromptValidation = [
-  param('id')
-    .isUUID()
-    .withMessage('Invalid prompt ID format'),
-    
+export const updatePromptValidation = [    
   body('title')
     .optional()
     .isLength({ min: 1, max: 255 })

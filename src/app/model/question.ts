@@ -8,6 +8,8 @@ export interface IQuestion {
   waitingForStakeholder: boolean;
   ticket: Types.ObjectId;
   createdBy: Types.ObjectId;
+  isClear: boolean;
+  messages: string[];
 }
 
 export type IQuestionDocument = IQuestion & Document;
@@ -48,6 +50,13 @@ const questionSchema = new Schema<IQuestionDocument>(
       ref: 'users',
       required: true,
     },
+    isClear: {
+      type: Boolean,
+      default: true,
+    },
+    messages: [
+      { type: String }
+    ]
   },
   {
     timestamps: true,
