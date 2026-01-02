@@ -55,8 +55,8 @@ const questionSchema = new Schema<IQuestionDocument>(
       default: true,
     },
     messages: [
-      { type: String }
-    ]
+      { type: String },
+    ],
   },
   {
     timestamps: true,

@@ -71,7 +71,6 @@ export abstract class BaseJob<TPayload> {
         payload,
       },
     };
-    console.log(this.jobName);
     const cmd = new SendMessageCommand({
       QueueUrl: queueUrl,
       MessageBody: JSON.stringify(body),
