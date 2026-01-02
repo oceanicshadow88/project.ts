@@ -6,7 +6,7 @@ import * as Ticket from '../model/ticket';
 import * as Project from '../model/project';
 import * as User from '../model/user';
 import * as ReviewReport from '../model/reviewReport';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 
 interface BrokenTicketSample {
   ticketId: string;

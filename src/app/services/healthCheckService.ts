@@ -5,7 +5,7 @@ const { tenantsDBConnection, tenantDBConnection, PUBLIC_DB } = require('../datab
 import config from '../config/app';
 import whois from 'whois-json';
 import awsConfig from '../config/aws';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 
 interface RegistrationData {
   domainStatus?: string | undefined;

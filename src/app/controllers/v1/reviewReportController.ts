@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { OverdueTicketService } from '../../services/overdueTicketService';
 import { dataConnectionPool } from '../../utils/dbContext';
 import * as ReviewReport from '../../model/reviewReport';
-import { winstonLogger } from '../../../loaders/logger';
+import { winstonLogger } from '../../../bootstrap/logger';
 
 /**
  * Submit a review report for an overdue ticket

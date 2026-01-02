@@ -3,7 +3,7 @@
 import { invalidSubdomains } from '../controllers/v1/registerV2Controller';
 import { SES } from '@aws-sdk/client-ses';
 import config from '../config/app';
-import { winstonLogger } from '../../loaders/logger';
+import { winstonLogger } from '../../bootstrap/logger';
 import awsConfig from '../config/aws';
 
 function cb(email_err: any, email_data: any): void {
