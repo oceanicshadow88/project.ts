@@ -1,0 +1,332 @@
+$name-width: 30%;
+$email-width: 30%;
+$role-width: 20%;
+$btn-width: 20%;
+
+@import "../../../../variables-only.scss";
+
+.projectMemberMainContainer {
+  position: relative;
+  margin: 0;
+  margin-bottom: 24px;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    margin: 0;
+
+    thead {
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+
+      tr {
+        border-collapse: collapse;
+        text-indent: initial;
+        border-spacing: 2px;
+
+        .names {
+          padding: 10px 12px;
+          border: none;
+          box-sizing: border-box;
+          font-size: 12px;
+          font-weight: 600;
+          position: relative;
+          text-align: left;
+          vertical-align: top;
+          color: $textPrimaryColor;
+          width: $name-width;
+
+          &:hover {
+            cursor: pointer;
+            background-color: rgba(9, 30, 66, 0.08);
+          }
+
+          span {
+            position: relative;
+            white-space: nowrap;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgb(94, 108, 132);
+            line-height: 1.43;
+          }
+        }
+
+        .email {
+          padding: 10px 12px;
+          border: none;
+          box-sizing: border-box;
+          font-size: 12px;
+          font-weight: 600;
+          position: relative;
+          text-align: left;
+          vertical-align: top;
+          color: $textPrimaryColor;
+          width: $email-width;
+
+          &:hover {
+            cursor: pointer;
+            background-color: rgba(9, 30, 66, 0.08);
+          }
+
+          span {
+            position: relative;
+            white-space: nowrap;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgb(94, 108, 132);
+            line-height: 1.43;
+          }
+        }
+
+        .role {
+          padding: 10px 12px;
+          border: none;
+          box-sizing: border-box;
+          font-size: 12px;
+          font-weight: 600;
+          position: relative;
+          text-align: left;
+          vertical-align: top;
+          color: $textPrimaryColor;
+          width: $role-width;
+
+          span {
+            position: relative;
+            white-space: nowrap;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgb(94, 108, 132);
+            line-height: 1.43;
+          }
+        }
+
+        .buttons {
+          padding: 10px 12px;
+          border: none;
+          box-sizing: border-box;
+          font-size: 12px;
+          font-weight: 600;
+          position: relative;
+          text-align: left;
+          vertical-align: top;
+          color: $textPrimaryColor;
+          width: 4.25%;
+          width: $btn-width;
+        }
+      }
+    }
+
+    tbody {
+      vertical-align: top;
+      border-bottom: 1px solid #e5e7eb;
+      width: 100%;
+
+      tr {
+
+        // Ensure all cells are vertically centered by default
+        th {
+          vertical-align: middle;
+        }
+
+        border-bottom: 1px solid #f1f5f9;
+
+        &:hover {
+          background-color: #f9fafb;
+        }
+
+        .name {
+          align-items: center;
+          padding: 12px 12px;
+          display: flex;
+          flex: 1 1 auto;
+          flex-direction: row;
+          gap: 8px;
+          width: 100%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          img {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            margin-right: 0;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            border: 0;
+          }
+
+          span {
+            margin-left: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.43;
+            letter-spacing: normal;
+            color: $textPrimaryColor;
+          }
+        }
+
+        .email {
+          text-align: left;
+          padding: 12px 12px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.43;
+            letter-spacing: normal;
+            color: $textPrimaryColor;
+          }
+        }
+
+        .role {
+          overflow: hidden;
+          border: none;
+          text-align: left;
+          padding: 12px 12px;
+
+          select {
+            width: 100%;
+            height: 32px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background: #fff;
+            padding: 0 10px;
+            font-size: 13px;
+            color: $textPrimaryColor;
+            outline: none;
+            transition: border-color .15s ease, box-shadow .15s ease;
+
+            &:hover {
+              border-color: #cbd5e1;
+            }
+
+            &:focus {
+              border-color: $primaryColor;
+              box-shadow: 0 0 0 3px rgba(106, 42, 221, 0.12);
+            }
+          }
+
+          span {
+            padding: 0;
+          }
+        }
+
+        .buttons {
+          padding: 12px 12px;
+          vertical-align: middle;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+
+          button {
+            margin: 3px 6px 3px 0;
+            align-items: baseline;
+            border-width: 0;
+            border-color: transparent;
+            border-radius: 6px;
+            box-sizing: border-box;
+            display: inline-flex;
+            font-size: 13px;
+            font-style: normal;
+            font-family: inherit;
+            font-weight: 500;
+            max-width: 100%;
+            position: relative;
+            text-align: center;
+            text-decoration: none;
+            white-space: nowrap;
+            background: transparent;
+            color: #ef4444;
+            cursor: pointer;
+            height: 32px;
+            line-height: 32px;
+            padding: 5px;
+            vertical-align: middle;
+            width: auto;
+            justify-content: center;
+            transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+
+            &:hover {
+              background: rgba(239, 68, 68, 0.08);
+              color: #dc2626;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Icon-only danger button for remove member */
+.iconDangerBtn {
+  background: transparent !important;
+  color: #ef4444 !important;
+  border: none !important;
+  height: 28px !important;
+  width: 28px !important;
+  min-width: 28px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0 !important;
+  border-radius: 6px;
+  transition: background-color .15s ease, color .15s ease;
+
+  svg {
+    display: block;
+  }
+
+  &:hover {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    color: #dc2626 !important;
+  }
+}
+
+/* Confirm modal */
+.confirmModal {
+  padding: 16px 20px;
+  min-width: 320px;
+}
+
+.confirmHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.confirmText {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #4f5366;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+

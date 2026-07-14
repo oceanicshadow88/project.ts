@@ -1,0 +1,216 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@4.1
+  aws-s3: circleci/aws-s3@2.0
+  snyk: snyk/snyk@1.2.3
+  aws-cloudfront: topmonks/aws-cloudfront@1.0.0
+  jq: circleci/jq@2.2.0
+
+jobs:
+  skip_ci_check:
+    docker:
+      - image: circleci/node:14
+    steps:
+      - checkout
+      - run:
+          name: Check commit message
+          command: |
+            if git log --pretty=format:"%s" -n 1 | grep -q "[skip ci]"; then
+              echo "Commit message indicates to skip CI. Exiting."
+              circleci-agent step halt
+            fi
+
+  build_production:
+    docker:
+      - image: cimg/node:20.5.1-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: yarn build
+      - aws-s3/copy:
+          from: build/
+          to: s3://techscrumapp.com
+          arguments: --recursive
+      - aws-cloudfront/invalidate:
+          distribution_id: E28E7CS1KHPD0K
+          paths: /*
+
+  build_staging:
+    docker:
+      - image: cimg/node:20.5.1-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: yarn build
+      - aws-s3/copy:
+          from: build/
+          to: s3://staging.techscrumapp.com
+          arguments: --recursive
+      - aws-cloudfront/invalidate:
+          distribution_id: E28E7CS1KHPD0K
+          paths: /*
+
+  build_dev:
+    docker:
+      - image: cimg/node:20.5.1-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run: yarn build
+      - aws-s3/copy:
+          from: build/
+          to: s3://dev.techscrumapp.com
+          arguments: --recursive
+      - aws-cloudfront/invalidate:
+          distribution_id: E28E7CS1KHPD0K
+          paths: /*
+
+  dscan:
+    docker:
+      - image: cimg/node:20.5.1-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+  dast:
+    docker:
+      - image: cimg/node:20.5.1-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+  sast:
+    docker:
+      - image: cimg/node:20.5.1-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - jq/install
+      - run: yarn lint
+
+  semantic_release:
+    docker:
+      - image: cimg/node:20.5.1-browsers
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run: yarn install
+      - save_cache:
+          paths:
+            - node_modules
+            - ~/.npm
+            - ~/.cache
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run:
+          name: Run Semantic Release
+          command: npx semantic-release
+
+workflows:
+  simple_workflow:
+    jobs:
+      - skip_ci_check
+      - dscan:
+          requires:
+            - skip_ci_check
+      - dast:
+          requires:
+            - skip_ci_check
+      - sast:
+          requires:
+            - skip_ci_check
+      - build_production:
+          requires:
+            - sast
+            - dast
+            - dscan
+          filters:
+            branches:
+              only:
+                - main
+      - build_staging:
+          requires:
+            - sast
+            - dast
+          filters:
+            branches:
+              only:
+                - staging
+      - build_dev:
+          requires:
+            - sast
+            - dast
+          filters:
+            branches:
+              only:
+                - develop

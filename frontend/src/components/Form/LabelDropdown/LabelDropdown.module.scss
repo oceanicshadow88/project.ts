@@ -1,0 +1,143 @@
+$textColor: #616c82;
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #dfe1e6;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 300px;
+  max-height: 300px;
+  overflow: hidden;
+}
+
+.dropdownHeader {
+  padding: 8px 12px;
+  background: #f7f8f9;
+  border-bottom: 1px solid #dfe1e6;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5e6c84;
+  text-transform: uppercase;
+}
+
+.searchContainer {
+  padding: 8px 12px;
+  border-bottom: 1px solid #dfe1e6;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: #0052cc;
+    box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+  }
+
+  &::placeholder {
+    color: #97a0af;
+  }
+}
+
+.labelList {
+  max-height: 250px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c7d0;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #b3bac5;
+  }
+}
+
+.labelItem {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  color: $textColor;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f4f5f7;
+  }
+
+  &:focus {
+    background-color: #deebff;
+    outline: none;
+  }
+
+  &:active {
+    background-color: #b3d4ff;
+  }
+}
+
+.loadingItem,
+.emptyItem {
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: #6b778c;
+  font-style: italic;
+}
+
+.emptyItem {
+  color: #97a0af;
+}
+
+.divider {
+  margin: 4px 0;
+  border-top: 1px solid #dfe1e6;
+}
+
+.createLabelButton {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  color: #0052cc;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-style: italic;
+
+  &:hover {
+    background-color: #f4f5f7;
+  }
+
+  &:focus {
+    background-color: #deebff;
+    outline: none;
+  }
+
+  &:active {
+    background-color: #b3d4ff;
+  }
+}

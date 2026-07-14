@@ -1,0 +1,131 @@
+.detailsContainer {
+  padding: 16px 20px;
+  flex-shrink: 0;
+
+  h4 {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f1f1f;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.descriptionArea {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.description {
+  width: 100%;
+  background: transparent;
+  border: none;
+  text-align: left;
+  padding: 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 15px;
+  margin: 0;
+  color: #1f1f1f;
+  transition: background-color 0.15s ease;
+  line-height: 1.6;
+
+  &:hover {
+    background-color: #fafafa;
+  }
+}
+
+.placeholder {
+  color: #a3a3a3;
+  font-style: italic;
+}
+
+.invalid {
+  color: #ef4444;
+}
+
+.tipTapPreview {
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #1c1e21;
+
+  p {
+    margin: 0 0 12px;
+  }
+
+  h1 {
+    font-size: 1.5em;
+    margin: 0.67em 0;
+    font-weight: 600;
+  }
+
+  h2 {
+    font-size: 1.25em;
+    margin: 0.75em 0;
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: 1.1em;
+    margin: 0.75em 0;
+    font-weight: 600;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.25em;
+    margin: 0 0 12px;
+  }
+
+  li {
+    margin-bottom: 6px;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  blockquote {
+    margin: 12px 0;
+    padding: 12px 20px;
+    border-left: 4px solid #ccc;
+    background-color: #f8f8f8;
+    font-style: italic;
+    color: #555;
+  }
+
+  pre {
+    background: #f4f4f4;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: monospace;
+    font-size: 14px;
+    border-radius: 4px;
+  }
+
+  code {
+    background-color: #eee;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 14px;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 12px 0;
+  }
+
+  a {
+    color: #0b5fff;
+    text-decoration: underline;
+  }
+}

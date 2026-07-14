@@ -1,0 +1,31 @@
+@import "../../../../variables-only.scss";
+
+$active-color: $primaryColor;
+$text-color: #737373;
+
+.tabItem {
+  font-weight: 500;
+  font-size: 11px;
+  color: $text-color;
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+  padding: 6px 12px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    color: #1f1f1f;
+    background: #fafafa;
+  }
+
+  &.active {
+    color: $active-color;
+    border-bottom-color: $active-color;
+    background: transparent;
+  }
+}

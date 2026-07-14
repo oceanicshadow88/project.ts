@@ -1,0 +1,41 @@
+.formField {
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: 1px solid rgb(2, 87, 255);
+  height: 40px;
+  padding: 0.5rem;
+  border-radius: 5px;
+
+  .input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    width: 100%;
+  }
+}
+
+.card {
+  display: none; // Hidden by default, shown on column hover
+}
+
+.cardAddNewCard {
+  background: transparent;
+  padding: 10px;
+  box-shadow: none;
+  border-radius: 5px;
+  width: 100%;
+  cursor: pointer;
+  p {
+    text-align: left;
+    color: #3d5278;
+    font-size: 16px;
+  }
+  &:hover {
+    background: transparent;
+  }
+}
+

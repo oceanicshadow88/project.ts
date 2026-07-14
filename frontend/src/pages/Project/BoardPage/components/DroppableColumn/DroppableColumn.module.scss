@@ -1,0 +1,52 @@
+@import "../../../../../variables-only.scss";
+
+.columnsContainer {
+  padding: 0px 10px;
+}
+
+.columnInfo {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 20px;
+  padding-bottom: 20px;
+  h1.name {
+    font-size: 18px;
+    line-height: 1.14286;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ds-text-subtlest, black);
+  }
+
+  h1.num {
+    font-size: 18px;
+    line-height: 1.14286;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: $primaryColor;
+  }
+}
+
+.column {
+  position: relative;
+  width: 270px;
+  min-height: 800px;
+  background: transparent;
+  border-radius: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+}
+
+// Keep the add ticket button at the bottom and hidden by default
+.column > :global(div[class*='cardAddNewCard']) {
+  margin-top: auto;
+  display: none;
+}
+
+// Show add ticket button only when hovering this column
+.column:hover > :global(div[class*='cardAddNewCard']) {
+  display: block !important;
+}
+

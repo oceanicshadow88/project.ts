@@ -1,0 +1,267 @@
+.mainWrapper {
+  padding: 20px;
+}
+
+.pageHeader {
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1f1f1f;
+    margin: 0;
+  }
+}
+
+.container {
+  padding: 20px 0;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
+.emptyMessage {
+  color: #737373;
+  font-style: italic;
+  padding: 20px;
+  text-align: center;
+}
+
+.questionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.questionItem {
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #fff;
+  transition: all 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.questionHeader {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.questionTitle {
+  font-size: 15px;
+  font-weight: 400;
+  color: #1f1f1f;
+  line-height: 1.6;
+}
+
+.questionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 13px;
+  color: #737373;
+}
+
+.ticketInfo,
+.sprintInfo,
+.priorityInfo,
+.assigneeInfo {
+  display: flex;
+  align-items: center;
+}
+
+.resolvedBadge {
+  background-color: #10b981;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.repliedBadge {
+  background-color: #10b981;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.waitingButton {
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #fde68a;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #fde68a;
+    border-color: #fcd34d;
+  }
+}
+
+.markWaitingButton {
+  background-color: transparent;
+  color: #737373;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #e5e5e5;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #fafafa;
+    border-color: #d4d4d4;
+    color: #1f1f1f;
+  }
+}
+
+.loading {
+  padding: 40px;
+  text-align: center;
+  color: #737373;
+}
+
+.repliesSection {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.viewAllButton {
+  background-color: transparent;
+  border: none;
+  color: #0b5fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 8px;
+  text-align: left;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.repliesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.replyItem {
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 6px;
+  border-left: 3px solid #0b5fff;
+}
+
+.replyHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.replyUserInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f1f1f;
+}
+
+.replyContent {
+  color: #1f1f1f;
+  font-size: 14px;
+  line-height: 1.6;
+  padding-left: 32px;
+
+  span[data-type='mention'] {
+    padding: 2px 8px;
+    border-radius: 4px;
+    background-color: #e9d5ff;
+    color: #0b5fff;
+    font-weight: 500;
+  }
+}
+
+.timeAgo {
+  color: #737373;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.addReplyContainer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.addReplyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #e5e5e5;
+  color: #737373;
+  border-radius: 6px;
+  background-color: #fff;
+  padding: 12px 20px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 15px;
+  font-weight: 500;
+
+  &:hover {
+    border-color: #0b5fff;
+    color: #0b5fff;
+    background-color: #fafafa;
+  }
+}
+
+.sendToPOButtonContainer {
+  padding: 0 20px;
+}
+
+// Add filter controls styles
+.filterControls {
+  padding: 12px 20px;
+  margin-bottom: 8px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a5568;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}

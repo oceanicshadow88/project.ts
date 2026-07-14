@@ -1,0 +1,66 @@
+.customDatePicker {
+  width: 100%;
+  height: 100%;
+  min-width: unset;
+  position: relative;
+
+  >div {
+    width: 100% !important;
+  }
+
+  :global(div[data-testid='dueDatePicker']) {
+    width: 100% !important;
+  }
+}
+
+// Fix DatePicker popup positioning to prevent cancel button from going off-screen
+:global {
+
+  // Target Atlaskit DatePicker popup container
+  div[role='dialog'] {
+
+    &[aria-label*='calendar'],
+    &[aria-label*='Calendar'] {
+      // Ensure popup stays within viewport
+      max-width: calc(100vw - 20px) !important;
+      max-height: calc(100vh - 20px) !important;
+
+      // If popup would go off right edge, align to right
+      &[style*='left'] {
+        max-width: calc(100vw - 20px) !important;
+      }
+
+      // Ensure internal content doesn't overflow
+      overflow: visible !important;
+
+      // Ensure buttons container doesn't overflow
+      >div {
+        max-width: 100% !important;
+        overflow: visible !important;
+      }
+    }
+  }
+
+  // Ensure buttons are visible and properly constrained
+  div[role='dialog'] button {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    flex-shrink: 0 !important;
+  }
+
+  // Target the footer/button container in DatePicker
+  div[role='dialog'][aria-label*='calendar']>div:last-child,
+  div[role='dialog'][aria-label*='Calendar']>div:last-child {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+
+    button {
+      flex: 0 0 auto !important;
+      min-width: auto !important;
+    }
+  }
+}
