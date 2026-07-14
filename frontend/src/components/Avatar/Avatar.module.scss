@@ -1,0 +1,25 @@
+@import "../../variables-only.scss";
+
+.backlogUserIconWithBorder {
+  height: 25px;
+  width: 25px;
+  border-radius: 100%;
+  margin: 2px;
+  box-shadow: 0 0 0 2px $primaryColor;
+  cursor: pointer;
+}
+
+.backlogUserIconWithBorder:hover {
+  cursor: pointer;
+}
+
+.backlogUserIcon {
+  height: 25px;
+  width: 25px;
+  border-radius: 100%;
+  cursor: pointer;
+}
+
+.backlogUserIcon:hover {
+  cursor: pointer;
+}

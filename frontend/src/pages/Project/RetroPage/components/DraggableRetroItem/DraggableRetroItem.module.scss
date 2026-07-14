@@ -1,0 +1,86 @@
+@import "../../../../../variables-only.scss";
+
+.card {
+  position: relative;
+  box-sizing: border-box;
+  padding: 12px;
+  max-width: 270px;
+  min-height: 55px;
+  border-radius: 15px;
+  user-select: none;
+  margin: 10px 0px;
+  width: 100%;
+  box-shadow: var(
+    --ds-shadow-raised,
+    0 1px 1px rgba(23, 43, 77, 0.2),
+    0 0 1px rgba(23, 43, 77, 0.2)
+  );
+  transition: background-color 140ms ease-in-out 0s, color 140ms ease-in-out 0s;
+  background-color: var(--ds-surface-raised, #ffffff);
+  color: var(--ds-text, #172b4d);
+  &:hover {
+    background: #ebecf0;
+  }
+
+  &:hover .editorContainer .editBtn,
+  .editorContainer:focus-within .editBtn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .cursorPointerSection {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+  .editorContainer {
+    display: flex;
+    align-items: center;
+    word-break: break-word;
+    text-align: start;
+    white-space: pre-line;
+    p {
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+      display: inline-block;
+    }
+  }
+
+  .iconBtn {
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    transition: opacity 160ms ease, background-color 160ms ease;
+    vertical-align: baseline;
+    margin-left: 6px;
+    color: #172b4db7;
+    &:hover {
+      background-color: #dedbe5;
+    }
+  }
+
+  .editBtn {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .deleteBtnContainer {
+    height: 31px;
+    width: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.editorContainer:focus-within .editBtn {
+  opacity: 1;
+  pointer-events: auto;
+}
+

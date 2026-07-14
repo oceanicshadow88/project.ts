@@ -1,0 +1,81 @@
+@import "../../../variables-only.scss";
+
+.ticketTypeDropDown {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+
+  .ticketTypeBtn {
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    background-color: transparent;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      background-color: transparent;
+      opacity: 0.8;
+    }
+
+    color: #091e42;
+
+    span {
+      font-weight: 400;
+      font-size: 14px;
+    }
+  }
+
+  .ticketTypeDropDownList {
+    list-style: none;
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    padding: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    position: absolute;
+    z-index: 10;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 280px;
+    background-color: #fff;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+
+    li {
+      padding: 0;
+      border-left: 3px solid transparent;
+
+      &:hover {
+        background-color: #f9fafb;
+        border-left-color: $primaryColor;
+      }
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px 10px;
+      background: transparent;
+
+      span {
+        font-size: 14px;
+        font-weight: 500;
+        color: #111827;
+        text-transform: capitalize;
+      }
+
+      img,
+      svg {
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+

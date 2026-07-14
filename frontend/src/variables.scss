@@ -1,0 +1,8 @@
+// Import SCSS variables
+@import "variables-only.scss";
+
+// CSS Custom Properties for use in inline styles
+// This will only be included once in the main index.scss
+:root {
+  --primary-color: #{$primaryColor};
+}
