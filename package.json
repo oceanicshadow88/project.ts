@@ -18,6 +18,7 @@
     "build": "yarn build:backend && yarn build:frontend",
     "build:backend": "yarn workspace be.techscrum build",
     "build:frontend": "yarn workspace fe.techscrum build",
+    "start": "yarn start:backend",
     "start:backend": "yarn workspace be.techscrum start",
     "deploy": "yarn workspace fe.techscrum deploy",
     "cdn": "yarn workspace fe.techscrum cdn",
