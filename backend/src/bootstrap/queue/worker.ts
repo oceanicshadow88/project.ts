@@ -162,7 +162,10 @@ export async function main(app: Application) {
         }
       }
     } catch (err) {
-      console.error('[worker] poll error', err);
+      const code = (err as any)?.name ?? (err as any)?.Code;
+      if (code !== 'QueueDoesNotExist' && code !== 'AWS.SimpleQueueService.NonExistentQueue') {
+        console.error('[worker] poll error', err);
+      }
       await sleep(2000); // 防止 tight loop
     }
   }
