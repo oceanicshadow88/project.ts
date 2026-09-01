@@ -10,6 +10,7 @@
     "frontend"
   ],
   "scripts": {
+    "setup": "yarn install && yarn build:backend && yarn workspace be.techscrum setup",
     "predev": "lsof -ti:3000 -ti:8000 | xargs kill -9 2>/dev/null || true",
     "dev": "concurrently -n backend,frontend -c blue,green \"yarn workspace be.techscrum dev\" \"yarn workspace fe.techscrum start\"",
     "dev:backend": "yarn workspace be.techscrum dev",

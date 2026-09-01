@@ -53,7 +53,7 @@ const getDomain = (req: Request, isLocalEnv: boolean) => {
       return 'localhost';
     }
 
-    return '';
+    throw new Error('Cannot find tenant in local environment. Please set CONNECT_TENANT in .env file or use Postman testing.');
   }
   return hasConnectedTenant
     ? `${config.protocol}${config.connectTenantOrigin}.${config.mainDomain}`

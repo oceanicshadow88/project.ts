@@ -71,22 +71,6 @@ projectSchema.pre('save', function (next) {
   next();
 });
 
-// Pre-update middleware to validate projectLead and owner are not set to null
-projectSchema.pre('save', function (next) {
-  if (!this.isModified('projectLead') && !this.isModified('owner')) {
-    next();
-    return;
-  }
-  if (this?.projectLead === null || this?.projectLead === undefined) {
-    const error = new Error('Project lead cannot be set to null or undefined');
-    return next(error);
-  }
-  if (this?.owner === null || this?.owner === undefined) {
-    const error = new Error('Project owner cannot be set to null or undefined');
-    return next(error);
-  }
-});
-
 const getModel = (connection: any) => {
   if (!connection) {
     throw new Error('No connection');
