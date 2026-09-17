@@ -74,6 +74,43 @@ export const tools: Anthropic.Tool[] = [
   },
 ];
 
+const questionClarityTool: Anthropic.Tool = {
+  name: 'questionClarityCheck',
+  description:
+    'Evaluate whether a question raised on a ticket is clear and whether it aligns with the ticket it belongs to.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      isClear: {
+        type: 'boolean',
+        description: 'True if the question is clear enough to send to the product owner as-is.',
+      },
+      reasoning: {
+        type: 'string',
+        description:
+          'Brief explanation, explicitly referencing the alignment between the ticket title and the question.',
+      },
+      clarityScore: {
+        type: 'number',
+        description: 'How clear the question is, 1-5 (1 = very unclear, 5 = very clear).',
+      },
+      alignmentScore: {
+        type: 'number',
+        description:
+          'How well the question relates to the ticket, 1-5 (1 = completely unrelated, 5 = perfectly aligned).',
+      },
+      suggestions: {
+        type: 'string',
+        description:
+          'If unclear or misaligned, how the title or question could be improved to form a coherent ticket. Empty string if none needed.',
+      },
+    },
+    required: ['isClear', 'reasoning', 'clarityScore', 'alignmentScore', 'suggestions'],
+    additionalProperties: false,
+  },
+};
+
+
 const systemPrompt = {
   optimizeTicketDescription: `你是一个严谨的结构化文档生成助手，还是一个经验丰富的BA，负责将用户输入的信息填充为一份标准的功能说明模板。
               请遵循以下规则：
@@ -110,6 +147,7 @@ export const getSystemPrompt = (action?: string): string => {
 export const getToolChoice = (action?: string): Anthropic.ToolChoice => {
   switch (action) {
     case 'optimizeTicketDescription':
+    case 'questionClarityCheck':
       return { type: 'tool', name: action };
     default:
       return { type: 'auto' };
@@ -120,6 +158,8 @@ export const getTools = (action?: string): Anthropic.Tool[] => {
   switch (action) {
     case 'optimizeTicketDescription':
       return tools;
+    case 'questionClarityCheck':
+      return [questionClarityTool];
     default:
       return [];
   }
