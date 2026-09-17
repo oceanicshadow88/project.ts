@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import * as Permission from '../../model/permission';
+import { getPermissions } from '../../services/permissionService'; 
 import status from 'http-status';
 import { validationResult } from 'express-validator';
 import { replaceId } from '../../services/replaceService';
@@ -12,8 +12,8 @@ export const index = async (req: Request, res: Response, next: NextFunction) => 
   }
   try {
     //use cache after all features move to v2
-    const permission = await Permission.getModel(req.dbConnection).find();
-    res.send(replaceId(permission));
+    const permissions = await getPermissions(req);
+    res.send(replaceId(permissions));
   } catch (e) {
     next(e);
   }
