@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { ToolUseBlock } from '@anthropic-ai/sdk/resources/messages';
 import { CLAUDE_API_KEY, CLAUDE_MODEL } from '../config/claudeAi';
 import { getSystemPrompt, getToolChoice, getTools } from '../utils/aiUtils';
 
@@ -6,12 +7,36 @@ const anthropic = new Anthropic({
   apiKey: CLAUDE_API_KEY,
 });
 
+export const questionClarityCheck = async (
+  combinedTitle: string,
+  systemPrompt: string,
+) => {
+  const messageParams: any = {
+    model: CLAUDE_MODEL,
+    max_tokens: 2000,
+    temperature: 0.1,
+    system: systemPrompt,
+    messages: [
+      {
+        role: 'user',
+        content: combinedTitle,
+      },
+    ],
+    tools: getTools('questionClarityCheck'),
+    tool_choice: getToolChoice('questionClarityCheck'),
+  };
+
+  const msg = await anthropic.messages.create(messageParams);
+  const toolContent = msg.content.find((c) => c.type === 'tool_use') as ToolUseBlock;
+  return toolContent?.input;
+};
+
 const optimizeTextByClaude = async (
   content: string,
   action: string,
 ): Promise<Anthropic.Message> => {
   const messageParams: any = {
-    model: CLAUDE_MODEL || 'claude-3-5-sonnet-20241022',
+    model: CLAUDE_MODEL,
     max_tokens: 1000,
     temperature: 1,
     system: getSystemPrompt(action),
@@ -51,3 +76,5 @@ export const optimizeTextByClaudeWithRetry = async (
   }
   throw new Error('Max retries exceeded');
 };
+
+
