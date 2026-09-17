@@ -3,7 +3,7 @@ import { BaseJob } from '../../bootstrap/queue/jobs/baseJob';
 import * as Prompt from '../model/prompt';
 import * as Question from '../model/question';
 import * as Ticket from '../model/ticket';
-import { analyzeAndProcessTitle } from '../services/openAiService';
+import { questionClarityCheck } from '../services/aiService';
 import { tenantDBConnection } from '../database/connections';
 
 export type TempPayload = { 
@@ -57,13 +57,13 @@ export class QuestionJob extends BaseJob<TempPayload> {
       console.log(`[QuestionJob] Processing with AI: "${combinedTitle}"`);
       console.log(`[QuestionJob] Using system prompt: "${combinedPrompt}"`);
 
-      const aiResult = await analyzeAndProcessTitle(combinedTitle, combinedPrompt);
+      const aiResult = await questionClarityCheck(combinedTitle, combinedPrompt, 'claude-3-5-sonnet-20241022');
       console.log('[QuestionJob] AI processing result:', aiResult);
   
-      question.isClear = aiResult.structured.isClear === 'Yes' ? true : false; 
+      question.isClear = aiResult.isClear; 
       question.assignee = undefined;
       question.waitingForStakeholder = false;
-      question.messages = [aiResult.structured.Reasoning + ' ' + aiResult.structured.Suggestions];
+      question.messages = [aiResult.reasoning + ' ' + aiResult.suggestions];
 
       question.save();
       // Here you could update the question with AI results if needed

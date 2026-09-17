@@ -509,7 +509,7 @@ router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboa
 
 router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 
-//openAi Function call
+// Claude Function call
 router.post('/ai/optimize', aiController.optimize);
 
 // Prompts CRUD API
