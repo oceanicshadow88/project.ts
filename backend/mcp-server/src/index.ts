@@ -2,12 +2,14 @@ import 'dotenv/config';
 import { createMcpExpressApp } from '@modelcontextprotocol/express';
 import { NodeStreamableHTTPServerTransport } from '@modelcontextprotocol/node';
 import { McpServer } from '@modelcontextprotocol/server';
+import { createTicketTool } from './createTicketTool.js';
 
 const app = createMcpExpressApp();
 const server = new McpServer({
   name: 'techscrum-mcp-server',
   version: '1.0.0',
 });
+createTicketTool(server);
 
 app.post('/mcp', async (req, res) => {
   const transport = new NodeStreamableHTTPServerTransport({
