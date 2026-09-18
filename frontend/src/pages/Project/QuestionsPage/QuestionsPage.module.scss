@@ -1,3 +1,5 @@
+$page-content-inset: 30px;
+
 .mainWrapper {
   padding: 20px;
 }
@@ -14,7 +16,7 @@
 }
 
 .container {
-  padding: 20px 0;
+  padding: 20px 0 20px $page-content-inset;
 }
 
 .section {
@@ -238,12 +240,12 @@
 }
 
 .sendToPOButtonContainer {
-  padding: 0 20px;
+  padding: 0 $page-content-inset;
 }
 
 // Add filter controls styles
 .filterControls {
-  padding: 12px 20px;
+  padding: 12px $page-content-inset;
   margin-bottom: 8px;
   background-color: #f8f9fa;
   border-bottom: 1px solid #e5e5e5;
