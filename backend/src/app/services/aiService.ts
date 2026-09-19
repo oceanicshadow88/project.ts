@@ -23,7 +23,6 @@ export const questionClarityCheck = async (
   const messageParams: any = {
     model: model,
     max_tokens: 2000,
-    temperature: 0.1,
     system: systemPrompt,
     messages: [
       {
@@ -47,8 +46,7 @@ const optimizeTextByClaude = async (
 ): Promise<Anthropic.Message> => {
   const messageParams: any = {
     model: model,
-    max_tokens: 1000,
-    temperature: 1,
+    max_tokens: 4000,
     system: getSystemPrompt(action),
     messages: [
       {
@@ -75,7 +73,7 @@ export const optimizeTextByClaudeWithRetry = async (
 ): Promise<Anthropic.Message> => {
   for (let i = 0; i < retries; i++) {
     try {
-      return await optimizeTextByClaude(content, action, 'claude-3-5-sonnet-20241022');
+      return await optimizeTextByClaude(content, action, 'claude-sonnet-5');
     } catch (error: any) {
       if (error.status === 529 && i < retries - 1) {
         await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1)));

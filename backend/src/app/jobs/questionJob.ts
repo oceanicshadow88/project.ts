@@ -57,7 +57,7 @@ export class QuestionJob extends BaseJob<TempPayload> {
       console.log(`[QuestionJob] Processing with AI: "${combinedTitle}"`);
       console.log(`[QuestionJob] Using system prompt: "${combinedPrompt}"`);
 
-      const aiResult = await questionClarityCheck(combinedTitle, combinedPrompt, 'claude-3-5-sonnet-20241022');
+      const aiResult = await questionClarityCheck(combinedTitle, combinedPrompt, 'claude-sonnet-5');
       console.log('[QuestionJob] AI processing result:', aiResult);
   
       question.isClear = aiResult.isClear; 
