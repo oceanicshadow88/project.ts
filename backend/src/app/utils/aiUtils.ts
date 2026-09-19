@@ -83,7 +83,8 @@ const questionClarityTool: Anthropic.Tool = {
     properties: {
       isClear: {
         type: 'boolean',
-        description: 'True if the question is clear enough to send to the product owner as-is.',
+        description:
+          'True only if the question is both clearly worded and relevant to this ticket, so it can be sent to the product owner as-is.',
       },
       reasoning: {
         type: 'string',

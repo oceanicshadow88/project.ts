@@ -27,16 +27,12 @@ export class QuestionJob extends BaseJob<TempPayload> {
       
       // Find the system prompt for questions
       const systemPrompt = await promptModel.findOne({ title: 'question' });
-      const combinedPrompt = systemPrompt?.prompt + `Evaluate the ticket and respond with: 
-        - isClear: Yes / No
-        - Reasoning: Brief explanation, explicitly referencing alignment between title and question
-        - Clarity Score: 1–5 (1 = very unclear, 5 = very clear)
-        - Alignment Score: 1–5 (1 = completely unrelated, 5 = perfectly aligned)
-        - Suggestions (if unclear or misaligned): How the title or question could be improved to form a coherent ticket`;
       if (!systemPrompt) {
         console.warn(`[QuestionJob] No system prompt found with title 'question' for tenant ${this.payload.tenantId}`);
         return;
       }
+      // Output format and scoring criteria come from the questionClarityCheck tool schema.
+      const combinedPrompt = systemPrompt.prompt;
 
       const ticket = await ticketModel.findById(this.payload.ticketId);
       if (!ticket) {
@@ -65,7 +61,7 @@ export class QuestionJob extends BaseJob<TempPayload> {
       question.waitingForStakeholder = false;
       question.messages = [aiResult.reasoning + ' ' + aiResult.suggestions];
 
-      question.save();
+      await question.save();
       // Here you could update the question with AI results if needed
       // await questionModel.findByIdAndUpdate(this.payload.questionId, {
       //   aiAnalysis: aiResult,
