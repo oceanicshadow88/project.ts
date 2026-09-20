@@ -20,10 +20,11 @@ export interface IFilterData {
 
 interface IBoardToolbarProps {
   onChangeFilter: (filterData: IFilterData) => void;
+  actions?: React.ReactNode;
 }
 
 function BoardToolbar(props: IBoardToolbarProps) {
-  const { onChangeFilter } = props;
+  const { onChangeFilter, actions } = props;
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<ILabelData[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<ITypes[]>([]);
@@ -73,6 +74,7 @@ function BoardToolbar(props: IBoardToolbarProps) {
         dataTestId="epic-filter"
       />
       <TicketLabelFilter selectedLabels={selectedLabels} setSelectedLabels={setSelectedLabels} />
+      {actions && <div className={styles.addNewButtonContainer}>{actions}</div>}
     </div>
   );
 }

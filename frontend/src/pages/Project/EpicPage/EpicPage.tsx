@@ -15,7 +15,6 @@ import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import { ITicketBasic, ITicketInput } from '../../../types';
 import CreateEditEpic from './components/CreateEditEpic/CreateEditEpic';
 import styles from './EpicPage.module.scss';
-import ButtonGroupEnd from '../../../lib/FormV2/ButtonGroupEnd/ButtonGroupEnd';
 
 function EpicPage() {
   const { projectId = '' } = useParams();
@@ -131,7 +130,14 @@ function EpicPage() {
   return (
     <ProjectHOC title="Epic">
       <div className={styles.scrollContainer}>
-        <BoardToolbar onChangeFilter={onChangeFilter} />
+        <BoardToolbar
+          onChangeFilter={onChangeFilter}
+          actions={
+            <Button onClick={showCreateModal} dataTestId="epic-create-epic-btn">
+              Create epic
+            </Button>
+          }
+        />
 
         {/* Filter Status Display */}
         {hasActiveFilters() && (
@@ -186,11 +192,6 @@ function EpicPage() {
           </div>
         )}
 
-        <ButtonGroupEnd>
-          <Button onClick={showCreateModal} dataTestId="epic-create-epic-btn">
-            Create epic
-          </Button>
-        </ButtonGroupEnd>
         <DragDropContext
           onDragEnd={(result) => {
             onDragEventHandler(result);
