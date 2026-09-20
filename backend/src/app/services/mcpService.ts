@@ -33,7 +33,7 @@ export const callCreateTicketTool = async (
       );
     }
 
-    if (!textBlock || textBlock.type !== 'text') {
+    if (textBlock?.type !== 'text') {
       throw new Error(
         'The MCP create_ticket tool did not return a validation result',
       );
