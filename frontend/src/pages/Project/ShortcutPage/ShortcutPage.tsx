@@ -11,7 +11,7 @@ import { ProjectContext, ProjectDispatchContext } from '../../../context/Project
 import { deleteShortcut } from '../../../api/shortcut/shortcut';
 import ProjectHOC from '../../../components/HOC/ProjectHOC';
 import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
-import InputV2 from '../../../lib/FormV2/InputV2/InputV2';
+import SearchForBoard from '../../../components/Board/BoardSearch/components/SearchForBoard/SearchForBoard';
 import Modal from '../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import ShortcutModal from '../../../components/Modals/ShortcutModal/ShortcutModal';
@@ -158,15 +158,11 @@ export default function ShortcutPage() {
   const renderSubMenu = () => {
     return (
       <div className={`mr-12 flex justify-between items-center gap-4 ${styles.contentInset}`}>
-        <InputV2
-          label="Search"
-          onValueChanged={(e) => {
-            setSearchInput(e.target.value);
-          }}
-          defaultValue=""
-          name="search"
-          classes="max-w-400 border-3 border-light"
+        <SearchForBoard
+          setInputQuery={setSearchInput}
+          placeholder="Search shortcuts"
           dataTestId="search"
+          debounceMs={0}
         />
         <div>
           {checkAccess(Permission.CreateShortcuts, projectId) && (
