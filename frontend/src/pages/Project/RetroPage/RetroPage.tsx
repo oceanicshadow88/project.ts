@@ -196,10 +196,12 @@ export default function RetroPage() {
 
   return (
     <ProjectHOC title="Board">
-      {(!hasSprint || !selectedBoard || !boardDetails) && <p>No Active Sprint</p>}
+      {(!hasSprint || !selectedBoard || !boardDetails) && (
+        <p className={styles.noSprint}>No Active Sprint</p>
+      )}
       {hasSprint && (
         <>
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+          <div className={styles.filterRow}>
             <div style={{ maxWidth: '250px', width: '100%' }}>
               <Dropdown
                 label="Sprint"
