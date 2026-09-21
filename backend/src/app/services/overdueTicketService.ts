@@ -209,7 +209,7 @@ export class OverdueTicketService {
           }
 
           // Check if review report already exists
-          const existingReport = await ReviewReportModel.findOne({ ticketId: ticket._id });
+          const existingReport = await ReviewReportModel.findOne({ ticket: ticket._id });
           
           if (existingReport) {
             console.log(`Review report already exists for ticket ${ticket._id}, skipping...`);
@@ -264,11 +264,12 @@ export class OverdueTicketService {
       `.trim();
 
       await ReviewReportModel.create({
-        ticketId: ticket._id,
-        assigneeId: ticket.assign._id,
-        reportContent,
+        ticket: ticket._id,
+        assignee: ticket.assign._id,
+        project: ticket.project._id,
+        dueDate: ticket.dueAt,
+        reportContent: reportContent,
         status: 'pending',
-        createdAt: new Date(),
       });
 
     } catch (error) {
@@ -314,8 +315,8 @@ export class OverdueTicketService {
       const ReviewReportModel = ReviewReport.getModel(connection);
 
       await ReviewReportModel.findOneAndUpdate(
-        { ticketId, assigneeId: userId },
-        { 
+        { ticket: ticketId, assignee: userId },
+        {
           reportContent,
           status: 'submitted',
           submittedAt: new Date(),
