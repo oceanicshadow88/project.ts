@@ -1,12 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { validateTicketTitle } from './ticketTitleValidator.js';
+import { validateTicketTitle } from './ticketTitleValidator';
 
-export const createTicketTool = (
+export const ValidateTicketTitleTool = (
   server: McpServer,
 ): void => {
   server.registerTool(
-    'create_ticket',
+    'validate_ticket_title',
     {
       description:
         'Validate a ticket title before creating a ticket.',

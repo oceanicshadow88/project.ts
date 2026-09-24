@@ -1,23 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { z } from 'zod';
-
-const resultSchema = z.discriminatedUnion(
-  'classification',
-  [
-    z.object({
-      classification: z.literal('clear'),
-    }),
-    z.object({
-      classification: z.enum([
-        'unclear',
-        'ambiguous',
-      ]),
-      reason: z.string().min(1),
-    }),
-  ],
-);
-
-type TicketTitleValidationResult = z.infer<typeof resultSchema>;
+import { config } from '../config/app';
+import { ticketTitleValidationSchema, type TicketTitleValidationResult } from '../types/ticketTitleValidation';
 
 const VALIDATION_RULES = `
 Objective
@@ -65,8 +48,7 @@ Return JSON only, using one of these structures:
 export const validateTicketTitle = async (
   title: string,
 ): Promise<TicketTitleValidationResult> => {
-  const apiKey = process.env.MCP_CLAUDE_API_KEY;
-  const model = process.env.MCP_CLAUDE_MODEL;
+  const { claudeApiKey: apiKey, claudeModel: model } = config.mcp;
 
   if (!apiKey || !model) {
     throw new Error(
@@ -106,5 +88,5 @@ export const validateTicketTitle = async (
     .replace(/```$/, '')
     .trim();
 
-  return resultSchema.parse(JSON.parse(json));
+  return ticketTitleValidationSchema.parse(JSON.parse(json));
 };

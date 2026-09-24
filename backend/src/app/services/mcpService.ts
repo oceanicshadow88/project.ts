@@ -1,23 +1,28 @@
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
-import type { ITicketTitleValidationResult } from '../types/ticketTitleValidation';
+import { config } from '../config/app';
+import { ticketTitleValidationSchema, type TicketTitleValidationResult } from '../types/ticketTitleValidation';
 
-export const callCreateTicketTool = async (
+export const callValidateTicketTitleTool = async (
   title: string,
-): Promise<ITicketTitleValidationResult> => {
+): Promise<TicketTitleValidationResult> => {
+  if (!config.mcp.serverUrl) {
+    throw new Error('Missing MCP_SERVER_URL');
+  }
+
   const mcpClient = new Client({
     name: 'techscrum-mcp-client',
     version: '1.0.0',
   });
 
   const transport = new StreamableHTTPClientTransport(
-    new URL('http://127.0.0.1:3001/mcp'),
+    new URL(config.mcp.serverUrl),
   );
 
   try {
     await mcpClient.connect(transport);
 
     const result = await mcpClient.callTool({
-      name: 'create_ticket',
+      name: 'validate_ticket_title',
       arguments: { title },
     });
 
@@ -29,19 +34,17 @@ export const callCreateTicketTool = async (
       throw new Error(
         textBlock?.type === 'text'
           ? textBlock.text
-          : 'The MCP create_ticket tool returned an error',
+          : 'The MCP validate_ticket_title tool returned an error',
       );
     }
 
     if (textBlock?.type !== 'text') {
       throw new Error(
-        'The MCP create_ticket tool did not return a validation result',
+        'The MCP validate_ticket_title tool did not return a validation result',
       );
     }
 
-    return JSON.parse(
-      textBlock.text,
-    ) as ITicketTitleValidationResult;
+    return ticketTitleValidationSchema.parse(JSON.parse(textBlock.text));
   } finally {
     await mcpClient.close();
   }

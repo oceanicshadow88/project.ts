@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-console */
 
-import { callCreateTicketTool } from '../services/mcpService';
+import { callValidateTicketTitleTool } from '../services/mcpService';
 
 const titles = [
   '(SPIKE) Look at controllers and identify any logic that should not be in a controller',
@@ -11,7 +11,7 @@ const titles = [
 const run = async (): Promise<void> => {
   for (const title of titles) {
     try {
-      const result = await callCreateTicketTool(title);
+      const result = await callValidateTicketTitleTool(title);
 
       console.log(`\nTicket title: ${title}`);
       console.log(
