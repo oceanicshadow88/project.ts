@@ -7,9 +7,6 @@ import { Request } from 'express';
 import * as Ticket from '../model/ticket';
 import { replaceId } from './replaceService';
 import NotFoundError from '../error/notFound';
-// import { GPT_MODEL, USER_ROLE } from '../config/openAi';
-// import { getDashboardCounts } from './dashboardService';
-// import { openai } from './openAiService';
 
 const {
   removeDuplicateDate,
@@ -158,23 +155,3 @@ export const showDailyScrumsByProject = async (req: Request) => {
 
   return replaceId(result);
 };
-
-// export const generatePDFByProject = async (req: Request) => {
-//   const { projectId } = req.params;
-
-//   const dashboardCounts = await getDashboardCounts(projectId, req.dbConnection);
-
-//   const response = await openai.createChatCompletion({
-//     model: GPT_MODEL,
-//     messages: [
-//       {
-//         role: USER_ROLE,
-//         content: `I am a business analyst and please help me generate a formal report based on the following data: ${JSON.stringify(
-//           dashboardCounts,
-//         )}`,
-//       },
-//     ],
-//   });
-
-//   return response?.data?.choices?.[0]?.message;
-// };
