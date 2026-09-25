@@ -35,6 +35,8 @@ export const findTickets = async (
 
     const projectModel = await Project.getModel(dbConnection);
 
+    const userModel = User.getModel(tenantConnection);
+
     const tickets = await ticketModel
       .find(ticketsFilter)
       .populate({ path: 'type', model: typeModel })
@@ -50,6 +52,11 @@ export const findTickets = async (
       .populate({
         path: 'project',
         model: projectModel,
+      })
+      .populate({
+        path: 'assign',
+        model: userModel,
+        select: 'name email avatarIcon',
       })
       .sort({ rank: 1 });
 
