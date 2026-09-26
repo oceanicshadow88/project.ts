@@ -16,6 +16,7 @@ import Modal from '../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import ShortcutModal from '../../../components/Modals/ShortcutModal/ShortcutModal';
 import { Permission } from '../../../utils/permission';
+import styles from './ShortcutPage.module.scss';
 
 export default function ShortcutPage() {
   const { projectId = '' } = useParams();
@@ -88,7 +89,7 @@ export default function ShortcutPage() {
       : shortcuts;
 
     return (
-      <div className="my-5 mx-12 flex flex-wrap gap-5">
+      <div className={`my-5 mr-12 flex flex-wrap gap-5 ${styles.contentInset}`}>
         {filteredShortcuts.map((shortcutData: IShortcutData) => {
           return (
             <div
@@ -148,7 +149,7 @@ export default function ShortcutPage() {
 
   const renderTip = () => {
     return (
-      <p className="my-5 mx-12 font-black text-base text-gray">
+      <p className={`my-5 mr-12 font-black text-base text-gray ${styles.contentInset}`}>
         Tips: Consider bookmark your links into chrome.
       </p>
     );
@@ -156,7 +157,7 @@ export default function ShortcutPage() {
 
   const renderSubMenu = () => {
     return (
-      <div className="mx-12 flex justify-between items-center gap-4">
+      <div className={`mr-12 flex justify-between items-center gap-4 ${styles.contentInset}`}>
         <InputV2
           label="Search"
           onValueChanged={(e) => {
