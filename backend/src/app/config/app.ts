@@ -10,6 +10,11 @@ export const config = {
   api: {
     prefix: process.env.API_PREFIX ?? '/api',
   },
+  mcp: {
+    serverUrl: process.env.MCP_SERVER_URL ?? '',
+    claudeApiKey: process.env.MCP_CLAUDE_API_KEY ?? '',
+    claudeModel: process.env.MCP_CLAUDE_MODEL ?? '',
+  },
   version: '1.0.0',
   companyAddress: process.env.COMPANY_ADDRESS ?? '',
   emailSecret: process.env.EMAIL_SECRET ?? '123456',
