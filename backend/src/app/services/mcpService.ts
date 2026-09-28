@@ -1,6 +1,7 @@
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { config } from '../config/app';
-import { ticketTitleValidationSchema, type TicketTitleValidationResult } from '../types/ticketTitleValidation';
+import type { TicketTitleValidationResult } from '../types/ticketTitleValidationResult';
+import { validateTicketTitleResult } from '../validations/ticketTitleResultValidation';
 
 export const callValidateTicketTitleTool = async (
   title: string,
@@ -44,7 +45,7 @@ export const callValidateTicketTitleTool = async (
       );
     }
 
-    return ticketTitleValidationSchema.parse(JSON.parse(textBlock.text));
+    return await validateTicketTitleResult(JSON.parse(textBlock.text));
   } finally {
     await mcpClient.close();
   }

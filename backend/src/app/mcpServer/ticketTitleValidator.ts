@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { config } from '../config/app';
-import { ticketTitleValidationSchema, type TicketTitleValidationResult } from '../types/ticketTitleValidation';
+import type { TicketTitleValidationResult } from '../types/ticketTitleValidationResult';
+import { validateTicketTitleResult } from '../validations/ticketTitleResultValidation';
 
 const VALIDATION_RULES = `
 Objective
@@ -88,5 +89,5 @@ export const validateTicketTitle = async (
     .replace(/```$/, '')
     .trim();
 
-  return ticketTitleValidationSchema.parse(JSON.parse(json));
+  return validateTicketTitleResult(JSON.parse(json));
 };
