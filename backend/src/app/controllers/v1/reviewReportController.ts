@@ -1,12 +1,10 @@
 import { Request, Response } from 'express';
-import { OverdueTicketService } from '../../services/overdueTicketService';
-import { dataConnectionPool } from '../../utils/dbContext';
-import * as ReviewReport from '../../model/reviewReport';
+import * as ReviewReportService from '../../services/reviewReportService';
+import { TenantConnectionError } from '../../services/reviewReportService';
+import NotFoundError from '../../error/notFound';
 import { winstonLogger } from '../../../bootstrap/logger';
 
-/**
- * Submit a review report for an overdue ticket
- */
+// Submit a review report for an overdue ticket
 export const submitReviewReport = async (req: Request, res: Response) => {
   try {
     const { ticketId, reportContent } = req.body;
@@ -34,12 +32,8 @@ export const submitReviewReport = async (req: Request, res: Response) => {
       });
     }
 
-    await OverdueTicketService.submitReviewReport(
-      ticketId,
-      userId,
-      reportContent.trim(),
-      tenantId,
-    );
+    // All DB/model logic now lives in reviewReportService.
+    await ReviewReportService.submitReviewReport(ticketId, userId, reportContent, tenantId);
 
     res.status(200).json({
       success: true,
@@ -54,9 +48,7 @@ export const submitReviewReport = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Get pending review reports for the current user
- */
+// Get pending review reports for the current user
 export const getPendingReviewReports = async (req: Request, res: Response) => {
   try {
     const tenantId = req.tenantId;
@@ -76,30 +68,19 @@ export const getPendingReviewReports = async (req: Request, res: Response) => {
       });
     }
 
-    const connection = dataConnectionPool[tenantId];
-    if (!connection) {
-      return res.status(400).json({
-        success: false,
-        message: 'Database connection not found',
-      });
-    }
-
-    const ReviewReportModel = ReviewReport.getModel(connection);
-    
-    const pendingReports = await ReviewReportModel.find({
-      assignee: userId,
-      status: 'pending',
-    })
-      .populate('ticket', 'title ticketNumber')
-      .populate('project', 'name key')
-      .sort({ dueDate: 1 })
-      .lean();
+    const pendingReports = await ReviewReportService.getPendingReviewReports(userId, tenantId);
 
     res.status(200).json({
       success: true,
       data: pendingReports,
     });
   } catch (error) {
+    if (error instanceof TenantConnectionError) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
     winstonLogger.error('Error fetching pending review reports:', error);
     res.status(500).json({
       success: false,
@@ -108,9 +89,7 @@ export const getPendingReviewReports = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Get review report details by ticket ID
- */
+// Get review report details by ticket ID
 export const getReviewReportByTicket = async (req: Request, res: Response) => {
   try {
     const { ticketId } = req.params;
@@ -131,36 +110,29 @@ export const getReviewReportByTicket = async (req: Request, res: Response) => {
       });
     }
 
-    const connection = dataConnectionPool[tenantId];
-    if (!connection) {
-      return res.status(400).json({
-        success: false,
-        message: 'Database connection not found',
-      });
-    }
-
-    const ReviewReportModel = ReviewReport.getModel(connection);
-    
-    const reviewReport = await ReviewReportModel.findOne({
-      ticket: ticketId,
-      assignee: userId,
-    })
-      .populate('ticket', 'title ticketNumber')
-      .populate('project', 'name key')
-      .lean();
-
-    if (!reviewReport) {
-      return res.status(404).json({
-        success: false,
-        message: 'Review report not found',
-      });
-    }
+    const reviewReport = await ReviewReportService.getReviewReportByTicket(
+      ticketId,
+      userId,
+      tenantId,
+    );
 
     res.status(200).json({
       success: true,
       data: reviewReport,
     });
   } catch (error) {
+    if (error instanceof TenantConnectionError) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+    if (error instanceof NotFoundError) {
+      return res.status(404).json({
+        success: false,
+        message: 'Review report not found',
+      });
+    }
     winstonLogger.error('Error fetching review report:', error);
     res.status(500).json({
       success: false,
@@ -169,9 +141,7 @@ export const getReviewReportByTicket = async (req: Request, res: Response) => {
   }
 };
 
-/**
- * Admin endpoint: Get all overdue tickets and review reports
- */
+// Admin endpoint: Get all overdue tickets and review reports
 export const getOverdueTicketsAdmin = async (req: Request, res: Response) => {
   try {
     const tenantId = req.tenantId;
@@ -184,33 +154,22 @@ export const getOverdueTicketsAdmin = async (req: Request, res: Response) => {
       });
     }
 
-    const connection = dataConnectionPool[tenantId];
-    if (!connection) {
-      return res.status(400).json({
-        success: false,
-        message: 'Database connection not found',
-      });
-    }
-
-    const ReviewReportModel = ReviewReport.getModel(connection);
-    
-    const query: any = {};
-    if (status && ['pending', 'submitted', 'overdue'].includes(status as string)) {
-      query.status = status;
-    }
-
-    const reviewReports = await ReviewReportModel.find(query)
-      .populate('ticket', 'title ticketNumber')
-      .populate('assignee', 'name email')
-      .populate('project', 'name key')
-      .sort({ dueDate: 1 })
-      .lean();
+    const reviewReports = await ReviewReportService.getOverdueTicketsAdmin(
+      tenantId,
+      status as string,
+    );
 
     res.status(200).json({
       success: true,
       data: reviewReports,
     });
   } catch (error) {
+    if (error instanceof TenantConnectionError) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
     winstonLogger.error('Error fetching overdue tickets for admin:', error);
     res.status(500).json({
       success: false,
