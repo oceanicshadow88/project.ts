@@ -3,7 +3,7 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getBacklogTickets } from '../../../api/backlog/backlog';
-import { createNewTicket, updateTicketEpic } from '../../../api/ticket/ticket';
+import { createNewTicket, migrateEpicRanks, updateTicketEpic } from '../../../api/ticket/ticket';
 import BoardToolbar, { IFilterData } from '../../../components/Board/BoardSearch/TicketSearch';
 import Button from '../../../components/Form/Button/Button';
 import ProjectHOC from '../../../components/HOC/ProjectHOC';
@@ -15,6 +15,7 @@ import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import { ITicketBasic, ITicketInput } from '../../../types';
 import CreateEditEpic from './components/CreateEditEpic/CreateEditEpic';
 import styles from './EpicPage.module.scss';
+import { customCompare, generateKeyBetween } from '../../../utils/lexoRank';
 
 function EpicPage() {
   const { projectId = '' } = useParams();
@@ -26,6 +27,12 @@ function EpicPage() {
   const fetchBacklogData = async (filterData?: IFilterData | null) => {
     try {
       const data = await getBacklogTickets(projectId, filterData);
+      const needsMigration = data.some((t: ITicketBasic) => t.epic && !t.epicRank);
+      if (needsMigration) {
+        await migrateEpicRanks(projectId);
+        setTickets(await getBacklogTickets(projectId, filterData));
+        return;
+      }
       setTickets(data);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Temporary Server Error. Try Again.', {
@@ -88,21 +95,34 @@ function EpicPage() {
     );
   };
 
+  const sortByEpicRank = (list: ITicketBasic[] = []) =>
+    [...list].sort((a, b) => customCompare(a.epicRank, b.epicRank));
+
+  const ticketsByEpicId = tickets?.groupBy('epic') ?? {};
+
   const onDragEventHandler = async (result: DropResult) => {
-    const { destination, draggableId } = result;
-
-    const currentTicket = tickets.find((item) => item.id === draggableId);
-    if (!currentTicket) {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) {
       return;
     }
 
-    const droppedFailed = destination?.droppableId === currentTicket.epic;
-    if (droppedFailed) {
-      return;
+    const epicId = destination.droppableId;
+    const others = sortByEpicRank(ticketsByEpicId[epicId]).filter((t) => t.id !== draggableId);
+    const before = others[destination.index - 1];
+    const after = others[destination.index];
+    const epicRank = generateKeyBetween(before?.epicRank ?? null, after?.epicRank ?? null);
+
+    setTickets((prev) =>
+      prev.map((t) => (t.id === draggableId ? { ...t, epic: epicId, epicRank } : t))
+    );
+
+    try {
+      await updateTicketEpic(draggableId, epicId, epicRank);
+    } catch {
+      toast.error('Failed to move ticket', { theme: 'colored' });
+      fetchBacklogData(currentFilter);
     }
-    const epicId = destination?.droppableId;
-    await updateTicketEpic(draggableId, epicId);
-    fetchBacklogData(null);
   };
 
   const onIssueCreate = async (data: ITicketInput) => {
@@ -126,7 +146,6 @@ function EpicPage() {
 
   const epicDataFromBackend = projectDetails?.epics ?? [];
 
-  const ticketsByEpicId = tickets?.groupBy('epic') ?? {};
   return (
     <ProjectHOC title="Epic">
       <div className={styles.scrollContainer}>
@@ -202,6 +221,8 @@ function EpicPage() {
               return !epic.isComplete;
             })
             .map((epic) => {
+              const epicTickets = sortByEpicRank(ticketsByEpicId[epic.id]);
+              const lastTicket = epicTickets[epicTickets.length - 1];
               return (
                 <ProjectSectionHOC
                   key={epic.id}
@@ -209,12 +230,12 @@ function EpicPage() {
                   startDate={epic.startDate}
                   endDate={epic.dueAt}
                   epic={epic}
-                  totalIssue={ticketsByEpicId[epic.id]?.length ?? 0}
+                  totalIssue={epicTickets.length}
                   dataTestId={`epic-${epic.id}`}
                 >
                   <DroppableTicketItems
                     onTicketChanged={fetchBacklogData}
-                    data={ticketsByEpicId[epic.id]}
+                    data={epicTickets}
                     droppableId={epic.id}
                     onLabelClick={onLabelClick}
                   />
@@ -226,7 +247,8 @@ function EpicPage() {
                         projectId,
                         epicId: epic.id,
                         dueAt: new Date(),
-                        description: ''
+                        description: '',
+                        epicRank: generateKeyBetween(lastTicket?.epicRank ?? null, null)
                       })
                     }
                   />
