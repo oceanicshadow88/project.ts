@@ -3,28 +3,54 @@ const Label = require('../model/label');
 const Ticket = require('../model/ticket');
 import { Types } from 'mongoose';
 
+const toSlug = (name: string) => name.toLowerCase().replace(/ /g, '-');
+
+const inProject = (projectId: string | Types.ObjectId) => ({ $in: [projectId, null] });
+
+const getProjectId = async (req: Request) => {
+  if (req.params.projectId) {
+    return req.params.projectId;
+  }
+  if (req.params.ticketId && Types.ObjectId.isValid(req.params.ticketId)) {
+    const ticket = await Ticket.getModel(req.dbConnection).findById(req.params.ticketId);
+    if (ticket?.project) {
+      return ticket.project;
+    }
+  }
+  return req.body.projectId;
+};
+
 export const getLabels = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
+  const { projectId } = req.params;
+  if (projectId && Types.ObjectId.isValid(projectId)) {
+    return labelModel.find({ tenant: req.tenantId, projectId: inProject(projectId) });
+  }
   return labelModel.find({ tenant: req.tenantId });
+};
+
+export const findLabelByName = (req: Request, name: string, projectId: string) => {
+  return Label.getModel(req.dbConnection)
+    .findOne({ name: name.trim(), tenant: req.tenantId, projectId: inProject(projectId) })
+    .collation({ locale: 'en', strength: 2 });
 };
 
 export const createLabel = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
+  const projectId = await getProjectId(req);
+  const name = req.body.name.trim();
+  const slug = req.body.slug || toSlug(name);
 
-  let result = await labelModel.findOne({
-    name: req.body.name,
-    slug: req.body.slug,
-    projectId: req.body.projectId,
-    tenant: req.tenantId,
-  });
+  let result = await labelModel.findOne({ name, slug, projectId, tenant: req.tenantId });
   if (!result) {
     result = new labelModel({
-      name: req.body.name,
-      slug: req.body.slug,
-      projectId: req.body.projectId,
+      name,
+      slug,
+      color: req.body.color,
+      projectId,
       tenant: req.tenantId,
     });
-    result.save();
+    await result.save();
   }
   return result;
 };
