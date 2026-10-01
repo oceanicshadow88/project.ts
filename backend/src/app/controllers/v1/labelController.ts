@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { replaceId } from '../../services/replaceService';
 import status from 'http-status';
-import { createLabel, deleteLabel, getLabels, updateLabel } from '../../services/labelService';
+import { createLabel, deleteLabel, findLabelByName, getLabels, updateLabel } from '../../services/labelService';
 
 export const index = async (req: Request, res: Response) => {
   const result = await getLabels(req);
@@ -16,6 +16,19 @@ export const store = async (req: Request, res: Response) => {
   }
   const result = await createLabel(req);
   res.send(replaceId(result));
+};
+
+export const storeProjectLabel = async (req: Request, res: Response) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(status.UNPROCESSABLE_ENTITY).json({ message: errors.array()[0].msg });
+  }
+  const duplicate = await findLabelByName(req, req.body.name, req.params.projectId);
+  if (duplicate) {
+    return res.status(status.CONFLICT).json({ message: 'Label already exists' });
+  }
+  const result = await createLabel(req);
+  return res.status(status.CREATED).send(replaceId(result));
 };
 
 // put

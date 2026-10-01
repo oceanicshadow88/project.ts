@@ -394,6 +394,13 @@ router.delete('/retro/items/:id', retroItemController.destroy);
 router.get('/labels', labelController.index);
 router.get('/labels/:projectId', labelController.index);
 router.get('/projects/:projectId/labels', labelController.index);
+router.post(
+  '/projects/:projectId/labels',
+  authenticationTokenMiddleware,
+  permissionMiddleware.permission('edit:settings'),
+  labelValidation.storeProjectLabel,
+  labelController.storeProjectLabel,
+);
 router.post('/tickets/:ticketId/labels', labelValidation.store, labelController.store);
 router.delete(
   '/tickets/:ticketId/labels/:labelId',
