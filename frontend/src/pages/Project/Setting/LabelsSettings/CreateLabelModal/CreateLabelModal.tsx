@@ -138,14 +138,16 @@ export default function CreateLabelModal(props: ICreateLabelModal) {
         <div className={styles.actions}>
           <ButtonV2
             text="Cancel"
-            fill
             btnType="button"
+            customStyles={styles.cancelButton}
             onClick={onClose}
             dataTestId="create-label-cancel"
           />
           <ButtonV2
             text="Create"
+            fill
             btnType="submit"
+            customStyles={styles.submitButton}
             onClick={() => {}}
             loading={saving}
             disabled={saving || !isColorValid}
