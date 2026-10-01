@@ -22,6 +22,16 @@ export default class LabelBuilder extends BaseBuilder {
     return this;
   }
 
+  withProjectId(projectId) {
+    this.properties.projectId = projectId;
+    return this;
+  }
+
+  withColor(color) {
+    this.properties.color = color;
+    return this;
+  }
+
   async buildDefault() {
     return {
       name: 'Default Label',
@@ -34,6 +44,8 @@ export default class LabelBuilder extends BaseBuilder {
     return {
       name: this.properties.name,
       slug: this.properties.slug,
+      color: this.properties.color,
+      projectId: this.properties.projectId,
       tenant: this.properties.tenant,
     };
   }
