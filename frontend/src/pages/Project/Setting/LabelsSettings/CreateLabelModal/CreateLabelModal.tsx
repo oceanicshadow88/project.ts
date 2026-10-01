@@ -99,13 +99,14 @@ export default function CreateLabelModal(props: ICreateLabelModal) {
           value={name}
           required
           error={nameError}
+          classes={nameError ? styles.fieldWithError : ''}
           onValueChanged={(e) => {
             setName(e.target.value);
             setNameError(null);
           }}
           dataTestId="create-label-name"
         />
-        <div className={styles.colorRow}>
+        <div className={[styles.colorRow, isColorValid ? '' : styles.fieldWithError].join(' ')}>
           <input
             type="color"
             aria-label="Pick label color"
