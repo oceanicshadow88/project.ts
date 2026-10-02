@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { IoIosAdd } from 'react-icons/io';
 import styles from './LabelsSettings.module.scss';
 import { showLabel, updateLabel, deleteLabel } from '../../../../api/label/label';
 import { ILabelData } from '../../../../types';
@@ -9,6 +10,9 @@ import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
 import InputV3 from '../../../../lib/FormV3/InputV3/InputV3';
 import Modal from '../../../../lib/Modal/Modal';
 import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/ProjectSettingHOC';
+import checkAccess from '../../../../utils/helpers';
+import { Permission } from '../../../../utils/permission';
+import CreateLabelModal from './CreateLabelModal/CreateLabelModal';
 
 interface EditableLabel extends ILabelData {
   editingName: boolean;
@@ -17,6 +21,16 @@ interface EditableLabel extends ILabelData {
   tempColor: string;
 }
 
+const toEditableLabel = (label: ILabelData): EditableLabel => ({
+  ...label,
+  editingName: false,
+  editingColor: false,
+  tempName: label.name,
+  tempColor: label.color || '#6a2add'
+});
+
+const sortByName = (a: EditableLabel, b: EditableLabel) => a.name.localeCompare(b.name);
+
 export default function LabelsSettings() {
   const { projectId = '' } = useParams();
   const [labels, setLabels] = useState<EditableLabel[]>([]);
@@ -24,20 +38,15 @@ export default function LabelsSettings() {
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [labelToDelete, setLabelToDelete] = useState<string | null>(null);
   const colorInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const canCreateLabel = checkAccess(Permission.EditSettings, projectId);
 
   const fetchLabels = async () => {
     try {
       setLoading(true);
       const response = await showLabel(projectId);
-      const labelsData = (response.data || [])
-        .map((label: ILabelData) => ({
-          ...label,
-          editingName: false,
-          editingColor: false,
-          tempName: label.name,
-          tempColor: label.color || '#6a2add'
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
+      const labelsData = (response.data || []).map(toEditableLabel).sort(sortByName);
+
       setLabels(labelsData);
     } catch (error) {
       toast.error('Failed to load labels', { theme: 'colored' });
@@ -181,14 +190,37 @@ export default function LabelsSettings() {
       setLabelToDelete(null);
     }
   };
+  const handleLabelCreated = (label: ILabelData) => {
+    setShowCreateModal(false);
+    setLabels((prev) => [...prev, toEditableLabel(label)].sort(sortByName));
+  };
+
+  const renderCreateButton = (dataTestId: string) => (
+    <ButtonV2
+      text="Create label"
+      icon={<IoIosAdd className="w-5 h-5" />}
+      fill
+      customStyles={styles.createButton}
+      onClick={() => setShowCreateModal(true)}
+      dataTestId={dataTestId}
+    />
+  );
 
   const renderContent = () => {
     if (loading) {
       return <div className={styles.loading}>Loading labels...</div>;
     }
     if (labels.length === 0) {
-      return <div className={styles.emptyState}>No labels found. Create labels from tickets.</div>;
+      return (
+        <div className={styles.emptyState}>
+          <p>No labels yet.</p>
+          {canCreateLabel && (
+            <div className={styles.emptyAction}>{renderCreateButton('create-label-empty')}</div>
+          )}
+        </div>
+      );
     }
+
     return (
       <div className={styles.labelsList}>
         {labels.map((label) => (
@@ -326,7 +358,20 @@ export default function LabelsSettings() {
 
   return (
     <ProjectSettingHOC>
-      <SettingCard title="Project Labels">{renderContent()}</SettingCard>
+      <SettingCard
+        title="Project Labels"
+        action={canCreateLabel ? renderCreateButton('create-label') : null}
+      >
+        {renderContent()}
+      </SettingCard>
+      {showCreateModal && (
+        <CreateLabelModal
+          projectId={projectId}
+          existingLabels={labels}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleLabelCreated}
+        />
+      )}
       {showDeleteModal && (
         <Modal classesName={styles.modal}>
           <p>Are you sure you want to delete this label?</p>

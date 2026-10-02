@@ -21,6 +21,15 @@ export function createLabel(ticketId: string, data: ILabelInput) {
   return axios.post(`${config.apiAddressV2}/tickets/${ticketId}/labels`, data);
 }
 
+export function createProjectLabel(projectId: string, data: ILabelInput) {
+  const configHeader = {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}`
+    }
+  };
+  return axios.post(`${config.apiAddressV2}/projects/${projectId}/labels`, data, configHeader);
+}
+
 export function deleteLabel(id: string) {
   return axios.delete(`${config.apiAddressV2}/labels/${id}`);
 }
