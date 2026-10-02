@@ -173,7 +173,7 @@ export const migrateEpicRanks = async (req: Request) => {
     const unranked = epicTickets.filter((t) => !t.epicRank);
     if (unranked.length === 0) return;
 
-    const lastRank = ranked.length > 0 ? ranked.reduce((max, r) => (r > max ? r : max)) : null;
+    const lastRank = ranked.reduce<string | null>((max, r) => (max === null || r > max ? r : max), null);
     const newRanks = generateNKeysBetween(lastRank, null, unranked.length);
     unranked.forEach((ticket, index) => {
       updates.push({ ticketId: ticket.id, epicRank: newRanks[index] });

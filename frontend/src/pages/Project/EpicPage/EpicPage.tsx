@@ -222,7 +222,7 @@ function EpicPage() {
             })
             .map((epic) => {
               const epicTickets = sortByEpicRank(ticketsByEpicId[epic.id]);
-              const lastTicket = epicTickets[epicTickets.length - 1];
+              const lastTicket = epicTickets.at(-1);
               return (
                 <ProjectSectionHOC
                   key={epic.id}
