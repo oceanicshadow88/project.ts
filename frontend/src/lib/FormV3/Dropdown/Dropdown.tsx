@@ -135,7 +135,7 @@ function Dropdown(props: IDropdown) {
     if (!showMenu) {
       return null;
     }
-    if (typeof options[0].label !== 'string') {
+    if (typeof options[0]?.label !== 'string') {
       return (
         <div className="relative">
           <div className="absolute top-0 left-0 z-10 bg-white box-shadow-input">
