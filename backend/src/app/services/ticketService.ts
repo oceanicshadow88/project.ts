@@ -169,11 +169,11 @@ export const migrateEpicRanks = async (req: Request) => {
 
   const updates: { ticketId: string; epicRank: string }[] = [];
   Object.values(ticketsByEpic).forEach((epicTickets) => {
-    const ranked = epicTickets.filter((t) => t.epicRank).map((t) => t.epicRank).sort();
+    const ranked: string[] = epicTickets.filter((t) => t.epicRank).map((t) => t.epicRank);
     const unranked = epicTickets.filter((t) => !t.epicRank);
     if (unranked.length === 0) return;
 
-    const lastRank = ranked.length > 0 ? ranked[ranked.length - 1] : null;
+    const lastRank = ranked.length > 0 ? ranked.reduce((max, r) => (r > max ? r : max)) : null;
     const newRanks = generateNKeysBetween(lastRank, null, unranked.length);
     unranked.forEach((ticket, index) => {
       updates.push({ ticketId: ticket.id, epicRank: newRanks[index] });

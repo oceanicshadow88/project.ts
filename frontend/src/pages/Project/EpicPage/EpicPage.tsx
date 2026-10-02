@@ -121,7 +121,7 @@ function EpicPage() {
       await updateTicketEpic(draggableId, epicId, epicRank);
     } catch {
       toast.error('Failed to move ticket', { theme: 'colored' });
-      fetchBacklogData(currentFilter);
+      await fetchBacklogData(currentFilter);
     }
   };
 
