@@ -4,6 +4,7 @@ import StarterKit from '@tiptap/starter-kit';
 import { JSONContent } from '@tiptap/core';
 import ImageResize from 'tiptap-extension-resize-image';
 import style from './TipTapEditor.module.scss';
+import './mention.scss';
 import TooLBar from './ToolBar/ToolBar';
 import { CommentEditorToolBarButtonConfig } from './@const/CommentEditorToolBarButtonConfig';
 import { IUserInfo } from '../../types';
