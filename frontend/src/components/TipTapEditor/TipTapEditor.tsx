@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { JSONContent } from '@tiptap/core';
@@ -27,9 +27,16 @@ function TipTapEditor({
   aiOptimizeAction
 }: ICommentEditorProps) {
   const { optimize, isLoading } = useAiOptimize();
+  const usersRef = useRef(users);
+  usersRef.current = users;
 
   const editor = useEditor({
-    extensions: [StarterKit, ImageResize, createMentionExtension(users), DropUploadImageExtension],
+    extensions: [
+      StarterKit,
+      ImageResize,
+      createMentionExtension(() => usersRef.current),
+      DropUploadImageExtension
+    ],
     content: initialContent || ''
   });
 
