@@ -16,6 +16,7 @@ import checkAccess from '../../../../utils/helpers';
 import Avatar from '../../../Avatar/Avatar';
 import TimeAgo from '../../../TimeAgo/TimeAgo';
 import { Permission } from '../../../../utils/permission';
+import styles from './CommentsSession.module.scss';
 
 interface ICommentsSessionProps {
   userId?: string;
@@ -92,8 +93,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
     try {
       const jsonContent: JSONContent = JSON.parse(content);
       const html = generateHTML(jsonContent, [StarterKit, ImageResize, Mention]);
-      const fixedHtml = html.replaceAll('<p>', '<span>').replaceAll('</p>', '</span>');
-      return parse(fixedHtml);
+      return parse(html);
     } catch {
       return parse('<p>Invalid content</p>');
     }
@@ -128,7 +128,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
               </div>
             ) : (
               <>
-                <div className="text-black text-13 pl-8">
+                <div className={`text-black text-13 pl-8 ${styles.commentContent}`}>
                   {renderCommentContent(comment.content)}
                 </div>
                 {checkAccess(Permission.EditTickets, projectId) && (
