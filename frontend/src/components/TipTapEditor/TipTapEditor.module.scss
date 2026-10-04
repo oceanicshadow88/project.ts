@@ -119,6 +119,21 @@
     background-color: transparent;
   }
 
+
+  .editorBody {
+    position: relative;
+  }
+
+  .placeholder {
+    position: absolute;
+    top: 13px;
+    left: 13px;
+    right: 13px;
+    color: #a3a3a3;
+    pointer-events: none;
+  }
+
+
 }
 
 .buttonContainer {
@@ -149,6 +164,12 @@
   &:active {
     transform: translateY(0);
   }
+
+  &:disabled {
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 .cancelButton {
@@ -172,6 +193,14 @@
     background-color: #f5f5f5;
   }
 }
+
+.shortcutHint {
+  margin-left: auto;
+  font-size: 12px;
+  color: #a3a3a3;
+}
+
+
 
 @keyframes rainbow-color {
   0% {
