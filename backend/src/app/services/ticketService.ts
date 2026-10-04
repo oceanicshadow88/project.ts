@@ -11,7 +11,7 @@ import * as Epic from '../model/epic';
 import * as Status from '../model/status';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
-import { generateNKeysBetween } from '../utils/generateRank';
+import { generateKeyBetween, generateNKeysBetween } from '../utils/generateRank';
 
 /** Find tickets with given filters
  * @param dbConnection Mongoose
@@ -277,6 +277,26 @@ export const updateTicket = async (req: Request) => {
     .populate({ path: 'status', select: 'name', model: StatusModel });
 
   if (!previousTicket) return null;
+
+  const previousEpicId = previousTicket.epic?._id?.toString() ?? null;
+  const newEpicId = 'epic' in fieldsToUpdate ? fieldsToUpdate.epic?.toString() || null : previousEpicId;
+  const epicChanged = newEpicId !== previousEpicId;
+  const epicRankSent = fieldsToUpdate.epicRank && fieldsToUpdate.epicRank !== previousTicket.epicRank;
+
+  if (epicChanged && !epicRankSent) {
+    if (newEpicId === null) {
+      fieldsToUpdate.epicRank = null;
+    } else {
+      const lastInEpic = await TicketModel.findOne({
+        epic: newEpicId,
+        _id: { $ne: id },
+        epicRank: { $nin: [null, ''] },
+      })
+        .sort({ epicRank: -1 })
+        .select('epicRank');
+      fieldsToUpdate.epicRank = generateKeyBetween(lastInEpic?.epicRank ?? null, null);
+    }
+  }
 
   const updatedTicket = await TicketModel.findByIdAndUpdate(id, fieldsToUpdate, {
     new: true,
