@@ -87,6 +87,9 @@ export const ticketSchema = new mongoose.Schema(
       type: String,
       index: true,
     },
+    epicRank: {
+      type: String,
+    },
     temp: {
       type: String,
     },
