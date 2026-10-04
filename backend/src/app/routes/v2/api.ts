@@ -241,13 +241,6 @@ router.post(
   ticketController.migrateRanks,
 );
 
-router.post(
-  '/tickets/migrate-epic-ranks',
-  ticketValidation.migrateRanks,
-  authenticationTokenMiddleware,
-  ticketController.migrateEpicRanksController,
-);
-
 router.put(
   '/tickets/:id',
   ticketValidation.update,

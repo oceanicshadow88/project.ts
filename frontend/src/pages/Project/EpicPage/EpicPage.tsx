@@ -3,7 +3,7 @@ import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { getBacklogTickets } from '../../../api/backlog/backlog';
-import { createNewTicket, migrateEpicRanks, updateTicketEpic } from '../../../api/ticket/ticket';
+import { createNewTicket, updateTicketEpic } from '../../../api/ticket/ticket';
 import BoardToolbar, { IFilterData } from '../../../components/Board/BoardSearch/TicketSearch';
 import Button from '../../../components/Form/Button/Button';
 import ProjectHOC from '../../../components/HOC/ProjectHOC';
@@ -27,12 +27,6 @@ function EpicPage() {
   const fetchBacklogData = async (filterData?: IFilterData | null) => {
     try {
       const data = await getBacklogTickets(projectId, filterData);
-      const needsMigration = data.some((t: ITicketBasic) => t.epic && !t.epicRank);
-      if (needsMigration) {
-        await migrateEpicRanks(projectId);
-        setTickets(await getBacklogTickets(projectId, filterData));
-        return;
-      }
       setTickets(data);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Temporary Server Error. Try Again.', {

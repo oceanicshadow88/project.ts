@@ -111,7 +111,3 @@ export function removeTicket(id: string) {
 export function migrateTicketRanks(projectId: string) {
   return alphaApiV2.post(`${config.apiAddressV2}/tickets/migrate-ranks`, { projectId });
 }
-
-export function migrateEpicRanks(projectId: string) {
-  return alphaApiV2.post(`${config.apiAddressV2}/tickets/migrate-epic-ranks`, { projectId });
-}

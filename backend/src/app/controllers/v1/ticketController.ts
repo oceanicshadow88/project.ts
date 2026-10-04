@@ -11,7 +11,6 @@ import {
   getSummaryByProjectId,
   getStatusSummaryGroupedByEpic,
   migrateTicketRanks,
-  migrateEpicRanks,
 } from '../../services/ticketService';
 import { asyncHandler } from '../../utils/helper';
 
@@ -74,16 +73,6 @@ export const migrateRanks = asyncHandler(async (req: Request, res: Response) => 
     throw new Error();
   }
   const result = await migrateTicketRanks(req);
-  res.status(200).json(result);
-});
-
-export const migrateEpicRanksController = asyncHandler(async (req: Request, res: Response) => {
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    throw new Error('Invalid request to migrate epic ranks');
-  }
-  const result = await migrateEpicRanks(req);
   res.status(200).json(result);
 });
 

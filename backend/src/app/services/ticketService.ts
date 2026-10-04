@@ -152,41 +152,6 @@ export const migrateTicketRanks = async (req: Request) => {
   }
 };
 
-export const migrateEpicRanks = async (req: Request) => {
-  const { projectId } = req.body;
-  const ticketModel = await Ticket.getModel(req.dbConnection);
-
-  const tickets = await ticketModel
-    .find({ project: projectId, epic: { $ne: null } })
-    .sort({ rank: 1 });
-
-  const ticketsByEpic: { [epicId: string]: any[] } = {};
-  tickets.forEach((ticket: any) => {
-    const key = ticket.epic.toString();
-    if (!ticketsByEpic[key]) ticketsByEpic[key] = [];
-    ticketsByEpic[key].push(ticket);
-  });
-
-  const updates: { ticketId: string; epicRank: string }[] = [];
-  Object.values(ticketsByEpic).forEach((epicTickets) => {
-    const ranked: string[] = epicTickets.filter((t) => t.epicRank).map((t) => t.epicRank);
-    const unranked = epicTickets.filter((t) => !t.epicRank);
-    if (unranked.length === 0) return;
-
-    const lastRank = ranked.reduce<string | null>((max, r) => (max === null || r > max ? r : max), null);
-    const newRanks = generateNKeysBetween(lastRank, null, unranked.length);
-    unranked.forEach((ticket, index) => {
-      updates.push({ ticketId: ticket.id, epicRank: newRanks[index] });
-    });
-  });
-
-  await Promise.all(
-    updates.map(({ ticketId, epicRank }) => ticketModel.findByIdAndUpdate(ticketId, { epicRank })),
-  );
-
-  return { success: true, updatedCount: updates.length };
-};
-
 const comparePrimitives = (
   field: string,
   prevValue: string | number | Date | null | undefined,
