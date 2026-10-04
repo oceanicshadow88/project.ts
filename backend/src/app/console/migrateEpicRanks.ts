@@ -1,6 +1,4 @@
 /* eslint-disable no-console */
-export { };
-
 import mongoose from 'mongoose';
 import config from '../config/app';
 import * as Tenant from '../model/tenants';
@@ -57,6 +55,21 @@ const migrateEpicRanks = async (dbConnection: mongoose.Connection) => {
   return updates.length;
 };
 
+const migrateDatabase = async (connectionString: string) => {
+  let dbConnection: mongoose.Connection | undefined;
+  try {
+    dbConnection = await mongoose.createConnection(connectionString, options).asPromise();
+    const updated = await migrateEpicRanks(dbConnection);
+    console.log(`  ✓ ${dbConnection.name}: ${updated} tickets updated`);
+    return updated;
+  } catch (error: any) {
+    console.error(`  ✗ ${dbConnection?.name ?? 'database'}: ${error.message}`);
+    return 0;
+  } finally {
+    await dbConnection?.close();
+  }
+};
+
 const main = async () => {
   try {
     console.log('Migrating epic ranks...\n');
@@ -65,7 +78,6 @@ const main = async () => {
     const tenants = await Tenant.getModel(tenantsDbConnection).find({}).lean();
     await tenantsDbConnection.close();
 
-    // Free-plan tenants share the public database; paid tenants have their own.
     const connectionStrings = new Set<string>([config.publicConnection]);
     tenants.forEach((tenant: any) => {
       if (tenant.plan !== 'Free' && tenant._id) {
@@ -73,19 +85,8 @@ const main = async () => {
       }
     });
 
-    let total = 0;
-    for (const connectionString of connectionStrings) {
-      const dbConnection = await mongoose.createConnection(connectionString, options);
-      try {
-        const updated = await migrateEpicRanks(dbConnection);
-        console.log(`  ✓ ${dbConnection.name}: ${updated} tickets updated`);
-        total += updated;
-      } catch (error: any) {
-        console.error(`  ✗ ${dbConnection.name}: ${error.message}`);
-      } finally {
-        await dbConnection.close();
-      }
-    }
+    const results = await Promise.all([...connectionStrings].map(migrateDatabase));
+    const total = results.reduce((sum, updated) => sum + updated, 0);
 
     console.log(`\nDone! ${total} tickets updated across ${connectionStrings.size} database(s).\n`);
     process.exit(0);
@@ -96,4 +97,4 @@ const main = async () => {
   }
 };
 
-main();
+void main();
