@@ -253,6 +253,30 @@ const getDiffBetweenTickets = (
   return diffs;
 };
 
+const getEpicRankForEpicChange = async (
+  ticketModel: any,
+  ticketId: string,
+  previousTicket: any,
+  fieldsToUpdate: any,
+): Promise<string | null | undefined> => {
+  const previousEpicId = previousTicket.epic?._id?.toString() ?? null;
+  const newEpicId = 'epic' in fieldsToUpdate ? fieldsToUpdate.epic?.toString() || null : previousEpicId;
+  const epicRankSent = fieldsToUpdate.epicRank && fieldsToUpdate.epicRank !== previousTicket.epicRank;
+
+  if (newEpicId === previousEpicId || epicRankSent) return undefined; // leave epic rank unchanged
+  if (newEpicId === null) return null; // clear epic rank
+
+  const lastInEpic = await ticketModel
+    .findOne({
+      epic: newEpicId,
+      _id: { $ne: ticketId },
+      epicRank: { $nin: [null, ''] },
+    })
+    .sort({ epicRank: -1 })
+    .select('epicRank');
+  return generateKeyBetween(lastInEpic?.epicRank ?? null, null);
+};
+
 export const updateTicket = async (req: Request) => {
   const { id } = req.params;
   const fieldsToUpdate = { ...req.body };
@@ -278,25 +302,8 @@ export const updateTicket = async (req: Request) => {
 
   if (!previousTicket) return null;
 
-  const previousEpicId = previousTicket.epic?._id?.toString() ?? null;
-  const newEpicId = 'epic' in fieldsToUpdate ? fieldsToUpdate.epic?.toString() || null : previousEpicId;
-  const epicChanged = newEpicId !== previousEpicId;
-  const epicRankSent = fieldsToUpdate.epicRank && fieldsToUpdate.epicRank !== previousTicket.epicRank;
-
-  if (epicChanged && !epicRankSent) {
-    if (newEpicId === null) {
-      fieldsToUpdate.epicRank = null;
-    } else {
-      const lastInEpic = await TicketModel.findOne({
-        epic: newEpicId,
-        _id: { $ne: id },
-        epicRank: { $nin: [null, ''] },
-      })
-        .sort({ epicRank: -1 })
-        .select('epicRank');
-      fieldsToUpdate.epicRank = generateKeyBetween(lastInEpic?.epicRank ?? null, null);
-    }
-  }
+  const newEpicRank = await getEpicRankForEpicChange(TicketModel, id, previousTicket, fieldsToUpdate);
+  if (newEpicRank !== undefined) fieldsToUpdate.epicRank = newEpicRank;
 
   const updatedTicket = await TicketModel.findByIdAndUpdate(id, fieldsToUpdate, {
     new: true,

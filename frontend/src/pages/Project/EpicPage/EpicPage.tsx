@@ -97,15 +97,20 @@ function EpicPage() {
   const onDragEventHandler = async (result: DropResult) => {
     const { source, destination, draggableId } = result;
     if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) {
-      return;
-    }
+    const isDroppedInSamePlace =
+      source.droppableId === destination.droppableId && source.index === destination.index;
+    if (isDroppedInSamePlace) return;
 
     const epicId = destination.droppableId;
-    const others = sortByEpicRank(ticketsByEpicId[epicId]).filter((t) => t.id !== draggableId);
-    const before = others[destination.index - 1];
-    const after = others[destination.index];
-    const epicRank = generateKeyBetween(before?.epicRank ?? null, after?.epicRank ?? null);
+    const otherTicketsInEpic = sortByEpicRank(ticketsByEpicId[epicId]).filter(
+      (t) => t.id !== draggableId
+    );
+    const ticketAboveDrop = otherTicketsInEpic[destination.index - 1];
+    const ticketBelowDrop = otherTicketsInEpic[destination.index];
+    const epicRank = generateKeyBetween(
+      ticketAboveDrop?.epicRank ?? null,
+      ticketBelowDrop?.epicRank ?? null
+    );
 
     setTickets((prev) =>
       prev.map((t) => (t.id === draggableId ? { ...t, epic: epicId, epicRank } : t))
