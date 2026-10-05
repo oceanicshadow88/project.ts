@@ -75,10 +75,6 @@ export const validateTicketTitle = async (
     ],
   });
 
-  if (response.stop_reason === 'max_tokens') {
-    throw new Error('Claude ticket title validation response was truncated');
-  }
-
   const textBlock = response.content.find(
     (block) => block.type === 'text',
   );
