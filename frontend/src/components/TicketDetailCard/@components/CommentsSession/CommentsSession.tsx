@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { generateHTML, JSONContent } from '@tiptap/core';
 import Mention from '@tiptap/extension-mention';
 import StarterKit from '@tiptap/starter-kit';
 import ImageResize from 'tiptap-extension-resize-image';
 import parse from 'html-react-parser';
+import { toast } from 'react-toastify';
+import { GoComment } from 'react-icons/go';
 import TipTapEditor from '../../../TipTapEditor/TipTapEditor';
 import {
   createComment,
@@ -35,75 +37,168 @@ interface IComment {
   _v: number;
 }
 
+const COMMENT_PLACEHOLDER = 'Add a comment… Type @ to mention a teammate';
+
+const parseContent = (content: string): JSONContent | undefined => {
+  try {
+    return JSON.parse(content);
+  } catch {
+    return undefined;
+  }
+};
+
+const isEdited = (comment: IComment) =>
+  new Date(comment.updatedAt).getTime() > new Date(comment.createdAt).getTime();
+
 function CommentsSession(Props: ICommentsSessionProps) {
   const { userId = '', ticketId = '', users = [], projectId = '' } = Props;
   const [comments, setComments] = useState<IComment[]>([]);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
 
   const fetchCommentsData = async () => {
-    const result = await getComment(ticketId);
-    setComments(result.data);
+    try {
+      const result = await getComment(ticketId);
+      setComments(result.data);
+    } catch {
+      toast.error('Failed to load comments');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
+    setIsLoading(true);
     fetchCommentsData();
   }, [ticketId]);
 
-  const handleSubmit = async (content: JSONContent, commentId?: string) => {
-    const stringifiedContent = JSON.stringify(content);
+  const editingInitialContent = useMemo(() => {
+    const comment = comments.find((item) => item.id === editingCommentId);
+    return comment ? parseContent(comment.content) : undefined;
+  }, [comments, editingCommentId]);
 
-    const saveActions = {
-      create: () =>
-        createComment({ ticket: ticketId, sender: userId, content: stringifiedContent }),
-      update: () => updateComment(commentId as string, stringifiedContent)
-    };
-
-    const action = commentId ? 'update' : 'create';
-    await saveActions[action]();
-
-    fetchCommentsData();
-    setIsEditing(false);
-  };
-
-  const handleDelete = async (id?: string) => {
-    if (!id) {
-      return;
+  const handleCreate = async (content: JSONContent) => {
+    try {
+      await createComment({ ticket: ticketId, sender: userId, content: JSON.stringify(content) });
+    } catch (error) {
+      toast.error('Failed to post comment. Please try again.');
+      throw error;
     }
-    await deleteComment(id);
+    setIsCreating(false);
     fetchCommentsData();
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-  };
-
-  const handleEditSubmit = (content: JSONContent, commentId?: string) => {
-    if (commentId) {
-      handleSubmit(content, commentId);
+  const handleUpdate = async (commentId: string, content: JSONContent) => {
+    try {
+      await updateComment(commentId, JSON.stringify(content));
+    } catch (error) {
+      toast.error('Failed to update comment. Please try again.');
+      throw error;
     }
     setEditingCommentId(null);
+    fetchCommentsData();
   };
 
-  const handleCancelEdit = () => {
-    setEditingCommentId(null);
+  const handleDelete = async (commentId: string) => {
+    try {
+      await deleteComment(commentId);
+      setDeletingCommentId(null);
+      fetchCommentsData();
+    } catch {
+      toast.error('Failed to delete comment. Please try again.');
+    }
   };
 
   const renderCommentContent = (content: string) => {
-    try {
-      const jsonContent: JSONContent = JSON.parse(content);
-      const html = generateHTML(jsonContent, [StarterKit, ImageResize, Mention]);
-      return parse(html);
-    } catch {
-      return parse('<p>Invalid content</p>');
+    const jsonContent = parseContent(content);
+    if (!jsonContent) {
+      return <p>Invalid content</p>;
     }
+    return parse(generateHTML(jsonContent, [StarterKit, ImageResize, Mention]));
+  };
+
+  const renderActions = (comment: IComment) => {
+    if (deletingCommentId === comment.id) {
+      return (
+        <div className={styles.deleteConfirm} data-testid="delete-comment-confirm">
+          <span className={styles.deleteQuestion}>Delete this comment? This can’t be undone.</span>
+          <button
+            type="button"
+            className={styles.confirmCancel}
+            onClick={() => setDeletingCommentId(null)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={styles.confirmDelete}
+            onClick={() => handleDelete(comment.id)}
+            data-testid="confirm-delete-comment"
+          >
+            Delete
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="flex gap-2.5 pl-8 mt-1.5">
+        <button
+          onClick={() => setEditingCommentId(comment.id)}
+          className="bg-transparent border-0 text-gray-200 hover-text-primary font-medium text-13 cursor-pointer py-1.5 px-3 rounded hover:bg-gray-50"
+        >
+          Edit
+        </button>
+        <button
+          onClick={() => setDeletingCommentId(comment.id)}
+          className="bg-transparent border-0 text-gray-200 hover-text-primary font-medium text-13 cursor-pointer py-1.5 px-3 rounded hover:bg-gray-50"
+          data-testid="delete-comment"
+        >
+          Delete
+        </button>
+      </div>
+    );
   };
 
   const renderCommentsList = () => {
+    if (isLoading) {
+      return (
+        <div className={styles.loading} data-testid="comments-loading">
+          {[0, 1].map((row) => (
+            <div key={row} className={styles.skeletonItem}>
+              <div className={styles.skeletonHeader}>
+                <span className={styles.skeletonAvatar} />
+                <span className={styles.skeletonName} />
+              </div>
+              <span className={styles.skeletonLine} />
+              <span className={`${styles.skeletonLine} ${styles.short}`} />
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (!comments.length) {
+      return (
+        <div className={styles.empty} data-testid="comments-empty">
+          <span className={styles.emptyIcon}>
+            <GoComment />
+          </span>
+          <p>No comments yet.</p>
+          <p>Be the first to add one.</p>
+        </div>
+      );
+    }
+
     return (
       <div className="p-4">
         {comments.map((comment) => (
-          <div key={comment.id} className="flex flex-col gap-2 py-3 border-b border-gray-200">
+          <div
+            key={comment.id}
+            className="flex flex-col gap-2 py-3 border-b border-gray-200"
+            data-testid="comment-item"
+          >
             <div className="flex items-center justify-between gap-3 text-15 mb-2">
               <div className="flex items-center gap-2.5 font-medium text-black">
                 <Avatar
@@ -113,40 +208,36 @@ function CommentsSession(Props: ICommentsSessionProps) {
                 />
                 <span>{comment.sender?.name}</span>
               </div>
-              <TimeAgo date={comment.createdAt} className="text-gray-200 text-13 font-normal" />
+              <span>
+                <TimeAgo date={comment.createdAt} className="text-gray-200 text-13 font-normal" />
+                {isEdited(comment) && (
+                  <span className={styles.edited} data-testid="comment-edited">
+                    · edited
+                  </span>
+                )}
+              </span>
             </div>
 
             {editingCommentId === comment.id ? (
               <div className="comment-editor-wrapper">
                 <TipTapEditor
-                  onSubmit={(content) => handleEditSubmit(content, comment.id)}
-                  onCancel={handleCancelEdit}
-                  initialContent={JSON.parse(comment.content)}
+                  onSubmit={(content) => handleUpdate(comment.id, content)}
+                  onCancel={() => setEditingCommentId(null)}
+                  initialContent={editingInitialContent}
                   users={users}
                   aiOptimizeAction="optimizeText"
+                  submitOnModEnter
                 />
               </div>
             ) : (
               <>
-                <div className={`text-black text-13 pl-8 ${styles.commentContent}`}>
+                <div
+                  className={`text-black text-13 pl-8 ${styles.commentContent}`}
+                  data-testid="comment-content"
+                >
                   {renderCommentContent(comment.content)}
                 </div>
-                {checkAccess(Permission.EditTickets, projectId) && (
-                  <div className="flex gap-2.5 pl-8 mt-1.5">
-                    <button
-                      onClick={() => setEditingCommentId(comment.id)}
-                      className="bg-transparent border-0 text-gray-200 hover-text-primary font-medium text-13 cursor-pointer py-1.5 px-3 rounded hover:bg-gray-50"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(comment.id)}
-                      className="bg-transparent border-0 text-gray-200 hover-text-primary font-medium text-13 cursor-pointer py-1.5 px-3 rounded hover:bg-gray-50"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
+                {checkAccess(Permission.EditTickets, projectId) && renderActions(comment)}
               </>
             )}
           </div>
@@ -158,20 +249,23 @@ function CommentsSession(Props: ICommentsSessionProps) {
   return (
     <>
       {checkAccess(Permission.AddComments, projectId) &&
-        (isEditing ? (
+        (isCreating ? (
           <TipTapEditor
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
+            onSubmit={handleCreate}
+            onCancel={() => setIsCreating(false)}
             users={users}
             aiOptimizeAction="optimizeText"
+            placeholder={COMMENT_PLACEHOLDER}
+            submitOnModEnter
           />
         ) : (
           <button
-            className="flex border border-gray-200 text-gray rounded-md bg-white p-4 w-full cursor-pointer text-15 shadow-none border-solid hover-bg-gray-50"
-            onClick={() => setIsEditing(true)}
-            style={{ minHeight: '100px' }}
+            type="button"
+            className={styles.addComment}
+            onClick={() => setIsCreating(true)}
+            data-testid="add-comment"
           >
-            Input comments here...
+            {COMMENT_PLACEHOLDER}
           </button>
         ))}
       {checkAccess(Permission.EditTickets, projectId) && renderCommentsList()}
