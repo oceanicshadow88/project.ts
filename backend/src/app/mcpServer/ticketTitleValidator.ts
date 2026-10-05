@@ -15,6 +15,8 @@ Ticket titles are used by developers to understand the work that needs to be
 completed. A title should provide enough information for a developer to
 understand the expected task without requiring essential clarification.
 
+SPIKE tickets focus on investigation and planning.
+
 Validation rules
 
 - Clear: The action, target, and objective or expected work are understandable.
@@ -72,6 +74,10 @@ export const validateTicketTitle = async (
       },
     ],
   });
+
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('Claude ticket title validation response was truncated');
+  }
 
   const textBlock = response.content.find(
     (block) => block.type === 'text',
