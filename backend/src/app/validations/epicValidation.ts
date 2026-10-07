@@ -65,6 +65,7 @@ const baseValidations = [
 
 const store = [
   body('title')
+    .trim()
     .notEmpty()
     .withMessage('Title is required')
     .bail(),

@@ -26,6 +26,9 @@ import Dropdown from '../../lib/FormV3/Dropdown/Dropdown';
 import PriorityBtn from '../Form/PriorityBtn/PriorityBtn';
 import StatusBtn from '../Form/StatusBtn/StatusBtn';
 import AssigneeBtn from '../Form/AssigneeBtn/AssigneeBtn';
+import CreateEditEpic from '../../pages/Project/EpicPage/components/CreateEditEpic/CreateEditEpic';
+
+const NEW_EPIC_OPTION = '_new_epic_';
 
 interface ITicketDetailCardProps {
   ticketId: string;
@@ -45,7 +48,7 @@ function TicketDetailCard({
   const [ticketInfo, setTicketInfo] = useState<ITicketDetails | null>(null);
   const { visible, setVisible, myRef } = useOutsideAlerter(false);
   const [editTitle, setEditTitle] = useState(false);
-  const { closeModal } = useContext(ModalContext);
+  const { showModal, closeModal } = useContext(ModalContext);
   const userInfo = useContext(UserContext);
   const projectDetails = useContext(ProjectDetailsContext);
   const { users, ticketTypes } = projectDetails;
@@ -250,15 +253,28 @@ function TicketDetailCard({
         text: 'Epic',
         render: (
           <Dropdown
-            options={projectDetails.epics.map((item) => {
-              return {
+            options={[
+              ...projectDetails.epics.map((item) => ({
                 label: item.title,
                 value: item.id
-              };
-            })}
+              })),
+              { label: '+ New epic', value: NEW_EPIC_OPTION }
+            ]}
             label="Epic"
             name="epic"
             onValueChanged={(e) => {
+              if (e.target.value === NEW_EPIC_OPTION) {
+                showModal(
+                  'create-epic',
+                  <CreateEditEpic
+                    type="Create"
+                    projectId={projectId}
+                    projectDetails={projectDetails}
+                    onClickCloseModal={() => closeModal('create-epic')}
+                  />
+                );
+                return;
+              }
               onDefaultChange('epic', e.target.value);
             }}
             value={ticketInfo.epic}
