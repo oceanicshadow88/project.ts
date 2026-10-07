@@ -18,6 +18,7 @@
     "backup-databases": "node dist/src/app/console/backupAllDatabases.js",
     "restore-databases": "node dist/src/app/console/restoreDatabases.js",
     "check-overdue-tickets": "node dist/src/app/console/checkOverdueTickets.js",
+    "migrate-epic-ranks": "node dist/src/app/console/migrateEpicRanks.js",
     "loggly": "node --inspect dist/loggly.js",
     "start": "concurrently \"node dist/src/bootstrap/http/console/serveCommand.js\" \"node dist/src/bootstrap/queue/console/workCommand.js\" \"node dist/src/bootstrap/socket/console/socketCommand.js\"",
     "start:web": "node dist/src/bootstrap/http/console/serveCommand.js",

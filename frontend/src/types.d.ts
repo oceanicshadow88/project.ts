@@ -41,6 +41,7 @@ export interface ITicketBasic {
   epic: string;
   ticketNumber: string;
   rank?: string;
+  epicRank?: string;
 }
 /** **********Combine this with ITicketBasic*************** */
 export interface ISprintTicket {
@@ -90,6 +91,7 @@ export interface ITicketInput {
   createdAt?: Date;
   updatedAt?: Date;
   rank?: string;
+  epicRank?: string;
 }
 
 export interface ITicketDetails {
