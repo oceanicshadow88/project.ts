@@ -18,6 +18,11 @@ export default class BoardBuilder extends BaseBuilder {
     return this;
   }
 
+  withTenant(tenant) {
+    this.properties.tenant = tenant;
+    return this;
+  }
+
   withIsPublic(isPublic) {
     this.properties.isPublic = isPublic;
     return this;

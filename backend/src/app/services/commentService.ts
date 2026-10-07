@@ -3,8 +3,13 @@ import * as comment from '../model/comment';
 import * as User from '../model/user';
 import { replaceId } from '../services/replaceService';
 import NotFoundError from '../error/notFound';
+import {
+  assertCommentAccessibleForTenant,
+  assertTicketAccessibleForTenant,
+} from '../utils/tenantScopeUtils';
 
 export const getComment = async (req: Request) => {
+  await assertTicketAccessibleForTenant(req.dbConnection, req.params.id, req.tenantId);
   const userModel = await User.getModel(req.tenantsConnection);
   const result = await comment
     .getModel(req.dbConnection)
@@ -15,6 +20,7 @@ export const getComment = async (req: Request) => {
 
 export const createComment = async (req: Request) => {
   const { ticket, sender, content } = req.body;
+  await assertTicketAccessibleForTenant(req.dbConnection, ticket, req.tenantId);
   const newComment = await comment.getModel(req.dbConnection).create({
     ticket,
     sender,
@@ -28,6 +34,7 @@ export const createComment = async (req: Request) => {
 
 export const updateComment = async (req: Request) => {
   const { id } = req.params;
+  await assertCommentAccessibleForTenant(req.dbConnection, id, req.tenantId);
   const { content } = req.body;
   const updatedAt = Date.now();
   const updatedComment = await comment
@@ -41,7 +48,12 @@ export const updateComment = async (req: Request) => {
 
 export const deleteComment = async (req: Request) => {
   const { id } = req.params;
-  await comment.getModel(req.dbConnection).findByIdAndDelete({ _id: id });
+  const commentModel = comment.getModel(req.dbConnection);
+  if (!(await commentModel.exists({ _id: id }))) {
+    return;
+  }
+  await assertCommentAccessibleForTenant(req.dbConnection, id, req.tenantId);
+  await commentModel.findByIdAndDelete({ _id: id });
   if (!deleteComment) {
     throw new NotFoundError('Not found');
   }

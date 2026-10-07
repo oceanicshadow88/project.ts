@@ -96,7 +96,7 @@ export const createDailyScrum = async (req: Request) => {
   const DailyScrumModel = DailyScrum.getModel(req.dbConnection);
 
   const updatedDailyScrum = await DailyScrumModel.findOneAndUpdate(
-    { ticket: req.body.ticketId },
+    { ticket: req.body.ticketId, project: projectId },
     newData,
     {
       new: true,
@@ -112,11 +112,11 @@ export const createDailyScrum = async (req: Request) => {
 };
 
 export const updateDailyScrum = async (req: Request) => {
-  const { dailyScrumId } = req.params;
-  const { progress, ...rest } = req.body;
+  const { projectId, dailyScrumId } = req.params;
+  const { progress, project, ...rest } = req.body;
 
-  const newDailyScrum = await DailyScrum.getModel(req.dbConnection).findByIdAndUpdate(
-    dailyScrumId,
+  const newDailyScrum = await DailyScrum.getModel(req.dbConnection).findOneAndUpdate(
+    { _id: dailyScrumId, project: projectId },
     {
       ...rest,
       $addToSet: { progresses: progress },
@@ -137,7 +137,7 @@ export const deleteDailyScrum = async (req: Request) => {
   const { ticketId } = req.query;
 
   await DailyScrum.getModel(req.dbConnection).deleteMany({
-    projectId: projectId,
+    project: projectId,
     ticket: ticketId,
   });
 };

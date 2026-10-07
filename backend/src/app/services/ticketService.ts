@@ -12,6 +12,12 @@ import * as Status from '../model/status';
 import { ActivityType, IChange, ITicket, ITicketDocument } from '../types';
 import mongoose, { Mongoose, Types } from 'mongoose';
 import { generateNKeysBetween } from '../utils/generateRank';
+import {
+  assertEpicAccessibleForTenant,
+  assertProjectAccessibleForTenant,
+  assertSprintAccessibleForTenant,
+  assertTicketAccessibleForTenant,
+} from '../utils/tenantScopeUtils';
 
 /** Find tickets with given filters
  * @param dbConnection Mongoose
@@ -70,12 +76,15 @@ export const findTickets = async (
 
 export const createTicket = async (req: Request) => {
   const { board, sprintId, projectId, project, epicId, ...restBody } = req.body;
+  const projectParams = projectId || project;
+  await assertProjectAccessibleForTenant(req.dbConnection, projectParams, req.tenantId);
   const ticketModel = Ticket.getModel(req.dbConnection);
   const sprintModel = Sprint.getModel(req.dbConnection);
   const epicModel = Epic.getModel(req.dbConnection);
-  const sprintRes = await sprintModel.findById(sprintId);
-  const epicRes = await epicModel.findById(epicId);
-  const projectParams = projectId || project;
+  const sprintRes = sprintId
+    ? await sprintModel.findOne({ _id: sprintId, project: projectParams })
+    : null;
+  const epicRes = epicId ? await epicModel.findOne({ _id: epicId, project: projectParams }) : null;
   const ticket = await ticketModel.create({
     ...restBody,
     board: board,
@@ -103,6 +112,7 @@ export const createTicket = async (req: Request) => {
 export const migrateTicketRanks = async (req: Request) => {
   try {
     const { projectId } = req.body;
+    await assertProjectAccessibleForTenant(req.dbConnection, projectId, req.tenantId);
 
     const ticketModel = await Ticket.getModel(req.dbConnection);
 
@@ -255,7 +265,18 @@ const getDiffBetweenTickets = (
 
 export const updateTicket = async (req: Request) => {
   const { id } = req.params;
+  await assertTicketAccessibleForTenant(req.dbConnection, id, req.tenantId);
   const fieldsToUpdate = { ...req.body };
+  const toId = (value: any) => String(value && typeof value === 'object' ? value._id : value);
+  if (fieldsToUpdate.project) {
+    await assertProjectAccessibleForTenant(req.dbConnection, toId(fieldsToUpdate.project), req.tenantId);
+  }
+  if (fieldsToUpdate.sprint) {
+    await assertSprintAccessibleForTenant(req.dbConnection, toId(fieldsToUpdate.sprint), req.tenantId);
+  }
+  if (fieldsToUpdate.epic) {
+    await assertEpicAccessibleForTenant(req.dbConnection, toId(fieldsToUpdate.epic), req.tenantId);
+  }
   const TicketModel = Ticket.getModel(req.dbConnection);
   const UserModel = User.getModel(req.tenantsConnection);
 
@@ -313,8 +334,11 @@ export const updateTicket = async (req: Request) => {
 };
 
 export const deleteTicket = async (req: Request) => {
+  const ticketModel = Ticket.getModel(req.dbConnection);
+  if (!(await ticketModel.exists({ _id: req.params.id }))) return false;
+  await assertTicketAccessibleForTenant(req.dbConnection, req.params.id, req.tenantId);
   // delete ticket from Ticket collection
-  const ticket = await Ticket.getModel(req.dbConnection).findOneAndDelete({
+  const ticket = await ticketModel.findOneAndDelete({
     _id: new mongoose.Types.ObjectId(req.params.id),
   });
   if (!ticket) return false;
@@ -329,6 +353,7 @@ export const deleteTicket = async (req: Request) => {
 
 export const toggleActive = async (req: Request) => {
   const { id } = req.params;
+  await assertTicketAccessibleForTenant(req.dbConnection, id, req.tenantId);
 
   const ticket = await Ticket.getModel(req.dbConnection).findOne({ _id: id });
   if (!ticket) {
@@ -345,6 +370,7 @@ export const toggleActive = async (req: Request) => {
 
 export const getTicketsByProject = async (req: Request) => {
   const { id } = req.params;
+  await assertProjectAccessibleForTenant(req.dbConnection, id, req.tenantId);
   const tickets = await Ticket.getModel(req.dbConnection)
     .find({ project: id })
     .populate({
@@ -370,7 +396,8 @@ export const getTicketsByEpic = async (req: Request) => {
   return tickets;
 };
 
-export const getShowTicket = (req: Request) => {
+export const getShowTicket = async (req: Request) => {
+  await assertTicketAccessibleForTenant(req.dbConnection, req.params.id, req.tenantId);
   return findTickets(req.dbConnection, req.tenantsConnection, { _id: req.params.id });
 };
 

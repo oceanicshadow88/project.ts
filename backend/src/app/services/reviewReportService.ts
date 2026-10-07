@@ -3,6 +3,7 @@ import * as ReviewReport from '../model/reviewReport';
 import * as User from '../model/user';
 import { OverdueTicketService } from './overdueTicketService';
 import NotFoundError from '../error/notFound';
+import { getProjectIdsForTenant } from '../utils/tenantScopeUtils';
 
 const REVIEW_REPORT_STATUSES = ['pending', 'submitted', 'overdue'];
 
@@ -79,7 +80,8 @@ export const getOverdueTicketsAdmin = async (tenantId: string, status?: string) 
   const ReviewReportModel = ReviewReport.getModel(connection);
   User.getModel(connection);
 
-  const query: Record<string, string> = {};
+  const tenantProjectIds = await getProjectIdsForTenant(connection, tenantId);
+  const query: Record<string, unknown> = { project: { $in: tenantProjectIds } };
   if (status && REVIEW_REPORT_STATUSES.includes(status)) {
     query.status = status;
   }

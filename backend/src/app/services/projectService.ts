@@ -17,6 +17,7 @@ import { init } from '../database/init';
 import { getRetroBoards } from './retroBoardService';
 import { getEpicByProject } from './epicService';
 import { DEFAULT_STATUS } from '../database/seeders/statusSeeder';
+import { findProjectForTenant } from '../utils/tenantScopeUtils';
 //Typo error
 
 const findOrCreteBoard = async (dbConnection: Mongoose, body: any, tenantId: string) => {
@@ -102,9 +103,10 @@ export const updateProject = async (req: Request) => {
   if (!Types.ObjectId.isValid(req.params.id)) {
     throw new Error('Cannot find project');
   }
-  const project = await Project.getModel(req.dbConnection).findByIdAndUpdate(
-    new Types.ObjectId(req.params.id),
-    req.body,
+  const { tenant, ...updates } = req.body;
+  const project = await Project.getModel(req.dbConnection).findOneAndUpdate(
+    { _id: new Types.ObjectId(req.params.id), tenant: req.tenantId },
+    updates,
     { new: true },
   );
   if (!project) {
@@ -117,8 +119,11 @@ export const projectDetails = async (req: Request) => {
   if (!Types.ObjectId.isValid(req.params.id)) {
     throw new Error('Cannot find project');
   }
-  const projectModel = Project.getModel(req.dbConnection);
-  const [labels, users, ticketTypes, sprints, statuses, boards, epics, details, retroBoards] =
+  const details = await findProjectForTenant(req.dbConnection, req.params.id, req.tenantId);
+  if (!details) {
+    throw new Error('Cannot find project');
+  }
+  const [labels, users, ticketTypes, sprints, statuses, boards, epics, retroBoards] =
     await Promise.all([
       getLabels(req),
       getUserProjectRole(req),
@@ -127,7 +132,6 @@ export const projectDetails = async (req: Request) => {
       getAllStatus(req),
       getAllBoards(req),
       getEpicByProject(req.params.id, req.dbConnection),
-      projectModel.findById(req.params.id),
       getRetroBoards(req),
     ]);
   return {
@@ -148,16 +152,19 @@ export const deleteProject = (req: Request) => {
     throw new Error('Cannot find project');
   }
   Project.getModel(req.dbConnection)
-    .findByIdAndUpdate(req.params.id, {
-      isDelete: true,
-    })
+    .findOneAndUpdate(
+      { _id: req.params.id, tenant: req.tenantId },
+      {
+        isDelete: true,
+      },
+    )
     .exec();
 };
 
 export const showProject = async (req: Request) => {
   const userModel = await User.getModel(req.tenantsConnection);
   const project = await Project.getModel(req.dbConnection)
-    .findOne({ _id: req.params.id, isDelete: false })
+    .findOne({ _id: req.params.id, isDelete: false, tenant: req.tenantId })
     .populate({ path: 'projectLead', model: userModel })
     .populate({ path: 'owner', model: userModel });
   if (req.ownerId === req.userId) {

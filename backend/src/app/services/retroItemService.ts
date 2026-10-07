@@ -1,6 +1,7 @@
 import { Request } from 'express';
 import * as RetroItem from '../model/retroItem';
 import { replaceId } from '../services/replaceService';
+import NotFoundError from '../error/notFound';
 
 export const showRetroItems = async (req: Request) => {
   const result = await RetroItem.getModel(req.dbConnection).find({
@@ -22,14 +23,19 @@ export const createRetroItem = async (req: Request) => {
 };
 
 export const updateRetroItem = async (req: Request) => {
-  const retroItem = await RetroItem.getModel(req.dbConnection).findByIdAndUpdate(req.params.id, {
-    ...req.body,
-  });
+  const { tenant, sprint, ...updates } = req.body;
+  const retroItem = await RetroItem.getModel(req.dbConnection).findOneAndUpdate(
+    { _id: req.params.id, tenant: req.tenantId },
+    updates,
+  );
+  if (!retroItem) {
+    throw new NotFoundError('Retro item not found');
+  }
   retroItem.save();
   return retroItem;
 };
 
 export const deleteRetroItem = async (req: Request) => {
   const { id } = req.params;
-  await RetroItem.getModel(req.dbConnection).findByIdAndDelete({ _id: id });
+  await RetroItem.getModel(req.dbConnection).findOneAndDelete({ _id: id, tenant: req.tenantId });
 };

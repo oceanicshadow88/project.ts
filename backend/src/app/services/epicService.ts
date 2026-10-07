@@ -1,8 +1,8 @@
 import { Request } from 'express';
 import * as Epic from '../model/epic';
-import * as Project from '../model/project';
 import * as Ticket from '../model/ticket';
 import mongoose from 'mongoose';
+import { findProjectForTenant } from '../utils/tenantScopeUtils';
 
 interface IEpicQuery {
   dbConnection: mongoose.Connection;
@@ -13,9 +13,8 @@ interface IEpicQuery {
 const createEpic = async (req: Request) => {
   const { project } = req.body;
   const epicModel = Epic.getModel(req.dbConnection);
-  const projectModel = Project.getModel(req.dbConnection);
-  const projectRes = await projectModel.findById(project);
-  if (!project) {
+  const projectRes = await findProjectForTenant(req.dbConnection, project, req.tenantId);
+  if (!projectRes) {
     throw new Error('Project not found');
   }
   const epic = await epicModel.create({
@@ -51,7 +50,11 @@ const getEpicById = async ({ id, dbConnection }: IEpicQuery) => {
 const updateEpicById = async (req: Request) => {
   const { id } = req.params;
   const epicModel = Epic.getModel(req.dbConnection);
-  const epic = await epicModel.findByIdAndUpdate(id, { $set: req.body }, { new: true }).exec();
+  const { tenant, ...updates } = req.body;
+  if (updates.project && !(await findProjectForTenant(req.dbConnection, updates.project, req.tenantId))) {
+    throw new Error('Project not found');
+  }
+  const epic = await epicModel.findByIdAndUpdate(id, { $set: updates }, { new: true }).exec();
   if (!epic) {
     throw new Error(`Epic with ID ${id} not found`);
   }

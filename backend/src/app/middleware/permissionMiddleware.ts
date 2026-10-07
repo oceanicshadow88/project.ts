@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import * as Role from '../model/role';
 import * as Permission from '../model/permission';
-import * as Project from '../model/project';
+import { findProjectForTenant } from '../utils/tenantScopeUtils';
 import { IProjectRole } from '../model/user';
 import { IRole, IRolePermission } from '../model/role';
 
@@ -25,8 +25,8 @@ const getProjectRoleId = (projectId: string, projectsRoles: IProjectRole[]) => {
 };
 
 const checkIsOwner = async (projectId: string, userId: string, req: Request) => {
-  const project = await Project.getModel(req.dbConnection).findById(projectId);
-  return project.owner.toString() === userId;
+  const project = await findProjectForTenant(req.dbConnection, projectId, req.tenantId);
+  return project?.owner?.toString() === userId;
 };
 
 const permission = (slug: string) => {
@@ -52,6 +52,7 @@ const permission = (slug: string) => {
     }
     if (!(await hasPermission(role, slug, req))) {
       res.status(403).send('nothing');
+      return;
     }
     next(); //TODO: need test
   };

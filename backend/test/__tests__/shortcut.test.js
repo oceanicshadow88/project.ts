@@ -61,12 +61,11 @@ describe('Shortcut Test', () => {
 
     it('should return 200 even if shortcut not found (controller does not check return value)', async () => {
       const project = await new ProjectBuilder().save();
-      const wrongProjectId = new mongoose.Types.ObjectId().toString();
       const wrongShortcutId = new mongoose.Types.ObjectId().toString();
 
       const newShortcut = { shortcutLink: 'https://twitter.com', name: 'Twitter' };
       const res = await request(app.application)
-        .put(`/api/v2/projects/${wrongProjectId}/shortcuts/${wrongShortcutId}`)
+        .put(`/api/v2/projects/${project.id}/shortcuts/${wrongShortcutId}`)
         .send({ ...newShortcut });
 
       // The controller doesn't check if updateShortcut returns false, so it returns 200

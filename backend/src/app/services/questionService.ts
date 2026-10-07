@@ -12,6 +12,7 @@ import NotFoundError from '../error/notFound';
 import { sendQuestionsToPOEmail, QuestionsToPOEmailData } from '../utils/emailSender';
 import { winstonLogger } from '../../bootstrap/logger';
 import { QuestionJob } from '../jobs/questionJob';
+import { assertTicketAccessibleForTenant } from '../utils/tenantScopeUtils';
 
 interface ProductOwner {
   _id: mongoose.Types.ObjectId;
@@ -105,6 +106,7 @@ export const getQuestionById = async (req: Request) => {
 
 export const createQuestion = async (req: Request) => {
   const { title, priority, assignee, ticket } = req.body;
+  await assertTicketAccessibleForTenant(req.dbConnection, ticket, req.tenantId);
   const questionModel = Question.getModel(req.dbConnection);
   const ticketModel = Ticket.getModel(req.dbConnection);
   const sprintModel = Sprint.getModel(req.dbConnection);

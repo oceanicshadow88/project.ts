@@ -69,6 +69,15 @@ import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
 import * as promptValidation from '../../validations/promptValidation';
 import * as promptController from '../../controllers/v1/promptController';
+import { requireTenantParam, scopeParamToTenant } from '../../middleware/tenantScopeMiddleware';
+import {
+  assertEpicAccessibleForTenant,
+  assertProjectAccessibleForTenant,
+  assertQuestionAccessibleForTenant,
+  assertReplyAccessibleForTenant,
+  assertSprintAccessibleForTenant,
+  assertTicketAccessibleForTenant,
+} from '../../utils/tenantScopeUtils';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -83,6 +92,13 @@ router.get('/security', securityController.index);
 router.get('/payment/productsInfo', stripeController.getAllProductsInfo);
 
 router.use(saasMiddlewareV2.saas);
+
+// Every route below with one of these params is rejected if the record belongs to another tenant.
+router.param('projectId', scopeParamToTenant(assertProjectAccessibleForTenant));
+router.param('ticketId', scopeParamToTenant(assertTicketAccessibleForTenant));
+router.param('sprintId', scopeParamToTenant(assertSprintAccessibleForTenant));
+router.param('questionId', scopeParamToTenant(assertQuestionAccessibleForTenant));
+
 router.post('/register', registerValidation.register, registerV2Controller.register);
 
 //emailVerifyCheck-stepTwo-V2
@@ -164,18 +180,26 @@ router.get(
   requireProductOwner,
   questionController.getByProject,
 );
-router.get('/questions/:id', authenticationTokenMiddleware, questionValidation.show, questionController.show);
+router.get(
+  '/questions/:id',
+  authenticationTokenMiddleware,
+  questionValidation.show,
+  requireTenantParam('id', assertQuestionAccessibleForTenant),
+  questionController.show,
+);
 router.post('/questions', authenticationTokenMiddleware, questionValidation.store, questionController.store);
 router.put(
   '/questions/:id',
   authenticationTokenMiddleware,
   questionValidation.update,
+  requireTenantParam('id', assertQuestionAccessibleForTenant),
   questionController.update,
 );
 router.delete(
   '/questions/:id',
   authenticationTokenMiddleware,
   questionValidation.destroy,
+  requireTenantParam('id', assertQuestionAccessibleForTenant),
   questionController.destroy,
 );
 
@@ -194,8 +218,20 @@ router.get(
   replyController.index,
 );
 router.post('/replies', authenticationTokenMiddleware, replyValidation.store, replyController.store);
-router.put('/replies/:id', authenticationTokenMiddleware, replyValidation.update, replyController.update);
-router.delete('/replies/:id', authenticationTokenMiddleware, replyValidation.destroy, replyController.destroy);
+router.put(
+  '/replies/:id',
+  authenticationTokenMiddleware,
+  replyValidation.update,
+  requireTenantParam('id', assertReplyAccessibleForTenant),
+  replyController.update,
+);
+router.delete(
+  '/replies/:id',
+  authenticationTokenMiddleware,
+  replyValidation.destroy,
+  requireTenantParam('id', assertReplyAccessibleForTenant),
+  replyController.destroy,
+);
 
 router.get(
   '/tickets/project/:id',
@@ -222,6 +258,7 @@ router.get(
   '/tickets/epic/:id',
   epicValidator.show,
   authenticationTokenMiddleware,
+  requireTenantParam('id', assertEpicAccessibleForTenant),
   ticketController.ticketsByEpic,
 );
 
@@ -316,7 +353,12 @@ router.delete(
   projectsController.deleteOne,
 );
 //TODO: s
-router.post('/projects/:id/shortcuts', shortcutValidation.store, shortcutControllers.store);
+router.post(
+  '/projects/:id/shortcuts',
+  shortcutValidation.store,
+  requireTenantParam('id', assertProjectAccessibleForTenant),
+  shortcutControllers.store,
+);
 router.put(
   '/projects/:projectId/shortcuts/:shortcutId',
   shortcutValidation.update,
@@ -328,7 +370,11 @@ router.delete(
   shortcutControllers.destroy,
 );
 
-router.get('/projects/:id/members', memberController.index);
+router.get(
+  '/projects/:id/members',
+  requireTenantParam('id', assertProjectAccessibleForTenant),
+  memberController.index,
+);
 router.put(
   '/projects/:projectId/members/:userId',
   memberValidation.update,
@@ -419,8 +465,16 @@ router.put('/projects/:projectId/statuses/:id', statuseValidation.update, status
 
 //TODO:
 //activities
-router.get('/activities/:tid', activityControllers.show);
-router.delete('/activities/:id', activityControllers.destroy);
+router.get(
+  '/activities/:tid',
+  requireTenantParam('tid', assertTicketAccessibleForTenant),
+  activityControllers.show,
+);
+router.delete(
+  '/activities/:id',
+  requireTenantParam('id', assertTicketAccessibleForTenant),
+  activityControllers.destroy,
+);
 
 //TODO: s
 //dailyScrums
@@ -464,12 +518,24 @@ router.get(
   epicValidator.showEpicByProject,
   epicController.showEpicByProject,
 );
-router.get('/epics/:id', authenticationTokenMiddleware, epicValidator.show, epicController.show);
-router.put('/epics/:id', authenticationTokenMiddleware, epicController.update);
+router.get(
+  '/epics/:id',
+  authenticationTokenMiddleware,
+  epicValidator.show,
+  requireTenantParam('id', assertEpicAccessibleForTenant),
+  epicController.show,
+);
+router.put(
+  '/epics/:id',
+  authenticationTokenMiddleware,
+  requireTenantParam('id', assertEpicAccessibleForTenant),
+  epicController.update,
+);
 router.delete(
   '/epics/:id',
   authenticationTokenMiddleware,
   epicValidator.destroy,
+  requireTenantParam('id', assertEpicAccessibleForTenant),
   epicController.destroy,
 );
 

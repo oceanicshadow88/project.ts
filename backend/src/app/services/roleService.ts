@@ -41,7 +41,10 @@ export const createProjectNewRole = async (req: Request) => {
 export const updateProjectRole = async (req: Request) => {
   const { roleId } = req.params;
   const { permissions } = req.body;
-  const role = await Role.getModel(req.dbConnection).findById(roleId);
+  const role = await Role.getModel(req.dbConnection).findOne({
+    _id: roleId,
+    $or: [{ tenant: req.tenantId }, { isPublic: true }],
+  });
   if (!role) {
     return;
   }

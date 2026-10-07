@@ -33,16 +33,19 @@ export const deleteLabel = (req: Request) => {
   if (!Types.ObjectId.isValid(req.params.id)) {
     throw new Error('Invalid Id');
   }
-  Label.getModel(req.dbConnection).findByIdAndRemove(req.params.id);
+  Label.getModel(req.dbConnection).findOneAndRemove({ _id: req.params.id, tenant: req.tenantId });
 };
 
 export const updateLabel = (req: Request) => {
   if (!Types.ObjectId.isValid(req.params.id)) {
     throw new Error('Invalid Id');
   }
-  return Label.getModel(req.dbConnection).findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
+  const { tenant, ...updates } = req.body;
+  return Label.getModel(req.dbConnection).findOneAndUpdate(
+    { _id: req.params.id, tenant: req.tenantId },
+    updates,
+    { new: true },
+  );
 };
 
 export const removeByTicketId = async (req: Request) => {

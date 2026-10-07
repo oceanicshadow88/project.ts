@@ -28,7 +28,9 @@ export const findTicketsByBoardId = async (
 export const getBoard = async (req: Request) => {
   const { boardId } = req.params;
   const boardModel = Board.getModel(req.dbConnection);
-  const board = await boardModel.findById(boardId).populate('statuses');
+  const board = await boardModel
+    .findOne({ _id: boardId, $or: [{ tenant: req.tenantId }, { isPublic: true }] })
+    .populate('statuses');
   return replaceId(board);
 };
 

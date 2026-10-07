@@ -1,9 +1,9 @@
 import { Request } from 'express';
 import * as Reply from '../model/reply';
-import * as Question from '../model/question';
 import * as User from '../model/user';
 import { replaceId } from './replaceService';
 import NotFoundError from '../error/notFound';
+import { assertQuestionAccessibleForTenant } from '../utils/tenantScopeUtils';
 
 export const getRepliesByQuestion = async (req: Request) => {
   const { questionId } = req.params;
@@ -21,13 +21,8 @@ export const getRepliesByQuestion = async (req: Request) => {
 export const createReply = async (req: Request) => {
   const { content, question } = req.body;
   const replyModel = Reply.getModel(req.dbConnection);
-  const questionModel = Question.getModel(req.dbConnection);
 
-  // Verify question exists
-  const questionExists = await questionModel.findById(question);
-  if (!questionExists) {
-    throw new NotFoundError('Question not found');
-  }
+  await assertQuestionAccessibleForTenant(req.dbConnection, question, req.tenantId);
 
   const newReply = await replyModel.create({
     content,
