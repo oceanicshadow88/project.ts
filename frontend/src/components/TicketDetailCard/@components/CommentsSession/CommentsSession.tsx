@@ -111,6 +111,14 @@ function CommentsSession(Props: ICommentsSessionProps) {
     }
   };
 
+  const handleCancel = () => {
+    setIsCreating(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+  };
+
   const renderCommentContent = (content: string) => {
     const jsonContent = parseContent(content);
     if (!jsonContent) {
@@ -222,7 +230,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
               <div className="comment-editor-wrapper">
                 <TipTapEditor
                   onSubmit={(content) => handleUpdate(comment.id, content)}
-                  onCancel={() => setEditingCommentId(null)}
+                  onCancel={handleCancelEdit}
                   initialContent={editingInitialContent}
                   users={users}
                   aiOptimizeAction="optimizeText"
@@ -252,7 +260,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
         (isCreating ? (
           <TipTapEditor
             onSubmit={handleCreate}
-            onCancel={() => setIsCreating(false)}
+            onCancel={handleCancel}
             users={users}
             aiOptimizeAction="optimizeText"
             placeholder={COMMENT_PLACEHOLDER}
