@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { Extension, JSONContent } from '@tiptap/core';
+import { JSONContent } from '@tiptap/core';
 import ImageResize from 'tiptap-extension-resize-image';
 import style from './TipTapEditor.module.scss';
 import './mention.scss';
@@ -18,41 +18,27 @@ interface ICommentEditorProps {
   initialContent?: JSONContent;
   users: IUserInfo[];
   aiOptimizeAction: 'optimizeTicketDescription' | 'optimizeText';
-  placeholder?: string;
-  submitOnModEnter?: boolean;
 }
-
-const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
 
 function TipTapEditor({
   onSubmit,
   onCancel,
   initialContent,
   users,
-  aiOptimizeAction,
-  placeholder,
-  submitOnModEnter = false
+  aiOptimizeAction
 }: ICommentEditorProps) {
   const { optimize, isLoading } = useAiOptimize();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // The editor is created once, so it reads the latest props through refs.
   const usersRef = useRef(users);
   usersRef.current = users;
-  const submitShortcutRef = useRef<() => boolean>(() => false);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       ImageResize,
       createMentionExtension(() => usersRef.current),
-      DropUploadImageExtension,
-      Extension.create({
-        name: 'submitShortcut',
-        addKeyboardShortcuts() {
-          return { 'Mod-Enter': () => submitShortcutRef.current() };
-        }
-      })
+      DropUploadImageExtension
     ],
     content: initialContent || ''
   });
@@ -95,12 +81,6 @@ function TipTapEditor({
     }
   };
 
-  submitShortcutRef.current = () => {
-    if (!submitOnModEnter) return false;
-    handleSubmit();
-    return true;
-  };
-
   const handleAiOptimize = async () => {
     if (!editor) return;
     const text = editor.getText();
@@ -123,14 +103,7 @@ function TipTapEditor({
           onAiButtonClick={handleAiOptimize}
           loading={isLoading}
         />
-        <div className={style.editorBody}>
-          <EditorContent editor={editor} />
-          {placeholder && editor.isEmpty && (
-            <div className={style.placeholder} data-testid="editor-placeholder">
-              {placeholder}
-            </div>
-          )}
-        </div>
+        <EditorContent editor={editor} />
       </div>
 
       <div className={style.buttonContainer}>
@@ -140,9 +113,6 @@ function TipTapEditor({
         <button onClick={onCancel} className={style.cancelButton}>
           Cancel
         </button>
-        {submitOnModEnter && (
-          <span className={style.shortcutHint}>{isMac ? '⌘' : 'Ctrl'} + Enter to submit</span>
-        )}
       </div>
     </div>
   );

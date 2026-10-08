@@ -1,28 +1,10 @@
 @import '../../../../variables-only.scss';
 
-$editor-border: #c9d4ea;
 $text-secondary: #737373;
 $text-muted: #a3a3a3;
 $danger: rgb(221, 42, 59);
 $skeleton: #eeeeef;
 
-.addComment {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: 44px;
-  padding: 0 12px;
-  border: 1px solid $editor-border;
-  border-radius: 4px;
-  background: #fff;
-  color: $text-muted;
-  font-size: 14px;
-  text-align: left;
-
-  &:hover {
-    border-color: #97acc3;
-  }
-}
 
 .commentContent {
   line-height: 1.6;
