@@ -79,7 +79,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
     return comment ? parseContent(comment.content) : undefined;
   }, [comments, editingCommentId]);
 
-  const handleCreate = async (content: JSONContent) => {
+  const handleSubmit = async (content: JSONContent) => {
     try {
       await createComment({ ticket: ticketId, sender: userId, content: JSON.stringify(content) });
     } catch (error) {
@@ -259,7 +259,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
       {checkAccess(Permission.AddComments, projectId) &&
         (isCreating ? (
           <TipTapEditor
-            onSubmit={handleCreate}
+            onSubmit={handleSubmit}
             onCancel={handleCancel}
             users={users}
             aiOptimizeAction="optimizeText"
