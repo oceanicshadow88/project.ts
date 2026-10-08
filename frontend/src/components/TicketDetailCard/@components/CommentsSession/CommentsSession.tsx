@@ -37,8 +37,6 @@ interface IComment {
   _v: number;
 }
 
-const COMMENT_PLACEHOLDER = 'Add a comment… Type @ to mention a teammate';
-
 const parseContent = (content: string): JSONContent | undefined => {
   try {
     return JSON.parse(content);
@@ -87,7 +85,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
       throw error;
     }
     setIsCreating(false);
-    fetchCommentsData();
+    await fetchCommentsData();
   };
 
   const handleUpdate = async (commentId: string, content: JSONContent) => {
@@ -98,14 +96,14 @@ function CommentsSession(Props: ICommentsSessionProps) {
       throw error;
     }
     setEditingCommentId(null);
-    fetchCommentsData();
+    await fetchCommentsData();
   };
 
   const handleDelete = async (commentId: string) => {
     try {
       await deleteComment(commentId);
       setDeletingCommentId(null);
-      fetchCommentsData();
+      await fetchCommentsData();
     } catch {
       toast.error('Failed to delete comment. Please try again.');
     }
@@ -234,7 +232,6 @@ function CommentsSession(Props: ICommentsSessionProps) {
                   initialContent={editingInitialContent}
                   users={users}
                   aiOptimizeAction="optimizeText"
-                  submitOnModEnter
                 />
               </div>
             ) : (
@@ -263,17 +260,16 @@ function CommentsSession(Props: ICommentsSessionProps) {
             onCancel={handleCancel}
             users={users}
             aiOptimizeAction="optimizeText"
-            placeholder={COMMENT_PLACEHOLDER}
-            submitOnModEnter
           />
         ) : (
           <button
             type="button"
-            className={styles.addComment}
+            className="flex border border-gray-200 text-gray rounded-md bg-white p-4 w-full cursor-pointer text-15 shadow-none border-solid hover-bg-gray-50"
             onClick={() => setIsCreating(true)}
+            style={{ minHeight: '100px' }}
             data-testid="add-comment"
           >
-            {COMMENT_PLACEHOLDER}
+            Input comments here...
           </button>
         ))}
       {checkAccess(Permission.EditTickets, projectId) && renderCommentsList()}
