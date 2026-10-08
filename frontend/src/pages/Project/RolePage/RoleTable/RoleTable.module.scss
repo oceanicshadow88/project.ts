@@ -1,106 +1,144 @@
-.roles-table-container {
+@import '../../../../variables-only.scss';
+
+.table-card {
+  margin-top: 16px;
+  margin-bottom: 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow-x: auto;
+}
+
+.roles-table {
   border-collapse: collapse;
   width: 100%;
-  thead,
+  min-width: 900px;
+
+  thead {
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+
+    th {
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgb(94, 108, 132);
+      text-align: left;
+      white-space: nowrap;
+    }
+  }
+
   tbody {
-    border-bottom: 2px solid #dfe1e6;
-  }
+    tr {
+      border-bottom: 1px solid #e5e7eb;
+      transition: background-color 0.2s;
 
-  .role-header {
-    th {
-      padding: 4px 8px;
-      border: none;
-      box-sizing: border-box;
-      font-weight: 600;
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: #f9fafb;
+      }
+    }
+
+    th,
+    td {
+      padding: 12px;
       text-align: left;
-      vertical-align: top;
-      color: #5e6c84;
-      transition: all 0.3s;
-      text-transform: uppercase;
-    }
-
-    th:hover {
-      background-color: rgba(9, 30, 66, 0.08);
+      vertical-align: middle;
     }
   }
 
-  .role-body {
-    transition: all 0.3s;
-
-    th {
-      padding: 4px 8px;
-      border: none;
-      box-sizing: border-box;
-      font-weight: 600;
-      text-align: left;
-      vertical-align: top;
-    }
-
-    .permissions {
-      .default-status {
-        display: flex;
-        gap: 8px;
-      }
-    }
-
-    .moreBtn-container {
-      width: 120px;
-      padding: 0px;
-      .moreBtn {
-        background-color: rgb(255 255 255 /0%);
-      }
-
-      .cancelBtn {
-        background-color: #e03131;
-      }
-      .cancelBtn:hover {
-        background-color: #c92a2a;
-      }
-
-      button {
-        margin: 6px;
-        width: 100%;
-        border: none;
-        background-color: #0052cc;
-        align-items: center;
-        border-width: 0px;
-        border-radius: 6px;
-        display: inline-flex;
-        cursor: pointer;
-        height: 32px;
-        padding: 0px 10px;
-        transition: all 0.3s;
-        justify-content: center;
-      }
-
-      .editBtn:hover {
-        background-color: #0042a3;
-      }
-    }
+  .role-name {
+    min-width: 140px;
+    font-size: 14px;
+    font-weight: 600;
+    color: $textPrimaryColor;
   }
 
-  .role-body:hover {
-    background-color: #fafbfc;
+  thead .role-name {
+    font-size: 12px;
+    color: rgb(94, 108, 132);
   }
 
-  .moreBtn-container {
-    position: relative;
+  .default-badge {
     display: inline-block;
+    margin-left: 8px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #f3f4f6;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 500;
+  }
 
-    .drop-down {
-      display: none;
-      position: absolute;
-      left: 100%;
-      top: 0%;
-      list-style: none;
-      padding: 0;
-      margin: 0;
+  .permission-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .no-permission {
+    color: #9ca3af;
+  }
+
+  .actions {
+    width: 1%;
+    white-space: nowrap;
+  }
+
+  .action-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 32px;
+      padding: 0 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    .edit-btn {
+      border: 1px solid $primaryColor;
+      background: #fff;
+      color: $primaryColor;
+
+      &:hover {
+        background: $primaryColor;
+        color: #fff;
+      }
+    }
+
+    .delete-btn {
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #e03131;
+
+      &:hover {
+        background: #e03131;
+        border-color: #e03131;
+        color: #fff;
+      }
     }
   }
 
-  .moreBtn-container:hover {
-    .drop-down {
-      display: block;
-    }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 }
