@@ -34,6 +34,7 @@ export interface IProjectDetails {
   onUpsertEpic: (item: any) => void;
   onUpdateEpic: (id: string, item: any) => void;
   onRemoveEpic: (itemId: string) => void;
+  onUpdateStatus: (id: string, item: Partial<IStatus>) => void;
 }
 
 const ProjectDetailsContext = createContext<IProjectDetails>({
@@ -79,6 +80,9 @@ const ProjectDetailsContext = createContext<IProjectDetails>({
   },
   onRemoveEpic: (itemId: string) => {
     return;
+  },
+  onUpdateStatus: (id: string, item: Partial<IStatus>) => {
+    return;
   }
 });
 const ProjectDetailsDispatchContext = createContext<Dispatch<SetStateAction<IProjectDetails>>>(
@@ -115,7 +119,8 @@ function ProjectDetailsProvider({ children }: IProjectDetailsProvider) {
     onUpdateSprint: () => {},
     onUpsertEpic: () => {},
     onUpdateEpic: () => {},
-    onRemoveEpic: () => {}
+    onRemoveEpic: () => {},
+    onUpdateStatus: () => {}
   });
   const [isLoadingDetails, setIsLoadingDetails] = useState(true);
   const { projectId = null } = useParams();
@@ -198,6 +203,13 @@ function ProjectDetailsProvider({ children }: IProjectDetailsProvider) {
     setDetails({ ...details, ...updatedEpic });
   };
 
+  const onUpdateStatus = (id: string, status: Partial<IStatus>) => {
+    setDetails((prev) => ({
+      ...prev,
+      statuses: prev.statuses.map((item) => (id === item.id ? { ...item, ...status } : item))
+    }));
+  };
+
   useEffect(() => {
     // Wait until we know who the current user is, so we can always inject them into the users list
     if (!currentUser || !currentUser.id) {
@@ -216,7 +228,8 @@ function ProjectDetailsProvider({ children }: IProjectDetailsProvider) {
         onUpdateSprint,
         onUpsertEpic,
         onUpdateEpic,
-        onRemoveEpic
+        onRemoveEpic,
+        onUpdateStatus
       }}
     >
       <ProjectDetailsDispatchContext.Provider value={setDetails}>
