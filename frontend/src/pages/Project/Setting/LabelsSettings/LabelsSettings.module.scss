@@ -41,12 +41,6 @@
   font-size: 16px;
 }
 
-.emptyAction {
-  display: flex;
-  justify-content: center;
-  margin-top: 16px;
-}
-
 // Create label button: keeps the system button look, adds padding around the text.
 // `button.` raises the specificity above ButtonV2's single-class utilities
 // (p-0, min-w-125, justify-around, button-md), so these rules win whatever the CSS load order is.

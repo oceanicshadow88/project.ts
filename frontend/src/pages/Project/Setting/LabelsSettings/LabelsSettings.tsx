@@ -21,16 +21,6 @@ interface EditableLabel extends ILabelData {
   tempColor: string;
 }
 
-const toEditableLabel = (label: ILabelData): EditableLabel => ({
-  ...label,
-  editingName: false,
-  editingColor: false,
-  tempName: label.name,
-  tempColor: label.color || '#6a2add'
-});
-
-const sortByName = (a: EditableLabel, b: EditableLabel) => a.name.localeCompare(b.name);
-
 export default function LabelsSettings() {
   const { projectId = '' } = useParams();
   const [labels, setLabels] = useState<EditableLabel[]>([]);
@@ -45,8 +35,15 @@ export default function LabelsSettings() {
     try {
       setLoading(true);
       const response = await showLabel(projectId);
-      const labelsData = (response.data || []).map(toEditableLabel).sort(sortByName);
-
+      const labelsData = (response.data || [])
+        .map((label: ILabelData) => ({
+          ...label,
+          editingName: false,
+          editingColor: false,
+          tempName: label.name,
+          tempColor: label.color || '#6a2add'
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
       setLabels(labelsData);
     } catch (error) {
       toast.error('Failed to load labels', { theme: 'colored' });
@@ -190,35 +187,13 @@ export default function LabelsSettings() {
       setLabelToDelete(null);
     }
   };
-  const handleLabelCreated = (label: ILabelData) => {
-    setShowCreateModal(false);
-    setLabels((prev) => [...prev, toEditableLabel(label)].sort(sortByName));
-  };
-
-  const renderCreateButton = (dataTestId: string) => (
-    <ButtonV2
-      text="Create label"
-      icon={<IoIosAdd className="w-5 h-5" />}
-      fill
-      customStyles={styles.createButton}
-      onClick={() => setShowCreateModal(true)}
-      dataTestId={dataTestId}
-    />
-  );
 
   const renderContent = () => {
     if (loading) {
       return <div className={styles.loading}>Loading labels...</div>;
     }
     if (labels.length === 0) {
-      return (
-        <div className={styles.emptyState}>
-          <p>No labels yet.</p>
-          {canCreateLabel && (
-            <div className={styles.emptyAction}>{renderCreateButton('create-label-empty')}</div>
-          )}
-        </div>
-      );
+      return <div className={styles.emptyState}>No labels yet.</div>;
     }
 
     return (
@@ -360,7 +335,18 @@ export default function LabelsSettings() {
     <ProjectSettingHOC>
       <SettingCard
         title="Project Labels"
-        action={canCreateLabel ? renderCreateButton('create-label') : null}
+        action={
+          canCreateLabel && (
+            <ButtonV2
+              text="Create label"
+              icon={<IoIosAdd className="w-5 h-5" />}
+              fill
+              customStyles={styles.createButton}
+              onClick={() => setShowCreateModal(true)}
+              dataTestId="create-label"
+            />
+          )
+        }
       >
         {renderContent()}
       </SettingCard>
@@ -369,7 +355,10 @@ export default function LabelsSettings() {
           projectId={projectId}
           existingLabels={labels}
           onClose={() => setShowCreateModal(false)}
-          onCreated={handleLabelCreated}
+          onCreated={() => {
+            setShowCreateModal(false);
+            fetchLabels();
+          }}
         />
       )}
       {showDeleteModal && (

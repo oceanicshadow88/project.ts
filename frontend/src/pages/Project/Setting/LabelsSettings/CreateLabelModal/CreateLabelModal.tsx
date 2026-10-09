@@ -16,7 +16,7 @@ interface ICreateLabelModal {
   projectId: string;
   existingLabels: ILabelData[];
   onClose: () => void;
-  onCreated: (label: ILabelData) => void;
+  onCreated: () => void;
 }
 
 const validateName = (name: string, existingLabels: ILabelData[]) => {
@@ -72,7 +72,7 @@ export default function CreateLabelModal(props: ICreateLabelModal) {
         return;
       }
       toast.success('Label created', { theme: 'colored' });
-      onCreated(response.data);
+      onCreated();
     } finally {
       setSaving(false);
     }
