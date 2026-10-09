@@ -29,19 +29,15 @@ export const getLabels = async (req: Request) => {
   return labelModel.find({ tenant: req.tenantId });
 };
 
-export const findLabelByName = (req: Request, name: string, projectId: string) => {
-  return Label.getModel(req.dbConnection)
-    .findOne({ name: name.trim(), tenant: req.tenantId, projectId: inProject(projectId) })
-    .collation({ locale: 'en', strength: 2 });
-};
-
 export const createLabel = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
   const projectId = await getProjectId(req);
   const name = req.body.name.trim();
   const slug = req.body.slug || toSlug(name);
 
-  let result = await labelModel.findOne({ name, slug, projectId, tenant: req.tenantId });
+  let result = await labelModel
+    .findOne({ name, tenant: req.tenantId, projectId: inProject(projectId) })
+    .collation({ locale: 'en', strength: 2 });
   if (!result) {
     result = new labelModel({
       name,

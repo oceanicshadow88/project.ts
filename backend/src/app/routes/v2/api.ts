@@ -399,7 +399,7 @@ router.post(
   authenticationTokenMiddleware,
   permissionMiddleware.permission('edit:settings'),
   labelValidation.storeProjectLabel,
-  labelController.storeProjectLabel,
+  labelController.store,
 );
 router.post('/tickets/:ticketId/labels', labelValidation.store, labelController.store);
 router.delete(

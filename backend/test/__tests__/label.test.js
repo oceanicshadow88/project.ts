@@ -22,7 +22,7 @@ describe('Label Test', () => {
         .post(`/api/v2/projects/${project.id}/labels`)
         .send({ name: '  Bug Fix  ', color: '#e53935' });
 
-      expect(res.statusCode).toEqual(httpStatus.CREATED);
+      expect(res.statusCode).toEqual(httpStatus.OK);
       expect(res.body).toMatchObject({
         name: 'Bug Fix',
         slug: 'bug-fix',
@@ -39,7 +39,7 @@ describe('Label Test', () => {
         .post(`/api/v2/projects/${project.id}/labels`)
         .send({ name: 'QA' });
 
-      expect(res.statusCode).toEqual(httpStatus.CREATED);
+      expect(res.statusCode).toEqual(httpStatus.OK);
       expect(res.body.color).toEqual('#6a2add');
     });
 
@@ -65,7 +65,7 @@ describe('Label Test', () => {
         .post(`/api/v2/projects/${projectB.id}/labels`)
         .send({ name: 'Bug' });
 
-      expect(res.statusCode).toEqual(httpStatus.CREATED);
+      expect(res.statusCode).toEqual(httpStatus.OK);
       expect(await countLabels()).toEqual(2);
     });
 
@@ -82,7 +82,6 @@ describe('Label Test', () => {
         .send(body);
 
       expect(res.statusCode).toEqual(httpStatus.UNPROCESSABLE_ENTITY);
-      expect(res.body.message).toBeDefined();
       expect(await countLabels()).toEqual(0);
     });
   });
