@@ -45,7 +45,17 @@ export default function CreateEditEpic({
     currentEpic ? currentEpic.description : ''
   );
 
+  const isNameMissing = () => {
+    if (epicName.trim()) {
+      return false;
+    }
+    toast.error('Epic name is required', { theme: 'colored' });
+    return true;
+  };
+
   const onClickCreateEpic = () => {
+    if (isNameMissing()) return;
+    setDisabled(true);
     const data = {
       title: epicName,
       project: projectId,
@@ -61,10 +71,13 @@ export default function CreateEditEpic({
       })
       .catch(() => {
         toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
+        setDisabled(false);
       });
   };
 
   const onClickUpdateEpic = (epicId: string) => {
+    if (isNameMissing()) return;
+    setDisabled(true);
     const data = {
       title: epicName,
       startDate,
@@ -73,10 +86,15 @@ export default function CreateEditEpic({
       description: epicDescription
     };
 
-    updateEpic(epicId, data).then((res) => {
-      projectDetails.onUpdateEpic(epicId, res);
-      onClickCloseModal();
-    });
+    updateEpic(epicId, data)
+      .then((res) => {
+        projectDetails.onUpdateEpic(epicId, res);
+        onClickCloseModal();
+      })
+      .catch(() => {
+        toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
+        setDisabled(false);
+      });
   };
 
   const onClickDeleteEpic = (epicId: string) => {
@@ -198,7 +216,6 @@ export default function CreateEditEpic({
             onClick={() => {
               if (type === 'Create') {
                 onClickCreateEpic();
-                setDisabled(true);
               } else {
                 if (!currentEpic) {
                   // eslint-disable-next-line no-console
@@ -206,7 +223,6 @@ export default function CreateEditEpic({
                   return;
                 }
                 onClickUpdateEpic(currentEpic.id);
-                setDisabled(true);
               }
             }}
             disabled={disabled}
