@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios, { AxiosError } from 'axios';
 import { toast } from 'react-toastify';
 import Modal from '../../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
@@ -69,21 +68,11 @@ export default function CreateLabelModal(props: ICreateLabelModal) {
     try {
       setSaving(true);
       const response = await createProjectLabel(projectId, { name: name.trim(), color });
+      if (!response) {
+        return;
+      }
       toast.success('Label created', { theme: 'colored' });
       onCreated(response.data);
-    } catch (err) {
-      // axios 0.27 types response.data as unknown, so give it the API's error shape.
-      const errorResponse = axios.isAxiosError(err)
-        ? (err as AxiosError<{ message?: string }>).response
-        : undefined;
-      if (errorResponse?.status === 403) {
-        toast.error("You don't have permission to create labels", { theme: 'colored' });
-        onClose();
-      } else if (errorResponse?.status === 409 || errorResponse?.status === 422) {
-        setNameError(errorResponse.data?.message || 'Invalid label');
-      } else {
-        toast.error('Failed to create label', { theme: 'colored' });
-      }
     } finally {
       setSaving(false);
     }

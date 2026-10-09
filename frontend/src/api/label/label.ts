@@ -2,6 +2,7 @@ import axios from 'axios';
 import config from '../../config/config';
 import { ILabelInput } from '../../types';
 import { query } from '../../utils/cache';
+import { alphaApiV2 } from '../../config/api';
 
 export function getLabels(projectId: string) {
   return query('labels', () => {
@@ -22,12 +23,7 @@ export function createLabel(ticketId: string, data: ILabelInput) {
 }
 
 export function createProjectLabel(projectId: string, data: ILabelInput) {
-  const configHeader = {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}`
-    }
-  };
-  return axios.post(`${config.apiAddressV2}/projects/${projectId}/labels`, data, configHeader);
+  return alphaApiV2.post(`/projects/${projectId}/labels`, data);
 }
 
 export function deleteLabel(id: string) {
