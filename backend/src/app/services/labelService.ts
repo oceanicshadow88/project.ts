@@ -3,6 +3,8 @@ const Label = require('../model/label');
 const Ticket = require('../model/ticket');
 import { Types } from 'mongoose';
 
+const toSlug = (name: string) => name.toLowerCase().replace(/ /g, '-');
+
 export const getLabels = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
   return labelModel.find({ tenant: req.tenantId });
@@ -10,21 +12,20 @@ export const getLabels = async (req: Request) => {
 
 export const createLabel = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
+  const name = req.body.name.trim();
+  const slug = req.body.slug || toSlug(name);
 
-  let result = await labelModel.findOne({
-    name: req.body.name,
-    slug: req.body.slug,
-    projectId: req.body.projectId,
-    tenant: req.tenantId,
-  });
+  let result = await labelModel
+    .findOne({ name, tenant: req.tenantId })
+    .collation({ locale: 'en', strength: 2 });
   if (!result) {
     result = new labelModel({
-      name: req.body.name,
-      slug: req.body.slug,
-      projectId: req.body.projectId,
+      name,
+      slug,
+      color: req.body.color,
       tenant: req.tenantId,
     });
-    result.save();
+    await result.save();
   }
   return result;
 };
