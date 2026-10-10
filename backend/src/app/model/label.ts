@@ -4,7 +4,6 @@ export interface ILabel {
   name: string;
   slug: string;
   color: string;
-  projectId?: Types.ObjectId;
   tenant: Types.ObjectId;
 }
 
@@ -23,10 +22,6 @@ export const labelSchema = new Schema<ILabelDocument>(
     color: {
       type: String,
       default: '#6a2add',
-    },
-    projectId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'projects',
     },
     tenant: {
       type: mongoose.Schema.Types.ObjectId,

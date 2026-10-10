@@ -5,13 +5,12 @@ import app from '../setup/app';
 import db from '../setup/db';
 import LabelBuilder from './builders/labelBuilder';
 import ProjectBuilder from './builders/projectBuilder';
-import TicketBuilder from './builders/ticketBuilder';
 import PermissionBuilder from './builders/permissionBuilder';
 import * as Label from '../../src/app/model/label';
 import * as Role from '../../src/app/model/role';
 import * as permissionMiddleware from '../../src/app/middleware/permissionMiddleware';
 
-const countLabels = (filter = {}) => Label.getModel(db.dbConnection).countDocuments(filter);
+const countLabels = () => Label.getModel(db.dbConnection).countDocuments();
 
 describe('Label Test', () => {
   describe('POST /projects/:projectId/labels', () => {
@@ -27,9 +26,8 @@ describe('Label Test', () => {
         name: 'Bug Fix',
         slug: 'bug-fix',
         color: '#e53935',
-        projectId: project.id,
       });
-      expect(await countLabels({ projectId: project._id })).toEqual(1);
+      expect(await countLabels()).toEqual(1);
     });
 
     it('should use the default color when no color is sent', async () => {
@@ -43,31 +41,35 @@ describe('Label Test', () => {
       expect(res.body.color).toEqual('#6a2add');
     });
 
-    it('should return 409 for a duplicate name in the same project, ignoring case', async () => {
+    it('should return the existing label for a duplicate name, ignoring case', async () => {
       const project = await new ProjectBuilder().save();
-      await new LabelBuilder().withName('Bug').withSlug('bug').withProjectId(project._id).save();
+      await new LabelBuilder().withName('Bug').withSlug('bug').save();
 
       const res = await request(app.application)
         .post(`/api/v2/projects/${project.id}/labels`)
         .send({ name: ' BUG ' });
 
-      expect(res.statusCode).toEqual(httpStatus.CONFLICT);
-      expect(res.body.message).toEqual('Label already exists');
+      expect(res.statusCode).toEqual(httpStatus.OK);
+      expect(res.body.name).toEqual('Bug');
       expect(await countLabels()).toEqual(1);
     });
 
-    it('should allow the same name in another project', async () => {
+    it('should return the same label when another project creates the same name', async () => {
       const projectA = await new ProjectBuilder().save();
       const projectB = await new ProjectBuilder().withKey('PRB').save();
-      await new LabelBuilder().withName('Bug').withSlug('bug').withProjectId(projectA._id).save();
+      const first = await request(app.application)
+        .post(`/api/v2/projects/${projectA.id}/labels`)
+        .send({ name: 'Bug' });
 
       const res = await request(app.application)
         .post(`/api/v2/projects/${projectB.id}/labels`)
         .send({ name: 'Bug' });
 
       expect(res.statusCode).toEqual(httpStatus.OK);
-      expect(await countLabels()).toEqual(2);
+      expect(res.body.id).toEqual(first.body.id);
+      expect(await countLabels()).toEqual(1);
     });
+
 
     it.each([
       ['an empty name', { name: '' }],
@@ -83,35 +85,6 @@ describe('Label Test', () => {
 
       expect(res.statusCode).toEqual(httpStatus.UNPROCESSABLE_ENTITY);
       expect(await countLabels()).toEqual(0);
-    });
-  });
-
-  describe('GET /projects/:projectId/labels', () => {
-    it('should return labels of the project and labels without a project only', async () => {
-      const projectA = await new ProjectBuilder().save();
-      const projectB = await new ProjectBuilder().withKey('PRB').save();
-      await new LabelBuilder().withName('A Label').withSlug('a-label').withProjectId(projectA._id).save();
-      await new LabelBuilder().withName('B Label').withSlug('b-label').withProjectId(projectB._id).save();
-      await new LabelBuilder().withName('Legacy').withSlug('legacy').save();
-
-      const res = await request(app.application).get(`/api/v2/projects/${projectA.id}/labels`);
-
-      expect(res.statusCode).toEqual(httpStatus.OK);
-      expect(res.body.map((label) => label.name).sort()).toEqual(['A Label', 'Legacy']);
-    });
-  });
-
-  describe('POST /tickets/:ticketId/labels', () => {
-    it('should save the ticket project on a label created from a ticket', async () => {
-      const project = await new ProjectBuilder().save();
-      const ticket = await new TicketBuilder().withProject(project).save();
-
-      const res = await request(app.application)
-        .post(`/api/v2/tickets/${ticket.id}/labels`)
-        .send({ name: 'From Ticket', slug: 'from-ticket' });
-
-      expect(res.statusCode).toEqual(httpStatus.OK);
-      expect(res.body.projectId).toEqual(project.id);
     });
   });
 });

@@ -5,45 +5,24 @@ import { Types } from 'mongoose';
 
 const toSlug = (name: string) => name.toLowerCase().replace(/ /g, '-');
 
-const inProject = (projectId: string | Types.ObjectId) => ({ $in: [projectId, null] });
-
-const getProjectId = async (req: Request) => {
-  if (req.params.projectId) {
-    return req.params.projectId;
-  }
-  if (req.params.ticketId && Types.ObjectId.isValid(req.params.ticketId)) {
-    const ticket = await Ticket.getModel(req.dbConnection).findById(req.params.ticketId);
-    if (ticket?.project) {
-      return ticket.project;
-    }
-  }
-  return req.body.projectId;
-};
-
 export const getLabels = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
-  const { projectId } = req.params;
-  if (projectId && Types.ObjectId.isValid(projectId)) {
-    return labelModel.find({ tenant: req.tenantId, projectId: inProject(projectId) });
-  }
   return labelModel.find({ tenant: req.tenantId });
 };
 
 export const createLabel = async (req: Request) => {
   const labelModel = Label.getModel(req.dbConnection);
-  const projectId = await getProjectId(req);
   const name = req.body.name.trim();
   const slug = req.body.slug || toSlug(name);
 
   let result = await labelModel
-    .findOne({ name, tenant: req.tenantId, projectId: inProject(projectId) })
+    .findOne({ name, tenant: req.tenantId })
     .collation({ locale: 'en', strength: 2 });
   if (!result) {
     result = new labelModel({
       name,
       slug,
       color: req.body.color,
-      projectId,
       tenant: req.tenantId,
     });
     await result.save();
