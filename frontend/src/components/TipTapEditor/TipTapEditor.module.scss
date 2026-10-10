@@ -118,11 +118,6 @@
     margin-bottom: 10px;
     background-color: transparent;
   }
-
-  .mention {
-    background-color: #007bff;
-    color: white;
-  }
 }
 
 .buttonContainer {
@@ -152,6 +147,12 @@
 
   &:active {
     transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
   }
 }
 

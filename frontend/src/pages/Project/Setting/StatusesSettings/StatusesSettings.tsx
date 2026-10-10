@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styles from './StatusesSettings.module.scss';
@@ -9,6 +9,7 @@ import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
 import InputV3 from '../../../../lib/FormV3/InputV3/InputV3';
 import Modal from '../../../../lib/Modal/Modal';
 import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/ProjectSettingHOC';
+import { ProjectDetailsContext } from '../../../../context/ProjectDetailsProvider';
 
 interface EditableStatus extends IStatus {
   editingName: boolean;
@@ -19,6 +20,7 @@ interface EditableStatus extends IStatus {
 
 export default function StatusesSettings() {
   const { projectId = '' } = useParams();
+  const { onUpdateStatus } = useContext(ProjectDetailsContext);
   const [statuses, setStatuses] = useState<EditableStatus[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -128,6 +130,7 @@ export default function StatusesSettings() {
           s.id === statusId ? { ...s, name: status.tempName.trim(), editingName: false } : s
         )
       );
+      onUpdateStatus(statusId, { name: status.tempName.trim() });
       toast.success('Status name updated', { theme: 'colored' });
       // Refetch statuses to ensure consistency
       fetchStatuses();
@@ -151,6 +154,7 @@ export default function StatusesSettings() {
           s.id === statusId ? { ...s, color: status.tempColor, editingColor: false } : s
         )
       );
+      onUpdateStatus(statusId, { color: status.tempColor });
       toast.success('Status color updated', { theme: 'colored' });
       // Refetch statuses to ensure consistency
       fetchStatuses();
