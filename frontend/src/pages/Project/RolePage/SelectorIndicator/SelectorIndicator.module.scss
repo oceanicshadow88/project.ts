@@ -1,5 +1,21 @@
+@import '../../../../variables-only.scss';
+
 .permission {
-  flex-grow: 1;
-  width: 150px;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: $primaryColor;
+    cursor: pointer;
+  }
+
+  input:disabled {
+    cursor: not-allowed;
+  }
 }
