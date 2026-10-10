@@ -1,3 +1,5 @@
+@import '../../../variables-only.scss';
+
 .main-container {
   padding: 0 5%;
   margin-top: 100px;
@@ -7,6 +9,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
+    margin-top: 8px;
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: $textPrimaryColor;
+    }
   }
 }
 
