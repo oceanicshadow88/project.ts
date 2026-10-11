@@ -1,5 +1,5 @@
 import React from 'react';
-import { RiEditLine, RiDeleteBinLine } from 'react-icons/ri';
+import { RiEditLine, RiDeleteBinLine, RiEyeLine } from 'react-icons/ri';
 import styles from './RoleTable.module.scss';
 import PermissionIndicator from '../PermissionIndicator/PermissionIndicator';
 
@@ -53,59 +53,64 @@ function RoleTable(props: IRoleTable) {
           </tr>
         </thead>
         <tbody>
-          {roles.map((role) => (
-            <tr key={role.id}>
-              <th scope="row" className={styles['role-name']}>
-                {role.name}
-                {role.isPublic && <span className={styles['default-badge']}>Default</span>}
-              </th>
-              {operationList.map((operation) => {
-                const allowedActions = getAllowedActions(operation, role.permissions);
-                const shownActions = actionList.filter((action) => allowedActions.includes(action));
-                return (
-                  <td key={operation}>
-                    {shownActions.length > 0 ? (
-                      <div className={styles['permission-list']}>
-                        {shownActions.map((action) => (
-                          <PermissionIndicator key={action} content={capitalise(action)} />
-                        ))}
-                      </div>
-                    ) : (
-                      <span className={styles['no-permission']} aria-label="No access">
-                        –
-                      </span>
-                    )}
-                  </td>
-                );
-              })}
-              <td data-testid="more-btn" className={styles.actions}>
-                <div data-testid="more-list" className={styles['action-buttons']}>
-                  <button
-                    type="button"
-                    data-testid="edit-btn"
-                    className={styles['edit-btn']}
-                    onClick={() => onEditRole(role)}
-                    aria-label={`Edit ${role.name}`}
-                    title={`Edit ${role.name}`}
-                  >
-                    <RiEditLine size="16px" />
-                    <span>Edit</span>
-                  </button>
-                  {role.allowDelete && (
+          {roles.map((role) => {
+            const openActionLabel = role.isPublic ? 'View' : 'Edit';
+            return (
+              <tr key={role.id}>
+                <th scope="row" className={styles['role-name']}>
+                  {role.name}
+                  {role.isPublic && <span className={styles['default-badge']}>Default</span>}
+                </th>
+                {operationList.map((operation) => {
+                  const allowedActions = getAllowedActions(operation, role.permissions);
+                  const shownActions = actionList.filter((action) =>
+                    allowedActions.includes(action)
+                  );
+                  return (
+                    <td key={operation}>
+                      {shownActions.length > 0 ? (
+                        <div className={styles['permission-list']}>
+                          {shownActions.map((action) => (
+                            <PermissionIndicator key={action} content={capitalise(action)} />
+                          ))}
+                        </div>
+                      ) : (
+                        <span className={styles['no-permission']} aria-label="No access">
+                          –
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+                <td data-testid="more-btn" className={styles.actions}>
+                  <div data-testid="more-list" className={styles['action-buttons']}>
                     <button
                       type="button"
-                      className={styles['delete-btn']}
-                      onClick={() => deleteRole(role.id)}
-                      aria-label={`Delete ${role.name}`}
-                      title={`Delete ${role.name}`}
+                      data-testid="edit-btn"
+                      className={styles['edit-btn']}
+                      onClick={() => onEditRole(role)}
+                      aria-label={`${openActionLabel} ${role.name}`}
+                      title={`${openActionLabel} ${role.name}`}
                     >
-                      <RiDeleteBinLine size="16px" />
+                      {role.isPublic ? <RiEyeLine size="16px" /> : <RiEditLine size="16px" />}
+                      <span>{openActionLabel}</span>
                     </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
+                    {role.allowDelete && (
+                      <button
+                        type="button"
+                        className={styles['delete-btn']}
+                        onClick={() => deleteRole(role.id)}
+                        aria-label={`Delete ${role.name}`}
+                        title={`Delete ${role.name}`}
+                      >
+                        <RiDeleteBinLine size="16px" />
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
