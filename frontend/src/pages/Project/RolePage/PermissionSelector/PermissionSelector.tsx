@@ -35,7 +35,7 @@ function PermissionSelector(props: IProps) {
   const [errorMsg, setErrorMsg] = useState('');
 
   const isReadOnly = role?.isPublic ?? false;
-  const selectedIds = (role?.permissions ?? []).map((permission) => permission.id);
+  const selectedIds = new Set((role?.permissions ?? []).map((permission) => permission.id));
 
   const getTitle = () => {
     if (isNewRole) return 'Add Role';
@@ -94,7 +94,7 @@ function PermissionSelector(props: IProps) {
                   .map((permission) => (
                     <SelectorIndicator
                       key={permission.id}
-                      isChecked={selectedIds.includes(permission.id)}
+                      isChecked={selectedIds.has(permission.id)}
                       permission={permission}
                       disabled={isReadOnly}
                     />

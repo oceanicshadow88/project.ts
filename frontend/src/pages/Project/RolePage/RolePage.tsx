@@ -32,14 +32,9 @@ function RolePage() {
   }, [projectId]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getPermissions();
-        setPermissions(res);
-      } catch (err) {
-        toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
-      }
-    })();
+    getPermissions()
+      .then((res) => setPermissions(res))
+      .catch(() => toast.error('Temporary Server Error. Try Again.', { theme: 'colored' }));
     fetchRoles();
   }, [fetchRoles]);
 
@@ -75,7 +70,7 @@ function RolePage() {
     );
   };
 
-  const onEditRole = async (role: IRole) => {
+  const onEditRole = (role: IRole) => {
     showModal(
       'selectedRole',
       <PermissionSelector

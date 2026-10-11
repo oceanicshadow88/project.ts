@@ -5,7 +5,7 @@ interface IPermissionIndicator {
   content: string;
 }
 
-function PermissionIndicator({ content }: IPermissionIndicator) {
+function PermissionIndicator({ content }: Readonly<IPermissionIndicator>) {
   return <span className={styles.indicator}>{content}</span>;
 }
 
