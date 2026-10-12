@@ -1,6 +1,11 @@
 import request from 'supertest';
+import { ObjectId } from 'mongodb';
 import ProjectBuilder from './builders/projectBuilder';
 import app from '../setup/app';
+import db from '../setup/db';
+import * as Project from '../../src/app/model/project';
+
+const otherTenantId = new ObjectId().toString();
 
 describe('Project Test', () => {
   it('get projects, should get projects', async () => {
@@ -86,4 +91,38 @@ describe('Project Test', () => {
     );
   });
 
+  describe('tenant isolation', () => {
+    it('should not get a project belonging to another tenant', async () => {
+      const project = await new ProjectBuilder().withTenant(otherTenantId).save();
+      const res = await request(app.application).get(`/api/v2/projects/${project.id}`);
+      expect(res.body.id).toBeUndefined();
+    });
+
+    it('should not get project details belonging to another tenant', async () => {
+      const project = await new ProjectBuilder().withTenant(otherTenantId).save();
+      await request(app.application).get(`/api/v2/projects/${project.id}/details`).expect(500);
+    });
+
+    it('should not update a project belonging to another tenant', async () => {
+      const project = await new ProjectBuilder().withTenant(otherTenantId).save();
+      await request(app.application)
+        .put(`/api/v2/projects/${project.id}`)
+        .send({ name: 'hacked' })
+        .expect(500);
+
+      const unchanged = await Project.getModel(db.dbConnection).findById(project.id);
+      expect(unchanged.name).toEqual(project.name);
+    });
+
+    it('should not move a project to another tenant through update', async () => {
+      const project = await new ProjectBuilder().save();
+      await request(app.application)
+        .put(`/api/v2/projects/${project.id}`)
+        .send({ tenant: otherTenantId })
+        .expect(200);
+
+      const unchanged = await Project.getModel(db.dbConnection).findById(project.id);
+      expect(unchanged.tenant).toEqual(db.defaultTenant._id.toString());
+    });
+  });
 });
