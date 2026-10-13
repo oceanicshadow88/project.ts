@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import mongoose from 'mongoose';
 import config from '../config/app';
-import * as Tenant from '../model/tenants';
 import * as Ticket from '../model/ticket';
 import { generateNKeysBetween } from '../utils/generateRank';
 
@@ -74,21 +73,9 @@ const main = async () => {
   try {
     console.log('Migrating epic ranks...\n');
 
-    const tenantsDbConnection = await mongoose.createConnection(config.tenantsDBConnection, options);
-    const tenants = await Tenant.getModel(tenantsDbConnection).find({}).lean();
-    await tenantsDbConnection.close();
+    const updated = await migrateDatabase(config.publicConnection);
 
-    const connectionStrings = new Set<string>([config.publicConnection]);
-    tenants.forEach((tenant: any) => {
-      if (tenant.plan !== 'Free' && tenant._id) {
-        connectionStrings.add(config.publicConnection.replace(PUBLIC_DB, tenant._id.toString()));
-      }
-    });
-
-    const results = await Promise.all([...connectionStrings].map(migrateDatabase));
-    const total = results.reduce((sum, updated) => sum + updated, 0);
-
-    console.log(`\nDone! ${total} tickets updated across ${connectionStrings.size} database(s).\n`);
+    console.log(`\nDone! ${updated} tickets updated in ${PUBLIC_DB}.\n`);
     process.exit(0);
   } catch (error: any) {
     console.error('\n✗ Fatal error:', error.message);

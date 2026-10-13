@@ -2,6 +2,7 @@ import * as ReviewReportService from '../../src/app/services/reviewReportService
 import { TenantConnectionError } from '../../src/app/services/reviewReportService';
 import NotFoundError from '../../src/app/error/notFound';
 import { dataConnectionPool } from '../../src/app/utils/dbContext';
+import { PUBLIC_DB } from '../../src/app/database/connections';
 import db from '../setup/db';
 import ReviewReportBuilder from './builders/reviewReportBuilder';
 import TicketBuilder from './builders/ticketBuilder';
@@ -10,7 +11,7 @@ let tenantId;
 
 beforeEach(() => {
   tenantId = db.defaultTenant._id.toString();
-  dataConnectionPool[tenantId] = db.dbConnection;
+  dataConnectionPool[PUBLIC_DB] = db.dbConnection;
 });
 
 describe('getPendingReviewReports', () => {
@@ -62,9 +63,19 @@ describe('getPendingReviewReports', () => {
     expect(result).toEqual([]);
   });
 
-  it('throws TenantConnectionError when no connection is cached for the tenant', async () => {
+  it('reads from publicdb even when tenantId is a paid tenant id', async () => {
+    const result = await ReviewReportService.getPendingReviewReports(
+      db.defaultUser._id.toString(),
+      'paid-tenant-id',
+    );
+    expect(dataConnectionPool['paid-tenant-id']).toBeUndefined();
+    expect(result).toEqual([]);
+  });
+
+  it('throws TenantConnectionError when publicdb is not cached', async () => {
+    delete dataConnectionPool[PUBLIC_DB];
     await expect(
-      ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString(), 'unknown-tenant'),
+      ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString(), tenantId),
     ).rejects.toBeInstanceOf(TenantConnectionError);
   });
 });
@@ -100,13 +111,14 @@ describe('getReviewReportByTicket', () => {
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
-  it('throws TenantConnectionError when no connection is cached for the tenant', async () => {
+  it('throws TenantConnectionError when publicdb is not cached', async () => {
     const ticket = await new TicketBuilder().save();
+    delete dataConnectionPool[PUBLIC_DB];
     await expect(
       ReviewReportService.getReviewReportByTicket(
         ticket.id,
         db.defaultUser._id.toString(),
-        'unknown-tenant',
+        tenantId,
       ),
     ).rejects.toBeInstanceOf(TenantConnectionError);
   });
@@ -144,8 +156,9 @@ describe('getOverdueTicketsAdmin', () => {
     expect(result).toHaveLength(1);
   });
 
-  it('throws TenantConnectionError when no connection is cached for the tenant', async () => {
-    await expect(ReviewReportService.getOverdueTicketsAdmin('unknown-tenant')).rejects.toBeInstanceOf(
+  it('throws TenantConnectionError when publicdb is not cached', async () => {
+    delete dataConnectionPool[PUBLIC_DB];
+    await expect(ReviewReportService.getOverdueTicketsAdmin(tenantId)).rejects.toBeInstanceOf(
       TenantConnectionError,
     );
   });

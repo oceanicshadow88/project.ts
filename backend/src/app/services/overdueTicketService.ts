@@ -1,12 +1,10 @@
 /* eslint-disable no-console */
-import mongoose from 'mongoose';
-import config from '../config/app';
-import { dataConnectionPool } from '../utils/dbContext';
 import * as Ticket from '../model/ticket';
 import * as Project from '../model/project';
 import * as User from '../model/user';
 import * as ReviewReport from '../model/reviewReport';
 import { winstonLogger } from '../../bootstrap/logger';
+import { tenantDBConnection, PUBLIC_DB } from '../database/connections';
 
 interface BrokenTicketSample {
   ticketId: string;
@@ -26,55 +24,35 @@ export class OverdueTicketService {
    */
   static async checkAndProcessOverdueTickets(): Promise<void> {
     console.log('=== Starting overdue ticket processing ===');
-    
-    // Get all tenant databases
-    const tenantDatabases = await this.getTenantDatabases();
-    console.log(`Found ${tenantDatabases.length} tenant database(s) to process`);
 
     let totalOverdueTickets = 0;
     let totalBrokenTickets = 0;
     let totalCleanedTickets = 0;
 
-    for (const tenantDb of tenantDatabases) {
-      try {
-        console.log(`\n--- Processing tenant: ${tenantDb} ---`);
-        
-        // Connect to tenant database
-        let connection = dataConnectionPool[tenantDb];
-        
-        // If no cached connection, create a new one
-        if (!connection) {
-          connection = mongoose.createConnection(`${config.tenantsDBConnection.split('/').slice(0, -1).join('/')}/${tenantDb}`);
-          dataConnectionPool[tenantDb] = connection;
-        }
-        
-        // Get all models for this tenant
-        const TicketModel = Ticket.getModel(connection);
-        const ProjectModel = Project.getModel(connection);
-        const UserModel = User.getModel(connection);
-        const ReviewReportModel = ReviewReport.getModel(connection);
+    try {
+      const connection = await tenantDBConnection(PUBLIC_DB);
+      const TicketModel = Ticket.getModel(connection);
+      const ProjectModel = Project.getModel(connection);
+      const UserModel = User.getModel(connection);
+      const ReviewReportModel = ReviewReport.getModel(connection);
 
-        // Clean up broken ticket references first
-        const cleanupResult = await this.cleanupBrokenTicketReferences(TicketModel);
-        totalCleanedTickets += cleanupResult.cleanedCount;
-        totalBrokenTickets += cleanupResult.brokenCount;
+      const cleanupResult = await this.cleanupBrokenTicketReferences(TicketModel);
+      totalCleanedTickets += cleanupResult.cleanedCount;
+      totalBrokenTickets += cleanupResult.brokenCount;
 
-        // Process overdue tickets for this tenant
-        const overdueCount = await this.processOverdueTicketsForTenant(
-          TicketModel,
-          ProjectModel, 
-          UserModel,
-          ReviewReportModel,
-          tenantDb,
-        );
-        totalOverdueTickets += overdueCount;
+      const overdueCount = await this.processOverdueTicketsForTenant(
+        TicketModel,
+        ProjectModel,
+        UserModel,
+        ReviewReportModel,
+        PUBLIC_DB,
+      );
+      totalOverdueTickets += overdueCount;
 
-        console.log(`Tenant ${tenantDb}: ${overdueCount} overdue tickets processed`);
-        
-      } catch (error) {
-        console.error(`Error processing tenant ${tenantDb}:`, error);
-        winstonLogger.error(`Error processing tenant ${tenantDb}:`, error);
-      }
+      console.log(`Processed ${overdueCount} overdue tickets`);
+    } catch (error) {
+      console.error(`Error processing overdue tickets in ${PUBLIC_DB}:`, error);
+      winstonLogger.error(`Error processing overdue tickets in ${PUBLIC_DB}:`, error);
     }
 
     console.log('\n=== Processing Summary ===');
@@ -302,16 +280,9 @@ export class OverdueTicketService {
     ticketId: string,
     userId: string,
     reportContent: string,
-    tenantId: string,
   ): Promise<void> {
     try {
-      let connection = dataConnectionPool[tenantId];
-      
-      if (!connection) {
-        connection = mongoose.createConnection(`${config.tenantsDBConnection.split('/').slice(0, -1).join('/')}/${tenantId}`);
-        dataConnectionPool[tenantId] = connection;
-      }
-      
+      const connection = await tenantDBConnection(PUBLIC_DB);
       const ReviewReportModel = ReviewReport.getModel(connection);
 
       await ReviewReportModel.findOneAndUpdate(
@@ -333,30 +304,4 @@ export class OverdueTicketService {
     }
   }
 
-  /**
-   * Get list of all tenant databases
-   */
-  private static async getTenantDatabases(): Promise<string[]> {
-    try {
-      // Get list of databases from MongoDB admin
-      const admin = mongoose.connection.db.admin();
-      const result = await admin.listDatabases();
-      
-      // Filter to get only tenant databases (exclude system databases)
-      const databases = result.databases
-        .map((db: any) => db.name)
-        .filter((db: string) => 
-          db !== 'tenants' && 
-          !db.startsWith('local') && 
-          !db.startsWith('admin') && 
-          !db.startsWith('config'),
-        );
-      
-      return databases;
-    } catch (error) {
-      console.error('Error getting tenant databases:', error);
-      winstonLogger.error('Error getting tenant databases:', error);
-      return [];
-    }
-  }
 }
