@@ -21,7 +21,7 @@ export default function TicketTitleValidationModal({
   ticketId,
   onAccept,
   onClose
-}: ITicketTitleValidationModal) {
+}: Readonly<ITicketTitleValidationModal>) {
   const [result, setResult] = useState<ITicketTitleValidationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,14 +38,14 @@ export default function TicketTitleValidationModal({
           throw new Error('Missing ticket title validation result');
         }
         if (active) setResult(data);
-      } catch {
-        if (active) setError('Unable to validate the ticket title.');
       } finally {
-        if (active) setLoading(false);
+        setLoading(false);
       }
     };
 
-    loadValidation();
+    loadValidation().catch(() => {
+      setError('Unable to validate the ticket title.');
+    });
     return () => {
       active = false;
     };
@@ -56,7 +56,7 @@ export default function TicketTitleValidationModal({
       <DefaultModalHeader title="Ticket Title Validation" onClickClose={onClose} />
       <DefaultModalBody defaultPadding={false} classesName={styles.container}>
         <div className={styles.content}>
-          {loading && <p role="status">Validating ticket title...</p>}
+          {loading && <output>Validating ticket title...</output>}
           {result && (
             <>
               <p className={styles.ticketTitle}>{result.title}</p>

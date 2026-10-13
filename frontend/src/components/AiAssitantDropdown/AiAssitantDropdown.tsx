@@ -32,7 +32,7 @@ export default function AiAssitantDropdown({
   onUserStory,
   onTitleValidationDecision,
   isDisabled
-}: IAiAssitantDropdown) {
+}: Readonly<IAiAssitantDropdown>) {
   const [selectedAction, setSelectedAction] = useState(AI_ASSISTANT_OPTIONS[0].value);
   const [showValidation, setShowValidation] = useState(false);
 
@@ -53,7 +53,7 @@ export default function AiAssitantDropdown({
   };
 
   return (
-    <div role="presentation" onClick={(event) => event.stopPropagation()}>
+    <div>
       <Dropdown
         label="AI Assistant"
         name={`ai-assistant-${ticketId}`}
