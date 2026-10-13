@@ -124,6 +124,7 @@ function PermissionSelector(props: IProps) {
             text={isReadOnly ? 'Close' : 'Cancel'}
             onClick={closeHandler}
             btnType="button"
+            customStyles={styles['cancel-btn']}
           />
           {!isReadOnly && (
             <ButtonV2
