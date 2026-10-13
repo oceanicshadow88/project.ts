@@ -13,7 +13,7 @@ interface IAiAssitantDropdown {
 }
 
 const AI_ASSISTANT_OPTIONS = [
-  { label: 'User Story', value: 'user-story' },
+  { label: 'User Story Validation', value: 'user-story-validation' },
   { label: 'Ticket Title Validation', value: 'ticket-title-validation' }
 ].map((option) => ({
   ...option,
@@ -42,7 +42,7 @@ export default function AiAssitantDropdown({
   };
 
   const handleValueChanged = ({ target }: IMinEvent) => {
-    if (target.value === 'user-story') {
+    if (target.value === 'user-story-validation') {
       setSelectedAction(target.value);
       onUserStory();
     }
