@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { IPermissions, IRole } from '../../../../types';
 import styles from './PermissionSelector.module.scss';
-import SelectorIndicator from '../SelectorIndicator/SelectorIndicator';
+import PermissionCategory from '../PermissionCategory/PermissionCategory';
 import Modal from '../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import InputV2 from '../../../../lib/FormV2/InputV2/InputV2';
@@ -35,7 +35,28 @@ function PermissionSelector(props: IProps) {
   const [errorMsg, setErrorMsg] = useState('');
 
   const isReadOnly = role?.isPublic ?? false;
-  const selectedIds = new Set((role?.permissions ?? []).map((permission) => permission.id));
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(
+    () => new Set((role?.permissions ?? []).map((permission) => permission.id))
+  );
+
+  const setPermissionsSelected = (permissionIds: string[], checked: boolean) => {
+    setSelectedIds((previous) => {
+      const next = new Set(previous);
+      permissionIds.forEach((id) => {
+        if (checked) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+      });
+      return next;
+    });
+    setErrorMsg('');
+  };
+
+  const togglePermission = (permissionId: string, checked: boolean) => {
+    setPermissionsSelected([permissionId], checked);
+  };
 
   const getTitle = () => {
     if (isNewRole) return 'Add Role';
@@ -43,13 +64,9 @@ function PermissionSelector(props: IProps) {
     return `Edit Role: ${role?.name ?? ''}`;
   };
 
-  const submitHandler = (event) => {
+  const submitHandler = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const view = event.target.elements;
-
-    const updatedPermissions = Array.prototype.filter
-      .call(view, (input) => input.checked)
-      .map((input) => input.id);
+    const updatedPermissions = Array.from(selectedIds);
 
     if (updatedPermissions.length === 0) {
       setErrorMsg('Select at least one permission.');
@@ -86,21 +103,17 @@ function PermissionSelector(props: IProps) {
 
         <div className={styles['permission-groups']}>
           {operationList.map((operation) => (
-            <fieldset key={operation} className={styles['permission-group']}>
-              <legend>{capitalise(operation)}</legend>
-              <div className={styles['permission-options']}>
-                {permissions
-                  .filter((permission) => getOperation(permission) === operation)
-                  .map((permission) => (
-                    <SelectorIndicator
-                      key={permission.id}
-                      isChecked={selectedIds.has(permission.id)}
-                      permission={permission}
-                      disabled={isReadOnly}
-                    />
-                  ))}
-              </div>
-            </fieldset>
+            <PermissionCategory
+              key={operation}
+              name={capitalise(operation)}
+              permissions={permissions.filter(
+                (permission) => getOperation(permission) === operation
+              )}
+              selectedIds={selectedIds}
+              onTogglePermission={togglePermission}
+              onToggleAll={setPermissionsSelected}
+              disabled={isReadOnly}
+            />
           ))}
         </div>
 
