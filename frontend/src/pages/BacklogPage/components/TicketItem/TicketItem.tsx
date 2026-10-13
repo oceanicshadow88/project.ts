@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useContext, useEffect, useState } from 'react';
-import { FaPen, FaRobot } from 'react-icons/fa';
+import { FaPen } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { MdContentCopy, MdTitle } from 'react-icons/md';
 import { IoWarning } from 'react-icons/io5';
@@ -30,6 +30,7 @@ import LabelPicker from '../../../../components/Form/LabelPicker/LabelPicker';
 import LabelTag from '../../../../components/Form/LabelTag/LabelTag';
 import Dropdown from '../../../../lib/FormV3/Dropdown/Dropdown';
 import { hackConfig } from '../../../../config/hack';
+import AiAssitantDropdown from '../../../../components/AiAssitantDropdown/AiAssitantDropdown';
 
 interface ITicketInputProps {
   readonly ticket: ITicketBasic;
@@ -50,6 +51,8 @@ export default function TicketItem({
   unresolvedQuestions = []
 }: ITicketInputProps) {
   const [title, setTitle] = useState(ticket.title);
+  const [isTitleEditBlocked, setIsTitleEditBlocked] = useState(false);
+  const isTitleEditDisabled = isReadOnly || isTitleEditBlocked;
   const [value, setValue] = useState(ticket.type);
   const [epicId, setEpicId] = useState<string | null>(ticket.epic);
   const projectDetails = useContext(ProjectDetailsContext);
@@ -57,6 +60,7 @@ export default function TicketItem({
   const { projectId = '' } = useParams();
 
   const updateTicketTitleContent = async () => {
+    if (isTitleEditDisabled) return;
     if (title.trim() === ticket.title) {
       return;
     }
@@ -72,6 +76,7 @@ export default function TicketItem({
   };
 
   const { visible, setVisible, myRef } = useOutsideAlerter(false);
+  const isEditingTitle = visible && !isTitleEditDisabled;
 
   const saveKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {
@@ -220,7 +225,7 @@ export default function TicketItem({
           size="md"
         />
         <p>{`${projectDetails.details.key}-${ticket.ticketNumber}`}</p>
-        {visible ? (
+        {isEditingTitle ? (
           <input
             type="text"
             defaultValue={ticket.title}
@@ -256,7 +261,7 @@ export default function TicketItem({
             )}
           </div>
         )}
-        {!visible && (
+        {!isEditingTitle && (
           <div className="invisible group-hover:visible flex items-center mr-2.5 gap-2">
             <IconButton
               icon={<MdContentCopy size={12} />}
@@ -275,6 +280,7 @@ export default function TicketItem({
                 icon={<FaPen size={12} />}
                 ticketId={ticket.id}
                 tooltip="Edit"
+                isDisabled={isTitleEditDisabled}
                 onClick={() => {
                   setVisible(true);
                 }}
@@ -290,11 +296,11 @@ export default function TicketItem({
               />
             )}
             {onAIClick && (
-              <IconButton
-                icon={<FaRobot size={15} />}
+              <AiAssitantDropdown
                 ticketId={ticket.id}
-                tooltip="AI Assistant"
-                onClick={() => onAIClick(ticket.id, ticket as any)}
+                onUserStory={() => onAIClick(ticket.id, ticket as any)}
+                onTitleValidationDecision={(accepted) => setIsTitleEditBlocked(!accepted)}
+                isDisabled={isReadOnly}
               />
             )}
           </div>
