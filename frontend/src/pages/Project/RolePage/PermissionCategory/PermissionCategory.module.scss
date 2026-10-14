@@ -39,9 +39,14 @@
   text-align: left;
   cursor: pointer;
 
-  svg {
+  .chevron {
     flex-shrink: 0;
     font-size: 18px;
+    transition: transform 0.2s ease;
+  }
+
+  .chevron-open {
+    transform: rotate(90deg);
   }
 
   .name {
@@ -57,6 +62,32 @@
 
   &:hover .name {
     color: $primaryColor;
+  }
+}
+
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.body-open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows 0.2s ease, visibility 0s;
+}
+
+.body-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body,
+  .body-open,
+  .toggle .chevron {
+    transition: none;
   }
 }
 

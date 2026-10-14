@@ -1,5 +1,5 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
-import { BiChevronDown, BiChevronRight } from 'react-icons/bi';
+import { BiChevronRight } from 'react-icons/bi';
 import { IPermissions } from '../../../../types';
 import SelectorIndicator from '../SelectorIndicator/SelectorIndicator';
 import styles from './PermissionCategory.module.scss';
@@ -55,26 +55,31 @@ function PermissionCategory({
           aria-expanded={isExpanded}
           aria-controls={bodyId}
         >
-          {isExpanded ? <BiChevronDown aria-hidden /> : <BiChevronRight aria-hidden />}
+          <BiChevronRight
+            aria-hidden
+            className={`${styles.chevron} ${isExpanded ? styles['chevron-open'] : ''}`}
+          />
           <span className={styles.name}>{name}</span>
           <span className={styles.count}>
             {selectedCount} of {permissionIds.length}
           </span>
         </button>
       </div>
-      {isExpanded && (
-        <div id={bodyId} className={styles.options}>
-          {permissions.map((permission) => (
-            <SelectorIndicator
-              key={permission.id}
-              checked={selectedIds.has(permission.id)}
-              permission={permission}
-              onChange={onTogglePermission}
-              disabled={disabled}
-            />
-          ))}
+      <div id={bodyId} className={`${styles.body} ${isExpanded ? styles['body-open'] : ''}`}>
+        <div className={styles['body-inner']}>
+          <div className={styles.options}>
+            {permissions.map((permission) => (
+              <SelectorIndicator
+                key={permission.id}
+                checked={selectedIds.has(permission.id)}
+                permission={permission}
+                onChange={onTogglePermission}
+                disabled={disabled}
+              />
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
