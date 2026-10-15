@@ -7,21 +7,18 @@ interface IIconButton {
   tooltip: string;
   overrideStyle?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  isDisabled?: boolean;
 }
 export default function IconButton({
   icon,
   tooltip,
   overrideStyle,
   onClick,
-  ticketId,
-  isDisabled
+  ticketId
 }: IIconButton) {
   return (
     <button
       className={[styles.iconButton, overrideStyle].join(' ')}
       onClick={onClick}
-      disabled={isDisabled}
       data-testid={`icon-btn-${tooltip.toLowerCase().replace(/\s+/g, '-')}-`.concat(
         ticketId as string
       )}
@@ -35,6 +32,5 @@ export default function IconButton({
 IconButton.defaultProps = {
   ticketId: '',
   overrideStyle: '',
-  onClick: () => {},
-  isDisabled: false
+  onClick: () => {}
 };

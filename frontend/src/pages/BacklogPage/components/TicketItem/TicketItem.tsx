@@ -58,7 +58,6 @@ export default function TicketItem({
   const { projectId = '' } = useParams();
 
   const updateTicketTitleContent = async () => {
-    if (isReadOnly) return;
     if (title.trim() === ticket.title) {
       return;
     }
@@ -68,7 +67,6 @@ export default function TicketItem({
   };
 
   const acceptRecommendedTitle = async (recommendedTitle: string) => {
-    if (isReadOnly) return;
     await updateTicket(ticket.id, { title: recommendedTitle });
     setTitle(recommendedTitle);
     onTicketChanged();
@@ -81,7 +79,6 @@ export default function TicketItem({
   };
 
   const { visible, setVisible, myRef } = useOutsideAlerter(false);
-  const isEditingTitle = visible && !isReadOnly;
 
   const saveKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {
@@ -230,7 +227,7 @@ export default function TicketItem({
           size="md"
         />
         <p>{`${projectDetails.details.key}-${ticket.ticketNumber}`}</p>
-        {isEditingTitle ? (
+        {visible ? (
           <input
             type="text"
             defaultValue={ticket.title}
@@ -266,7 +263,7 @@ export default function TicketItem({
             )}
           </div>
         )}
-        {!isEditingTitle && (
+        {!visible && (
           <div className="invisible group-hover:visible flex items-center mr-2.5 gap-2">
             <IconButton
               icon={<MdContentCopy size={12} />}
@@ -285,7 +282,6 @@ export default function TicketItem({
                 icon={<FaPen size={12} />}
                 ticketId={ticket.id}
                 tooltip="Edit"
-                isDisabled={isReadOnly}
                 onClick={() => {
                   setVisible(true);
                 }}
