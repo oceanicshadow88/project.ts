@@ -30,6 +30,10 @@ $colorWhite: white;
   color: $colorGray;
 }
 
+.classification {
+  text-transform: capitalize;
+}
+
 .btnContainer {
   max-width: 300px;
   width: 100%;

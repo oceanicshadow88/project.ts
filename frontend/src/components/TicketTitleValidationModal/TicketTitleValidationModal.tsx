@@ -79,7 +79,7 @@ export default function TicketTitleValidationModal({
                 </>
               )}
               <strong>Classification</strong>
-              <p>{result.classification}</p>
+              <p className={styles.classification}>{result.classification}</p>
               {result.classification !== 'clear' && (
                 <>
                   <strong>Reason</strong>
