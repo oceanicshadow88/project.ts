@@ -27,16 +27,13 @@ export const submitReviewReport = async (
   ticketId: string,
   userId: string,
   reportContent: string,
-  tenantId: string,
 ): Promise<void> => {
-  void tenantId;
   await OverdueTicketService.submitReviewReport(ticketId, userId, reportContent.trim());
 };
 
 
 // Get pending review reports assigned to the given user
-export const getPendingReviewReports = async (userId: string, tenantId: string) => {
-  void tenantId;
+export const getPendingReviewReports = async (userId: string) => {
   const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
 
@@ -54,9 +51,7 @@ export const getPendingReviewReports = async (userId: string, tenantId: string) 
 export const getReviewReportByTicket = async (
   ticketId: string,
   userId: string,
-  tenantId: string,
 ) => {
-  void tenantId;
   const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
 
@@ -76,8 +71,7 @@ export const getReviewReportByTicket = async (
 };
 
 // Admin: get all review reports, optionally filtered by status
-export const getOverdueTicketsAdmin = async (tenantId: string, status?: string) => {
-  void tenantId;
+export const getOverdueTicketsAdmin = async (status?: string) => {
   const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
   User.getModel(connection);

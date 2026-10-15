@@ -179,7 +179,7 @@ describe('single publicdb end to end', () => {
       .withStatus('pending')
       .save();
 
-    const pending = await ReviewReportService.getPendingReviewReports(paid.owner.id, paid.tenant.id);
+    const pending = await ReviewReportService.getPendingReviewReports(paid.owner.id);
 
     expect(pending.map((r) => r._id.toString())).toEqual([report._id.toString()]);
     expect(Object.keys(dataConnectionPool)).toEqual([PUBLIC_DB]);

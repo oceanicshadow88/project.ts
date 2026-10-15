@@ -42,10 +42,7 @@ describe('getPendingReviewReports', () => {
       .withStatus('submitted')
       .save();
 
-    const result = await ReviewReportService.getPendingReviewReports(
-      db.defaultUser._id.toString(),
-      tenantId,
-    );
+    const result = await ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString());
 
     expect(result).toHaveLength(2);
     expect(result[0]._id.toString()).toEqual(soonerReport._id.toString());
@@ -56,18 +53,12 @@ describe('getPendingReviewReports', () => {
   });
 
   it('returns an empty list when the user has no pending reports', async () => {
-    const result = await ReviewReportService.getPendingReviewReports(
-      db.defaultUser._id.toString(),
-      tenantId,
-    );
+    const result = await ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString());
     expect(result).toEqual([]);
   });
 
-  it('reads from publicdb even when tenantId is a paid tenant id', async () => {
-    const result = await ReviewReportService.getPendingReviewReports(
-      db.defaultUser._id.toString(),
-      'paid-tenant-id',
-    );
+  it('reads from publicdb only (no per-tenant connection in pool)', async () => {
+    const result = await ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString());
     expect(dataConnectionPool['paid-tenant-id']).toBeUndefined();
     expect(result).toEqual([]);
   });
@@ -75,7 +66,7 @@ describe('getPendingReviewReports', () => {
   it('throws TenantConnectionError when publicdb is not cached', async () => {
     delete dataConnectionPool[PUBLIC_DB];
     await expect(
-      ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString(), tenantId),
+      ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString()),
     ).rejects.toBeInstanceOf(TenantConnectionError);
   });
 });
@@ -92,7 +83,6 @@ describe('getReviewReportByTicket', () => {
     const result = await ReviewReportService.getReviewReportByTicket(
       ticket.id,
       db.defaultUser._id.toString(),
-      tenantId,
     );
 
     expect(result._id.toString()).toEqual(report._id.toString());
@@ -103,11 +93,7 @@ describe('getReviewReportByTicket', () => {
     const ticket = await new TicketBuilder().save();
 
     await expect(
-      ReviewReportService.getReviewReportByTicket(
-        ticket.id,
-        db.defaultUser._id.toString(),
-        tenantId,
-      ),
+      ReviewReportService.getReviewReportByTicket(ticket.id, db.defaultUser._id.toString()),
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
@@ -115,11 +101,7 @@ describe('getReviewReportByTicket', () => {
     const ticket = await new TicketBuilder().save();
     delete dataConnectionPool[PUBLIC_DB];
     await expect(
-      ReviewReportService.getReviewReportByTicket(
-        ticket.id,
-        db.defaultUser._id.toString(),
-        tenantId,
-      ),
+      ReviewReportService.getReviewReportByTicket(ticket.id, db.defaultUser._id.toString()),
     ).rejects.toBeInstanceOf(TenantConnectionError);
   });
 });
@@ -131,7 +113,7 @@ describe('getOverdueTicketsAdmin', () => {
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('submitted').save();
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('overdue').save();
 
-    const result = await ReviewReportService.getOverdueTicketsAdmin(tenantId);
+    const result = await ReviewReportService.getOverdueTicketsAdmin();
 
     expect(result).toHaveLength(3);
   });
@@ -141,7 +123,7 @@ describe('getOverdueTicketsAdmin', () => {
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('pending').save();
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('submitted').save();
 
-    const result = await ReviewReportService.getOverdueTicketsAdmin(tenantId, 'submitted');
+    const result = await ReviewReportService.getOverdueTicketsAdmin('submitted');
 
     expect(result).toHaveLength(1);
     expect(result[0].status).toEqual('submitted');
@@ -151,14 +133,14 @@ describe('getOverdueTicketsAdmin', () => {
     const ticket = await new TicketBuilder().save();
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('pending').save();
 
-    const result = await ReviewReportService.getOverdueTicketsAdmin(tenantId, 'not-a-real-status');
+    const result = await ReviewReportService.getOverdueTicketsAdmin('not-a-real-status');
 
     expect(result).toHaveLength(1);
   });
 
   it('throws TenantConnectionError when publicdb is not cached', async () => {
     delete dataConnectionPool[PUBLIC_DB];
-    await expect(ReviewReportService.getOverdueTicketsAdmin(tenantId)).rejects.toBeInstanceOf(
+    await expect(ReviewReportService.getOverdueTicketsAdmin()).rejects.toBeInstanceOf(
       TenantConnectionError,
     );
   });
@@ -178,13 +160,11 @@ describe('submitReviewReport', () => {
       ticket.id,
       db.defaultUser._id.toString(),
       '  All good now.  ',
-      tenantId,
     );
 
     const updated = await ReviewReportService.getReviewReportByTicket(
       ticket.id,
       db.defaultUser._id.toString(),
-      tenantId,
     );
 
     expect(updated._id.toString()).toEqual(report._id.toString());
