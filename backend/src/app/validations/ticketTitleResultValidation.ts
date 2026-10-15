@@ -7,11 +7,8 @@ const validations = [
     .isString()
     .bail()
     .isIn(['clear', 'unclear', 'ambiguous']),
-  body('reason')
-    .if(body('classification').isIn(['unclear', 'ambiguous']))
-    .isString()
-    .bail()
-    .notEmpty(),
+  body('recommendedTitle').isString().bail().trim().notEmpty(),
+  body('reason').isString().bail().notEmpty(),
 ];
 
 export const validateTicketTitleResult = async (
@@ -26,9 +23,9 @@ export const validateTicketTitleResult = async (
     }
   }
   const result = value as TicketTitleValidationResult;
-  if (result.classification === 'clear') {
-    return { classification: result.classification };
-  }
-
-  return { classification: result.classification, reason: result.reason };
+  return {
+    classification: result.classification,
+    recommendedTitle: result.recommendedTitle,
+    reason: result.reason,
+  };
 };

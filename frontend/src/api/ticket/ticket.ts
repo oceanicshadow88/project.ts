@@ -1,9 +1,10 @@
 import config from '../../config/config';
 import { alphaApiV2 } from '../../config/api';
 import { FeedbackQuestion, ISprintTicket, ITicketInput } from '../../types';
+import { ITicketTitleValidationResult } from './entity/ticket';
 
 export function validateTicketTitle(id: string) {
-  return alphaApiV2.post(`/tickets/${id}/validate-title`);
+  return alphaApiV2.post<ITicketTitleValidationResult>(`/tickets/${id}/validate-title`);
 }
 
 export function validateUserStory(title: string) {

@@ -8,13 +8,13 @@ import styles from './AiAssitantDropdown.module.scss';
 interface IAiAssitantDropdown {
   ticketId: string;
   onUserStory: () => void;
-  onTitleValidationDecision: (accepted: boolean) => void;
+  onTitleAccepted: (title: string) => Promise<void>;
   isDisabled: boolean;
 }
 
 const AI_ASSISTANT_OPTIONS = [
-  { label: 'User Story Validation', value: 'user-story-validation' },
-  { label: 'Ticket Title Validation', value: 'ticket-title-validation' }
+  { label: 'Improve User Story', value: 'user-story-validation' },
+  { label: 'Improve Ticket Title', value: 'ticket-title-validation' }
 ].map((option) => ({
   ...option,
   icon: (
@@ -30,14 +30,15 @@ const AI_ASSISTANT_OPTIONS = [
 export default function AiAssitantDropdown({
   ticketId,
   onUserStory,
-  onTitleValidationDecision,
+  onTitleAccepted,
   isDisabled
 }: Readonly<IAiAssitantDropdown>) {
   const [selectedAction, setSelectedAction] = useState(AI_ASSISTANT_OPTIONS[0].value);
   const [showValidation, setShowValidation] = useState(false);
 
-  const closeValidation = (accepted: boolean) => {
-    onTitleValidationDecision(accepted && !isDisabled);
+  const acceptTitle = async (title: string) => {
+    if (isDisabled) return;
+    await onTitleAccepted(title);
     setShowValidation(false);
   };
 
@@ -68,8 +69,9 @@ export default function AiAssitantDropdown({
       {showValidation && (
         <TicketTitleValidationModal
           ticketId={ticketId}
-          onAccept={() => closeValidation(true)}
-          onClose={() => closeValidation(false)}
+          onAccept={acceptTitle}
+          isDisabled={isDisabled}
+          onClose={() => setShowValidation(false)}
         />
       )}
     </div>

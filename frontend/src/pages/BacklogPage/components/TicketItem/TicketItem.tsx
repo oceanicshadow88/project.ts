@@ -51,8 +51,6 @@ export default function TicketItem({
   unresolvedQuestions = []
 }: ITicketInputProps) {
   const [title, setTitle] = useState(ticket.title);
-  const [isTitleEditBlocked, setIsTitleEditBlocked] = useState(false);
-  const isTitleEditDisabled = isReadOnly || isTitleEditBlocked;
   const [value, setValue] = useState(ticket.type);
   const [epicId, setEpicId] = useState<string | null>(ticket.epic);
   const projectDetails = useContext(ProjectDetailsContext);
@@ -60,12 +58,19 @@ export default function TicketItem({
   const { projectId = '' } = useParams();
 
   const updateTicketTitleContent = async () => {
-    if (isTitleEditDisabled) return;
+    if (isReadOnly) return;
     if (title.trim() === ticket.title) {
       return;
     }
     const data = { title: title.trim() };
     await updateTicket(ticket.id, data);
+    onTicketChanged();
+  };
+
+  const acceptRecommendedTitle = async (recommendedTitle: string) => {
+    if (isReadOnly) return;
+    await updateTicket(ticket.id, { title: recommendedTitle });
+    setTitle(recommendedTitle);
     onTicketChanged();
   };
 
@@ -76,7 +81,7 @@ export default function TicketItem({
   };
 
   const { visible, setVisible, myRef } = useOutsideAlerter(false);
-  const isEditingTitle = visible && !isTitleEditDisabled;
+  const isEditingTitle = visible && !isReadOnly;
 
   const saveKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {
@@ -280,7 +285,7 @@ export default function TicketItem({
                 icon={<FaPen size={12} />}
                 ticketId={ticket.id}
                 tooltip="Edit"
-                isDisabled={isTitleEditDisabled}
+                isDisabled={isReadOnly}
                 onClick={() => {
                   setVisible(true);
                 }}
@@ -299,7 +304,7 @@ export default function TicketItem({
               <AiAssitantDropdown
                 ticketId={ticket.id}
                 onUserStory={() => onAIClick(ticket.id, ticket as any)}
-                onTitleValidationDecision={(accepted) => setIsTitleEditBlocked(!accepted)}
+                onTitleAccepted={acceptRecommendedTitle}
                 isDisabled={isReadOnly}
               />
             )}
