@@ -51,7 +51,7 @@ function RoleItem({ role, onEditRole, deleteRole }: Readonly<IProps>) {
             className={`${styles.chevron} ${isExpanded ? styles['chevron-open'] : ''}`}
           />
           <span className={styles.name}>{role.name}</span>
-          {role.isPublic && <span className={styles['default-badge']}>Default</span>}
+          {role.isPublic && <span className={styles['read-only-badge']}>Read-only</span>}
         </button>
         <div data-testid="more-list" className={styles['action-buttons']}>
           <button

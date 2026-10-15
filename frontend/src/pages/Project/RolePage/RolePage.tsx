@@ -52,6 +52,7 @@ function RolePage() {
         await updateRole(projectId, role, newPermissions);
         toast.success('Role updated.', { theme: 'colored' });
       }
+      closeModal('selectedRole');
     } catch (err) {
       setLoader(false);
       toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
