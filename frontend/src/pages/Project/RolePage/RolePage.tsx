@@ -106,7 +106,7 @@ function RolePage() {
           <h1>Manage Roles</h1>
           <ButtonV2 text="Add Role" onClick={newRoleHandler} dataTestId="add-role-btn" fill />
         </div>
-        {loader ? (
+        {loader && roles.length === 0 ? (
           <Loading />
         ) : (
           <RoleTable roles={roles} onEditRole={onEditRole} deleteRole={deleteRoleHanlder} />
