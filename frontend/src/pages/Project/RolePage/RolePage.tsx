@@ -47,8 +47,10 @@ function RolePage() {
       setLoader(true);
       if (newRole) {
         await addRole(projectId, role, newPermissions);
+        toast.success('Role created.', { theme: 'colored' });
       } else {
         await updateRole(projectId, role, newPermissions);
+        toast.success('Role updated.', { theme: 'colored' });
       }
     } catch (err) {
       setLoader(false);

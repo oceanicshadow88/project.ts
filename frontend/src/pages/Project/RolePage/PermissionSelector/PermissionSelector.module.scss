@@ -3,10 +3,8 @@
 .modal {
   display: flex;
   flex-direction: column;
-  width: 90%;
-  max-width: 560px !important;
+  width: min(560px, 90vw);
   height: min(760px, 80vh);
-  overflow: hidden !important;
 }
 
 .form-container {
