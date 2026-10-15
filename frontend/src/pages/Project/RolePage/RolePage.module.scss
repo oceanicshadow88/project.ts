@@ -1,9 +1,9 @@
 @import '../../../variables-only.scss';
 
 .main-container {
-  padding: 0 5%;
-  margin-top: 100px;
-  min-width: 800px;
+  max-width: 1400px;
+  padding: 0 24px;
+  margin: 100px auto 0;
 
   .header-container {
     display: flex;
