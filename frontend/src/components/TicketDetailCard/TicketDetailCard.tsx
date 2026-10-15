@@ -94,9 +94,7 @@ function TicketDetailCard({
     setTicketInfo(updatedTicketInfo);
   };
 
-  // The ticket details are still being fetched (GET /tickets/:id). Render the
-  // skeleton rather than an empty div so the modal shell — and its fadeIn /
-  // slideUp animations — appear on the click instead of after the response.
+  // On-click before ticket details are fetched, render skeleton in shell
   if (!ticketInfo) {
     return (
       <TicketDetailCardShell>
