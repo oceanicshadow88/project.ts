@@ -29,18 +29,17 @@ export default function TicketTitleValidationModal({
     setLoading(true);
     setResult(null);
     setError('');
-    const loadValidation = async () => {
-      try {
-        const { data } = await validateTicketTitle(ticketId);
+    validateTicketTitle(ticketId)
+      .then(({ data }) => {
         if (active) setResult(data);
-      } catch {
+      })
+      .catch(() => {
         if (active) setError('Unable to validate the ticket title.');
-      } finally {
+      })
+      .finally(() => {
         if (active) setLoading(false);
-      }
-    };
+      });
 
-    loadValidation();
     return () => {
       active = false;
     };
