@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import Loading from '../../../components/Loading/Loading';
 import RoleTable from './RoleTable/RoleTable';
 import PermissionSelector from './PermissionSelector/PermissionSelector';
-import AddRoleBtn from './AddRoleBtn/AddRoleBtn';
+import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
 import { IPermissions, IRole } from '../../../types';
 import { getRoles, addRole, updateRole, deleteRole, getPermissions } from '../../../api/role/role';
 import styles from './RolePage.module.scss';
@@ -32,14 +32,9 @@ function RolePage() {
   }, [projectId]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getPermissions();
-        setPermissions(res);
-      } catch (err) {
-        toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
-      }
-    })();
+    getPermissions()
+      .then((res) => setPermissions(res))
+      .catch(() => toast.error('Temporary Server Error. Try Again.', { theme: 'colored' }));
     fetchRoles();
   }, [fetchRoles]);
 
@@ -52,9 +47,12 @@ function RolePage() {
       setLoader(true);
       if (newRole) {
         await addRole(projectId, role, newPermissions);
+        toast.success('Role created.', { theme: 'colored' });
       } else {
         await updateRole(projectId, role, newPermissions);
+        toast.success('Role updated.', { theme: 'colored' });
       }
+      closeModal('selectedRole');
     } catch (err) {
       setLoader(false);
       toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
@@ -75,7 +73,7 @@ function RolePage() {
     );
   };
 
-  const onEditRole = async (role: IRole) => {
+  const onEditRole = (role: IRole) => {
     showModal(
       'selectedRole',
       <PermissionSelector
@@ -109,9 +107,9 @@ function RolePage() {
         <RoleNav />
         <div className={styles['header-container']}>
           <h1>Manage Roles</h1>
-          <AddRoleBtn addRole={newRoleHandler} />
+          <ButtonV2 text="Add Role" onClick={newRoleHandler} dataTestId="add-role-btn" fill />
         </div>
-        {loader ? (
+        {loader && roles.length === 0 ? (
           <Loading />
         ) : (
           <RoleTable roles={roles} onEditRole={onEditRole} deleteRole={deleteRoleHanlder} />

@@ -1,0 +1,158 @@
+@import '../../../../variables-only.scss';
+
+.role {
+  border-bottom: 1px solid #e5e7eb;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+}
+
+.toggle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 0;
+  border: none;
+  background: none;
+  color: $textPrimaryColor;
+  text-align: left;
+  cursor: pointer;
+
+  .chevron {
+    flex-shrink: 0;
+    font-size: 20px;
+    transition: transform 0.2s ease;
+  }
+
+  .chevron-open {
+    transform: rotate(90deg);
+  }
+
+  .name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &:hover .name {
+    color: $primaryColor;
+  }
+}
+
+.read-only-badge {
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: $primaryColor;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .edit-btn {
+    border: 1px solid $primaryColor;
+    background: #fff;
+    color: $primaryColor;
+
+    &:hover {
+      background: $primaryColor;
+      color: #fff;
+    }
+  }
+
+  .delete-btn {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #e03131;
+
+    &:hover {
+      background: #e03131;
+      border-color: #e03131;
+      color: #fff;
+    }
+  }
+}
+
+.body {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 0.2s ease, visibility 0s linear 0.2s;
+}
+
+.body-open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows 0.2s ease, visibility 0s;
+}
+
+.body-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body,
+  .body-open,
+  .toggle .chevron {
+    transition: none;
+  }
+}
+
+.permission-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+  padding: 4px 16px 16px 44px;
+}
+
+.permission-group {
+  dt {
+    margin-bottom: 4px;
+    color: rgb(94, 108, 132);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+  }
+}
+
+.no-permission {
+  color: #9ca3af;
+}
