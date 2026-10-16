@@ -96,7 +96,12 @@ describe('Permission middleware for edit:settings', () => {
     permissionMiddleware.permission.wrappedMethod('edit:settings')(req, res, next);
 
   const run = async (user, project) => {
-    const req = { user, params: { projectId: project.id }, dbConnection: db.dbConnection };
+    const req = {
+      user,
+      params: { projectId: project.id },
+      dbConnection: db.dbConnection,
+      tenantId: project.tenant,
+    };
     const res = { status: jest.fn().mockReturnThis(), send: jest.fn().mockReturnThis() };
     const next = jest.fn();
     await checkEditSettings(req, res, next);
