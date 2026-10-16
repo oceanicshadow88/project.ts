@@ -265,66 +265,7 @@ const main = async () => {
 
     await globalDbConnection.close();
 
-    // 4. Backup each tenant's database
-    console.log(`4. Backing up ${tenants.length} tenant database(s)...\n`);
-
-    for (const tenant of tenants) {
-      const tenantId = tenant._id?.toString() || tenant.id?.toString() || '';
-      if (!tenantId) {
-        console.log(`  ⊘ Skipping tenant ${tenant.origin}: No ID found`);
-        continue;
-      }
-
-      const tenantDbName = tenant.plan === 'Free' ? PUBLIC_DB : tenantId;
-      const tenantOrigin = tenant.origin || 'unknown';
-      const tenantPlan = tenant.plan || 'Unknown';
-
-      // Skip if already backed up (Free plan uses publicdb)
-      if (tenantDbName === PUBLIC_DB) {
-        console.log(`  ⊘ Skipping ${tenantOrigin} (uses global database)\n`);
-        continue;
-      }
-
-      try {
-        console.log(`  Processing tenant: ${tenantOrigin} (${tenantPlan})...`);
-        const dbConnectionString = config.publicConnection.replace(PUBLIC_DB, tenantDbName);
-        const tenantDbConnection = await mongoose.createConnection(dbConnectionString, options);
-
-        const tenantBackup = await backupTenantDatabase(
-          tenantDbConnection,
-          tenantId,
-          tenantOrigin,
-          tenantPlan,
-        );
-
-        if (tenantBackup.collections.length > 0) {
-          fs.writeFileSync(
-            path.join(databasesBackupDir, `${tenantDbName}.json`),
-            JSON.stringify(tenantBackup.data, null, 2),
-          );
-
-          manifest.tenants.push({
-            id: tenantId,
-            origin: tenantOrigin,
-            plan: tenantPlan,
-            database: tenantDbName,
-            collections: tenantBackup.collections,
-          });
-
-          console.log(
-            `    ✓ Exported ${tenantBackup.collections.length} collection(s): ${tenantBackup.collections.join(', ')}\n`,
-          );
-        } else {
-          console.log('    ⊘ Database is empty\n');
-        }
-
-        await tenantDbConnection.close();
-      } catch (error: any) {
-        console.error(`    ✗ Error: ${error.message}\n`);
-      }
-    }
-
-    // 5. Save manifest
+    // 4. Save manifest
     fs.writeFileSync(
       path.join(backupDir, 'manifest.json'),
       JSON.stringify(manifest, null, 2),
@@ -335,7 +276,6 @@ const main = async () => {
     console.log(`  Backup location: ${backupDir}`);
     console.log(`  Tenants: ${tenants.length}`);
     console.log(`  Users: ${users.length}`);
-    console.log(`  Tenant databases backed up: ${manifest.tenants.length}`);
     console.log(`  Global database collections: ${manifest.globalDatabase.collections.length}`);
     console.log('========================================\n');
 

@@ -2,6 +2,7 @@ import * as ReviewReportService from '../../src/app/services/reviewReportService
 import { TenantConnectionError } from '../../src/app/services/reviewReportService';
 import NotFoundError from '../../src/app/error/notFound';
 import { dataConnectionPool } from '../../src/app/utils/dbContext';
+import { PUBLIC_DB } from '../../src/app/database/connections';
 import db from '../setup/db';
 import ReviewReportBuilder from './builders/reviewReportBuilder';
 import TicketBuilder from './builders/ticketBuilder';
@@ -10,7 +11,7 @@ let tenantId;
 
 beforeEach(() => {
   tenantId = db.defaultTenant._id.toString();
-  dataConnectionPool[tenantId] = db.dbConnection;
+  dataConnectionPool[PUBLIC_DB] = db.dbConnection;
 });
 
 describe('getPendingReviewReports', () => {
@@ -41,10 +42,7 @@ describe('getPendingReviewReports', () => {
       .withStatus('submitted')
       .save();
 
-    const result = await ReviewReportService.getPendingReviewReports(
-      db.defaultUser._id.toString(),
-      tenantId,
-    );
+    const result = await ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString());
 
     expect(result).toHaveLength(2);
     expect(result[0]._id.toString()).toEqual(soonerReport._id.toString());
@@ -55,16 +53,20 @@ describe('getPendingReviewReports', () => {
   });
 
   it('returns an empty list when the user has no pending reports', async () => {
-    const result = await ReviewReportService.getPendingReviewReports(
-      db.defaultUser._id.toString(),
-      tenantId,
-    );
+    const result = await ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString());
     expect(result).toEqual([]);
   });
 
-  it('throws TenantConnectionError when no connection is cached for the tenant', async () => {
+  it('reads from publicdb only (no per-tenant connection in pool)', async () => {
+    const result = await ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString());
+    expect(dataConnectionPool['paid-tenant-id']).toBeUndefined();
+    expect(result).toEqual([]);
+  });
+
+  it('throws TenantConnectionError when publicdb is not cached', async () => {
+    delete dataConnectionPool[PUBLIC_DB];
     await expect(
-      ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString(), 'unknown-tenant'),
+      ReviewReportService.getPendingReviewReports(db.defaultUser._id.toString()),
     ).rejects.toBeInstanceOf(TenantConnectionError);
   });
 });
@@ -81,7 +83,6 @@ describe('getReviewReportByTicket', () => {
     const result = await ReviewReportService.getReviewReportByTicket(
       ticket.id,
       db.defaultUser._id.toString(),
-      tenantId,
     );
 
     expect(result._id.toString()).toEqual(report._id.toString());
@@ -92,22 +93,15 @@ describe('getReviewReportByTicket', () => {
     const ticket = await new TicketBuilder().save();
 
     await expect(
-      ReviewReportService.getReviewReportByTicket(
-        ticket.id,
-        db.defaultUser._id.toString(),
-        tenantId,
-      ),
+      ReviewReportService.getReviewReportByTicket(ticket.id, db.defaultUser._id.toString()),
     ).rejects.toBeInstanceOf(NotFoundError);
   });
 
-  it('throws TenantConnectionError when no connection is cached for the tenant', async () => {
+  it('throws TenantConnectionError when publicdb is not cached', async () => {
     const ticket = await new TicketBuilder().save();
+    delete dataConnectionPool[PUBLIC_DB];
     await expect(
-      ReviewReportService.getReviewReportByTicket(
-        ticket.id,
-        db.defaultUser._id.toString(),
-        'unknown-tenant',
-      ),
+      ReviewReportService.getReviewReportByTicket(ticket.id, db.defaultUser._id.toString()),
     ).rejects.toBeInstanceOf(TenantConnectionError);
   });
 });
@@ -119,7 +113,7 @@ describe('getOverdueTicketsAdmin', () => {
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('submitted').save();
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('overdue').save();
 
-    const result = await ReviewReportService.getOverdueTicketsAdmin(tenantId);
+    const result = await ReviewReportService.getOverdueTicketsAdmin();
 
     expect(result).toHaveLength(3);
   });
@@ -129,7 +123,7 @@ describe('getOverdueTicketsAdmin', () => {
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('pending').save();
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('submitted').save();
 
-    const result = await ReviewReportService.getOverdueTicketsAdmin(tenantId, 'submitted');
+    const result = await ReviewReportService.getOverdueTicketsAdmin('submitted');
 
     expect(result).toHaveLength(1);
     expect(result[0].status).toEqual('submitted');
@@ -139,13 +133,14 @@ describe('getOverdueTicketsAdmin', () => {
     const ticket = await new TicketBuilder().save();
     await new ReviewReportBuilder().withTicket(ticket).withProject(ticket.project).withStatus('pending').save();
 
-    const result = await ReviewReportService.getOverdueTicketsAdmin(tenantId, 'not-a-real-status');
+    const result = await ReviewReportService.getOverdueTicketsAdmin('not-a-real-status');
 
     expect(result).toHaveLength(1);
   });
 
-  it('throws TenantConnectionError when no connection is cached for the tenant', async () => {
-    await expect(ReviewReportService.getOverdueTicketsAdmin('unknown-tenant')).rejects.toBeInstanceOf(
+  it('throws TenantConnectionError when publicdb is not cached', async () => {
+    delete dataConnectionPool[PUBLIC_DB];
+    await expect(ReviewReportService.getOverdueTicketsAdmin()).rejects.toBeInstanceOf(
       TenantConnectionError,
     );
   });
@@ -165,13 +160,11 @@ describe('submitReviewReport', () => {
       ticket.id,
       db.defaultUser._id.toString(),
       '  All good now.  ',
-      tenantId,
     );
 
     const updated = await ReviewReportService.getReviewReportByTicket(
       ticket.id,
       db.defaultUser._id.toString(),
-      tenantId,
     );
 
     expect(updated._id.toString()).toEqual(report._id.toString());
