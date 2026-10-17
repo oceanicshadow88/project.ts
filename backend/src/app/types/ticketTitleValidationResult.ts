@@ -1,3 +1,5 @@
-export type TicketTitleValidationResult =
-  | { classification: 'clear' }
-  | { classification: 'unclear' | 'ambiguous'; reason: string };
+export type TicketTitleValidationResult = {
+  recommendedTitle: string;
+  reason: string;
+  classification: 'clear' | 'unclear' | 'ambiguous';
+};

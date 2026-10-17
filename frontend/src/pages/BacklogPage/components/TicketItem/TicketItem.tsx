@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useContext, useEffect, useState } from 'react';
-import { FaPen, FaRobot } from 'react-icons/fa';
+import { FaPen } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { MdContentCopy, MdTitle } from 'react-icons/md';
 import { IoWarning } from 'react-icons/io5';
@@ -30,6 +30,7 @@ import LabelPicker from '../../../../components/Form/LabelPicker/LabelPicker';
 import LabelTag from '../../../../components/Form/LabelTag/LabelTag';
 import Dropdown from '../../../../lib/FormV3/Dropdown/Dropdown';
 import { hackConfig } from '../../../../config/hack';
+import AiAssitantDropdown from '../../../../components/AiAssitantDropdown/AiAssitantDropdown';
 
 interface ITicketInputProps {
   readonly ticket: ITicketBasic;
@@ -62,6 +63,12 @@ export default function TicketItem({
     }
     const data = { title: title.trim() };
     await updateTicket(ticket.id, data);
+    onTicketChanged();
+  };
+
+  const acceptRecommendedTitle = async (recommendedTitle: string) => {
+    await updateTicket(ticket.id, { title: recommendedTitle });
+    setTitle(recommendedTitle);
     onTicketChanged();
   };
 
@@ -290,11 +297,11 @@ export default function TicketItem({
               />
             )}
             {onAIClick && (
-              <IconButton
-                icon={<FaRobot size={15} />}
+              <AiAssitantDropdown
                 ticketId={ticket.id}
-                tooltip="AI Assistant"
-                onClick={() => onAIClick(ticket.id, ticket as any)}
+                onUserStory={() => onAIClick(ticket.id, ticket as any)}
+                onTitleAccepted={acceptRecommendedTitle}
+                isDisabled={isReadOnly}
               />
             )}
           </div>

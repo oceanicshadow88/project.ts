@@ -6,7 +6,7 @@ import { validateTicketTitleResult } from '../validations/ticketTitleResultValid
 const VALIDATION_RULES = `
 Objective
 
-Evaluate a TechScrum ticket title before ticket creation and classify it as
+Evaluate and improve a TechScrum ticket title and classify the original title as
 exactly one of: clear, unclear, or ambiguous.
 
 Context
@@ -32,25 +32,20 @@ Examples
 - Ambiguous: (SPIKE) Review project documentation and identify possible
   improvements.
 
-For a clear title, return only the classification.
-
-For an unclear or ambiguous title, include a reason that identifies the
-specific missing or ambiguous information.
+Always include a recommendedTitle and a reason. For a clear title, preserve the
+original title as recommendedTitle and explain why it is clear. For an unclear
+or ambiguous title, recommend a more actionable title using only information
+in the original title. Do not create new requirements, causes, or implementation
+details. Explain the missing or ambiguous information and the improvement.
 
 Do not judge a title by length or grammar alone.
 
-Return JSON only, using one of these structures:
+Return JSON only, using this structure:
 
-{"classification":"clear"}
-
-{"classification":"unclear","reason":"explanation"}
-
-{"classification":"ambiguous","reason":"explanation"}
+{"classification":"clear|unclear|ambiguous","recommendedTitle":"recommended ticket title","reason":"explanation"}
 `;
 
-export const validateTicketTitle = async (
-  title: string,
-): Promise<TicketTitleValidationResult> => {
+export const validateTicketTitle = async (title: string): Promise<TicketTitleValidationResult> => {
   const { claudeApiKey: apiKey, claudeModel: model } = config.mcp;
 
   if (!apiKey || !model) {

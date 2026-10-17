@@ -26,6 +26,7 @@ interface IDropdown {
   overWriteButtonStyle?: React.CSSProperties;
   alignCenter?: boolean;
   padding?: boolean;
+  buttonClassName?: string;
 }
 
 function Dropdown(props: IDropdown) {
@@ -48,7 +49,8 @@ function Dropdown(props: IDropdown) {
     displayIcon = false,
     overWriteButtonStyle,
     alignCenter = false,
-    padding = false
+    padding = false,
+    buttonClassName = ''
   } = props;
 
   const [isActive, setIsActive] = useState(false);
@@ -168,7 +170,7 @@ function Dropdown(props: IDropdown) {
             setIsActive(true);
           }}
           onBlur={handleValueBlur}
-          className="no-style-button"
+          className={['no-style-button', buttonClassName].filter(Boolean).join(' ')}
         >
           {labelDisplay ?? placeHolder}
           {required && <span className={styles.errorRed}>*</span>}
@@ -198,7 +200,7 @@ function Dropdown(props: IDropdown) {
           setIsActive(true);
         }}
         onBlur={handleValueBlur}
-        className={styles.input}
+        className={[styles.input, buttonClassName].filter(Boolean).join(' ')}
         style={{
           ...(overWriteButtonStyle || {}),
           ...(padding || hasBorder ? { padding: '8px 15px' } : {})

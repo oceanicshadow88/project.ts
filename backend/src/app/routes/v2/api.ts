@@ -15,6 +15,7 @@ import * as forgetPasswordController from '../../controllers/v1/forgetPasswordCo
 import * as forgetPasswordValidation from '../../validations/forgetPassword';
 import * as boardController from '../../controllers/v1/boardController';
 import * as ticketController from '../../controllers/v1/ticketController';
+import * as ticketTitleValidationController from '../../controllers/v1/ticketTitleValidationController';
 import * as ticketValidation from '../../validations/ticketValidation';
 import * as userControllers from '../../controllers/v1/userController';
 import * as userValidation from '../../validations/user';
@@ -226,6 +227,13 @@ router.get(
 );
 
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
+
+router.post(
+  '/tickets/:id/validate-title',
+  authenticationTokenMiddleware,
+  ticketValidation.validateTitle,
+  ticketTitleValidationController.validateTitle,
+);
 
 router.post(
   '/tickets',
