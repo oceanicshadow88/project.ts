@@ -68,13 +68,9 @@ export const updateUserProjectRole = async (req: Request) => {
 };
 
 export const deleteProjectRole = async (req: Request) => {
-  const { projectId, roleId } = req.params;
-  const project = await Project.getModel(req.dbConnection).findById(projectId);
-  const updatedProjectRoles = project.roles.filter((item: any) => {
-    return item._id?.toString() !== roleId;
-  });
-  project.roles = updatedProjectRoles;
-  return project.save();
+  const { roleId } = req.params;
+  const roleModel = await Role.getModel(req.dbConnection);
+  return roleModel.findOneAndDelete({ _id: roleId, tenant: req.tenantId, isPublic: false });
 };
 
 export const removeRoleFromProject = async (req: Request) => {

@@ -65,7 +65,7 @@ function RoleItem({ role, onEditRole, deleteRole }: Readonly<IProps>) {
             {role.isPublic ? <RiEyeLine size="16px" /> : <RiEditLine size="16px" />}
             <span>{openActionLabel}</span>
           </button>
-          {role.allowDelete && (
+          {!role.isPublic && (
             <button
               type="button"
               className={styles['delete-btn']}

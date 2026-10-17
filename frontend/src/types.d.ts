@@ -369,7 +369,6 @@ export interface IRole {
   id: string;
   name?: string;
   slug?: string;
-  allowDelete?: boolean;
   permissions: IPermissions[];
   isPublic: boolean;
 }
