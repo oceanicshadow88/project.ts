@@ -27,6 +27,8 @@ import PriorityBtn from '../Form/PriorityBtn/PriorityBtn';
 import StatusBtn from '../Form/StatusBtn/StatusBtn';
 import AssigneeBtn from '../Form/AssigneeBtn/AssigneeBtn';
 import CreateEditEpic from '../../pages/Project/EpicPage/components/CreateEditEpic/CreateEditEpic';
+import TicketDetailCardSkeleton from './TicketDetailCardSkeleton';
+import TicketDetailCardShell from './TicketDetailCardShell';
 
 const NEW_EPIC_OPTION = '_new_epic_';
 
@@ -92,8 +94,13 @@ function TicketDetailCard({
     setTicketInfo(updatedTicketInfo);
   };
 
+  // On-click before ticket details are fetched, render skeleton in shell
   if (!ticketInfo) {
-    return <div />;
+    return (
+      <TicketDetailCardShell>
+        <TicketDetailCardSkeleton />
+      </TicketDetailCardShell>
+    );
   }
 
   const renderHeader = () => {
@@ -301,67 +308,65 @@ function TicketDetailCard({
   };
 
   return (
-    <div className={styles.background}>
-      <div className={styles.container}>
-        {renderHeader()}
-        <div className={styles.ticketTitleContainer}>
-          {editTitle ? (
-            <input
-              type="text"
-              value={ticketInfo.title}
-              onKeyDown={handleKeyPress}
-              onBlur={handleTitleInputBlur}
-              onChange={(e) => {
-                onDefaultChange('title', e.target.value);
-              }}
-            />
-          ) : (
-            <button
-              data-testid="ticket-detail-title"
-              onClick={() => {
-                if (isReadOnly) return;
-                setEditTitle(true);
-              }}
-            >
-              {ticketInfo.title || 'Click to add title'}
-            </button>
-          )}
-        </div>
+    <TicketDetailCardShell>
+      {renderHeader()}
+      <div className={styles.ticketTitleContainer}>
+        {editTitle ? (
+          <input
+            type="text"
+            value={ticketInfo.title}
+            onKeyDown={handleKeyPress}
+            onBlur={handleTitleInputBlur}
+            onChange={(e) => {
+              onDefaultChange('title', e.target.value);
+            }}
+          />
+        ) : (
+          <button
+            data-testid="ticket-detail-title"
+            onClick={() => {
+              if (isReadOnly) return;
+              setEditTitle(true);
+            }}
+          >
+            {ticketInfo.title || 'Click to add title'}
+          </button>
+        )}
+      </div>
 
-        <div className={styles.contentWrapper}>
-          <div className={styles.leftColumn}>
-            <div className={styles.ticketDetailsSession}>{renderDetails()}</div>
-          </div>
-          <div className={styles.rightColumn}>
-            <DescriptionSession
-              description={ticketInfo.description}
-              attachmentUrls={ticketInfo.attachmentUrls}
-              onSubmitForm={onDefaultSubmit}
-              users={users}
-              isDisabled={isReadOnly}
-              ticketId={ticketId}
-              projectId={projectId}
-              userId={userInfo.id ?? ''}
-            />
-            <Tabs>
-              <TabLabel index={0}>Comment</TabLabel>
-              <TabLabel index={1}>Activity</TabLabel>
-              <TabPanel index={0}>
-                <CommentsSession
-                  userId={userInfo.id ?? ''}
-                  users={users}
-                  ticketId={ticketId}
-                  projectId={projectId}
-                />
-              </TabPanel>
-              <TabPanel index={1}>
-                <ActivitiesSession ticketId={ticketId} ticketInfo={ticketInfo ?? null} />
-              </TabPanel>
-            </Tabs>
-          </div>
+      <div className={styles.contentWrapper}>
+        <div className={styles.leftColumn}>
+          <div className={styles.ticketDetailsSession}>{renderDetails()}</div>
+        </div>
+        <div className={styles.rightColumn}>
+          <DescriptionSession
+            description={ticketInfo.description}
+            attachmentUrls={ticketInfo.attachmentUrls}
+            onSubmitForm={onDefaultSubmit}
+            users={users}
+            isDisabled={isReadOnly}
+            ticketId={ticketId}
+            projectId={projectId}
+            userId={userInfo.id ?? ''}
+          />
+          <Tabs>
+            <TabLabel index={0}>Comment</TabLabel>
+            <TabLabel index={1}>Activity</TabLabel>
+            <TabPanel index={0}>
+              <CommentsSession
+                userId={userInfo.id ?? ''}
+                users={users}
+                ticketId={ticketId}
+                projectId={projectId}
+              />
+            </TabPanel>
+            <TabPanel index={1}>
+              <ActivitiesSession ticketId={ticketId} ticketInfo={ticketInfo ?? null} />
+            </TabPanel>
+          </Tabs>
         </div>
       </div>
-    </div>
+    </TicketDetailCardShell>
   );
 }
 
