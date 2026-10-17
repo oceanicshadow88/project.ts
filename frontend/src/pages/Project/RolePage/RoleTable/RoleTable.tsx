@@ -6,7 +6,7 @@ import styles from './RoleTable.module.scss';
 interface IRoleTable {
   roles: IRole[];
   onEditRole: (role: IRole) => void;
-  deleteRole: (roleId: string) => void;
+  deleteRole: (roleId: string) => Promise<void>;
 }
 
 function RoleTable({ roles, onEditRole, deleteRole }: Readonly<IRoleTable>) {
