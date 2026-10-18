@@ -33,7 +33,7 @@ export const submitReviewReport = async (
 
 
 // Get pending review reports assigned to the given user
-export const getPendingReviewReports = async (userId: string) => {
+export const getPendingReviewReports = (userId: string) => {
   const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
 
@@ -71,7 +71,7 @@ export const getReviewReportByTicket = async (
 };
 
 // Admin: get all review reports, optionally filtered by status
-export const getOverdueTicketsAdmin = async (status?: string) => {
+export const getOverdueTicketsAdmin = (status?: string) => {
   const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
   User.getModel(connection);
