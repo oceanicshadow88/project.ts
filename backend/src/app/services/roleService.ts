@@ -77,7 +77,25 @@ export const updateUserProjectRole = async (req: Request) => {
 export const deleteProjectRole = async (req: Request) => {
   const { roleId } = req.params;
   const roleModel = await Role.getModel(req.dbConnection);
-  return roleModel.findOneAndDelete({ _id: roleId, tenant: req.tenantId, isPublic: false });
+  const role = await roleModel.findOne({ _id: roleId, tenant: req.tenantId, isPublic: false });
+  if (!role) {
+    return null;
+  }
+
+  const guestRole = await roleModel.findOne({ slug: 'guest', isPublic: true });
+  if (!guestRole) {
+    throw new Error('Guest role not found');
+  }
+
+  // move members on the deleted role to Guest before removing it
+  const userModel = await User.getModel(req.tenantsConnection);
+  await userModel.updateMany(
+    { 'projectsRoles.role': role._id },
+    { $set: { 'projectsRoles.$[projectRole].role': guestRole._id } },
+    { arrayFilters: [{ 'projectRole.role': role._id }] },
+  );
+
+  return roleModel.findByIdAndDelete(role._id);
 };
 
 export const removeRoleFromProject = async (req: Request) => {

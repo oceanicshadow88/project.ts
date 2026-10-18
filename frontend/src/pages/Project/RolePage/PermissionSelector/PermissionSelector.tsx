@@ -190,6 +190,9 @@ function PermissionSelector(props: IProps) {
                 role?.name ?? 'this role'
               }? This cannot be undone.`}
             </p>
+            <p className={styles['confirm-text']}>
+              Anyone with this role will be moved to the Guest role.
+            </p>
             <div className={styles['confirm-actions']}>
               <ButtonV2 text="Cancel" fill onClick={() => setIsConfirmingDelete(false)} />
               <ButtonV2 text="Delete" danger disabled={isDeleting} onClick={confirmDeleteHandler} />
