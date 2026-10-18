@@ -39,18 +39,18 @@ function RolePage() {
   }, [fetchRoles]);
 
   const submitEditHandler = async (
-    role: string,
+    roleName: string,
     newPermissions: Array<string>,
-    newRole: boolean
+    roleId?: string
   ) => {
     try {
       setLoader(true);
-      if (newRole) {
-        await addRole(projectId, role, newPermissions);
-        toast.success('Role created.', { theme: 'colored' });
-      } else {
-        await updateRole(projectId, role, newPermissions);
+      if (roleId) {
+        await updateRole(projectId, roleId, roleName, newPermissions);
         toast.success('Role updated.', { theme: 'colored' });
+      } else {
+        await addRole(projectId, roleName, newPermissions);
+        toast.success('Role created.', { theme: 'colored' });
       }
       closeModal('selectedRole');
     } catch (err) {

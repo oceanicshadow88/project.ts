@@ -10,6 +10,8 @@ import jwt from 'jsonwebtoken';
 import config from '../config/app';
 import { createUser } from '../console/temp';
 
+const toRoleSlug = (roleName: string) => roleName.replace('-', '').toLowerCase();
+
 export const getProjectRole = async (req: Request) => {
   //use cache after all features moved to v2
   const roleModel = await Role.getModel(req.dbConnection);
@@ -30,7 +32,7 @@ export const createProjectNewRole = async (req: Request) => {
   const roleModel = await Role.getModel(req.dbConnection);
   const role = new roleModel({
     name: roleName,
-    slug: roleName.replace('-', '').toLowerCase(),
+    slug: toRoleSlug(roleName),
     permissions: permissions,
     tenant: req.tenantId,
   });
@@ -40,13 +42,18 @@ export const createProjectNewRole = async (req: Request) => {
 
 export const updateProjectRole = async (req: Request) => {
   const { roleId } = req.params;
-  const { permissions } = req.body;
+  const { roleName, permissions } = req.body;
   const role = await Role.getModel(req.dbConnection).findById(roleId);
   if (!role) {
     return;
   }
   if (role.isPublic) {
     throw new Error('Cannot Edit Public Role');
+  }
+  const trimmedName = roleName?.trim();
+  if (trimmedName) {
+    role.name = trimmedName;
+    role.slug = toRoleSlug(trimmedName);
   }
   role.permissions = permissions;
   return role.save();

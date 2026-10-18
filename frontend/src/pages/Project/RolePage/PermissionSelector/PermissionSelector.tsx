@@ -10,7 +10,7 @@ import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
 
 interface IProps {
   isNewRole?: boolean;
-  submitRoleHandler: (role: string, permissions: Array<string>, newRole: boolean) => void;
+  submitRoleHandler: (roleName: string, permissions: Array<string>, roleId?: string) => void;
   closeHandler: () => void;
   deleteRoleHandler?: (roleId: string) => Promise<void>;
   permissions: IPermissions[];
@@ -40,7 +40,7 @@ function PermissionSelector(props: IProps) {
     permissions,
     role
   } = props;
-  const [roleName, setRoleName] = useState('');
+  const [roleName, setRoleName] = useState(role?.name ?? '');
   const [errorMsg, setErrorMsg] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -78,13 +78,19 @@ function PermissionSelector(props: IProps) {
   const submitHandler = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const updatedPermissions = Array.from(selectedIds);
+    const trimmedName = roleName.trim();
+
+    if (!trimmedName) {
+      setErrorMsg('Enter a role name.');
+      return;
+    }
 
     if (updatedPermissions.length === 0) {
       setErrorMsg('Select at least one permission.');
       return;
     }
 
-    submitRoleHandler(isNewRole ? roleName : role?.id ?? '', updatedPermissions, isNewRole);
+    submitRoleHandler(trimmedName, updatedPermissions, isNewRole ? undefined : role?.id);
   };
 
   const confirmDeleteHandler = async () => {
@@ -115,13 +121,13 @@ function PermissionSelector(props: IProps) {
           </p>
         )}
 
-        {isNewRole && (
+        {!isReadOnly && (
           <InputV2
             label="Role name"
             name="roleName"
             dataTestId="role-input"
+            defaultValue={role?.name}
             onValueChanged={(e) => setRoleName(e.target.value)}
-            required
           />
         )}
 
