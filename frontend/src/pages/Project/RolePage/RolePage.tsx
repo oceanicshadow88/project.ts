@@ -73,12 +73,26 @@ function RolePage() {
     );
   };
 
+  const deleteRoleHanlder = async (roleId: string) => {
+    try {
+      setLoader(true);
+      await deleteRole(projectId, roleId);
+      closeModal('selectedRole');
+    } catch (err) {
+      setLoader(false);
+      toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
+    } finally {
+      fetchRoles();
+    }
+  };
+
   const onEditRole = (role: IRole) => {
     showModal(
       'selectedRole',
       <PermissionSelector
         submitRoleHandler={submitEditHandler}
         closeHandler={() => closeModal('selectedRole')}
+        deleteRoleHandler={deleteRoleHanlder}
         permissions={permissions}
         role={role}
       />
@@ -87,18 +101,6 @@ function RolePage() {
     // setEditRole(roleId);
     // setSelectedRole(Role);
     // setOpenEdit(true);
-  };
-
-  const deleteRoleHanlder = async (roleId: string) => {
-    try {
-      setLoader(true);
-      await deleteRole(projectId, roleId);
-    } catch (err) {
-      setLoader(false);
-      toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
-    } finally {
-      fetchRoles();
-    }
   };
 
   return (
@@ -112,7 +114,7 @@ function RolePage() {
         {loader && roles.length === 0 ? (
           <Loading />
         ) : (
-          <RoleTable roles={roles} onEditRole={onEditRole} deleteRole={deleteRoleHanlder} />
+          <RoleTable roles={roles} onEditRole={onEditRole} />
         )}
       </div>
     </div>

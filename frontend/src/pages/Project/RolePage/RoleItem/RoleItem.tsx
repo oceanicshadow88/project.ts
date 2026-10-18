@@ -1,9 +1,6 @@
 import React, { useId, useState } from 'react';
 import { BiChevronRight } from 'react-icons/bi';
-import { RiEditLine, RiDeleteBinLine, RiEyeLine } from 'react-icons/ri';
-import { MdWarning } from 'react-icons/md';
-import Modal from '../../../../lib/Modal/Modal';
-import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
+import { RiEditLine, RiEyeLine } from 'react-icons/ri';
 import PermissionIndicator from '../PermissionIndicator/PermissionIndicator';
 import { IRole } from '../../../../types';
 import styles from './RoleItem.module.scss';
@@ -11,7 +8,6 @@ import styles from './RoleItem.module.scss';
 interface IProps {
   role: IRole;
   onEditRole: (role: IRole) => void;
-  deleteRole: (roleId: string) => Promise<void>;
 }
 
 const actionList = ['view', 'add', 'edit', 'delete'];
@@ -34,10 +30,8 @@ const getAllowedActions = (operation: string, permissions: Array<any>) => {
     .map((permission) => permission.slug.split(':')[0]);
 };
 
-function RoleItem({ role, onEditRole, deleteRole }: Readonly<IProps>) {
+function RoleItem({ role, onEditRole }: Readonly<IProps>) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const bodyId = useId();
   const openActionLabel = role.isPublic ? 'View' : 'Edit';
 
@@ -70,17 +64,6 @@ function RoleItem({ role, onEditRole, deleteRole }: Readonly<IProps>) {
             {role.isPublic ? <RiEyeLine size="16px" /> : <RiEditLine size="16px" />}
             <span>{openActionLabel}</span>
           </button>
-          {!role.isPublic && (
-            <button
-              type="button"
-              className={styles['delete-btn']}
-              onClick={() => setIsConfirmingDelete(true)}
-              aria-label={`Delete ${role.name}`}
-              title={`Delete ${role.name}`}
-            >
-              <RiDeleteBinLine size="16px" />
-            </button>
-          )}
         </div>
       </div>
 
@@ -110,39 +93,6 @@ function RoleItem({ role, onEditRole, deleteRole }: Readonly<IProps>) {
           </dl>
         </div>
       </div>
-
-      {isConfirmingDelete && (
-        <Modal>
-          <div className={styles['confirm-modal']}>
-            <div className={styles['confirm-header']}>
-              <MdWarning size={18} />
-              <span>Delete role?</span>
-            </div>
-            <p className={styles['confirm-text']}>
-              {`Are you sure you want to delete ${
-                role.name ?? 'this role'
-              }? This cannot be undone.`}
-            </p>
-            <div className={styles['confirm-actions']}>
-              <ButtonV2 text="Cancel" fill onClick={() => setIsConfirmingDelete(false)} />
-              <ButtonV2
-                text="Delete"
-                danger
-                disabled={isDeleting}
-                onClick={async () => {
-                  try {
-                    setIsDeleting(true);
-                    await deleteRole(role.id);
-                  } finally {
-                    setIsDeleting(false);
-                    setIsConfirmingDelete(false);
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </Modal>
-      )}
     </li>
   );
 }

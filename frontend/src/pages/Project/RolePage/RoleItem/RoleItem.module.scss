@@ -89,18 +89,6 @@
       color: #fff;
     }
   }
-
-  .delete-btn {
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    color: #e03131;
-
-    &:hover {
-      background: #e03131;
-      border-color: #e03131;
-      color: #fff;
-    }
-  }
 }
 
 .body {
@@ -155,30 +143,4 @@
 
 .no-permission {
   color: #9ca3af;
-}
-
-.confirm-modal {
-  padding: 16px 20px;
-  min-width: 320px;
-}
-
-.confirm-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #e03131;
-  font-weight: 600;
-}
-
-.confirm-text {
-  margin-top: 8px;
-  color: #4f5366;
-  font-size: 14px;
-}
-
-.confirm-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 16px;
 }
