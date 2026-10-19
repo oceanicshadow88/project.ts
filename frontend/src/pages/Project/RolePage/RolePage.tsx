@@ -38,20 +38,11 @@ function RolePage() {
     fetchRoles();
   }, [fetchRoles]);
 
-  const submitEditHandler = async (
-    roleName: string,
-    newPermissions: Array<string>,
-    roleId?: string
-  ) => {
+  const saveRole = async (request: () => Promise<unknown>, successMessage: string) => {
     try {
       setLoader(true);
-      if (roleId) {
-        await updateRole(projectId, roleId, roleName, newPermissions);
-        toast.success('Role updated.', { theme: 'colored' });
-      } else {
-        await addRole(projectId, roleName, newPermissions);
-        toast.success('Role created.', { theme: 'colored' });
-      }
+      await request();
+      toast.success(successMessage, { theme: 'colored' });
       closeModal('selectedRole');
     } catch (err) {
       setLoader(false);
@@ -61,12 +52,18 @@ function RolePage() {
     }
   };
 
+  const addRoleHandler = (roleName: string, newPermissions: Array<string>) =>
+    saveRole(() => addRole(projectId, roleName, newPermissions), 'Role created.');
+
+  const updateRoleHandler = (roleId: string, roleName: string, newPermissions: Array<string>) =>
+    saveRole(() => updateRole(projectId, roleId, roleName, newPermissions), 'Role updated.');
+
   const newRoleHandler = () => {
     showModal(
       'selectedRole',
       <PermissionSelector
         isNewRole
-        submitRoleHandler={submitEditHandler}
+        submitRoleHandler={addRoleHandler}
         closeHandler={() => closeModal('selectedRole')}
         permissions={permissions}
       />
@@ -90,7 +87,9 @@ function RolePage() {
     showModal(
       'selectedRole',
       <PermissionSelector
-        submitRoleHandler={submitEditHandler}
+        submitRoleHandler={(roleName, newPermissions) =>
+          updateRoleHandler(role.id, roleName, newPermissions)
+        }
         closeHandler={() => closeModal('selectedRole')}
         deleteRoleHandler={deleteRoleHanlder}
         permissions={permissions}

@@ -10,7 +10,7 @@ import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
 
 interface IProps {
   isNewRole?: boolean;
-  submitRoleHandler: (roleName: string, permissions: Array<string>, roleId?: string) => void;
+  submitRoleHandler: (roleName: string, permissions: Array<string>) => void;
   closeHandler: () => void;
   deleteRoleHandler?: (roleId: string) => Promise<void>;
   permissions: IPermissions[];
@@ -90,7 +90,7 @@ function PermissionSelector(props: IProps) {
       return;
     }
 
-    submitRoleHandler(trimmedName, updatedPermissions, isNewRole ? undefined : role?.id);
+    submitRoleHandler(trimmedName, updatedPermissions);
   };
 
   const confirmDeleteHandler = async () => {
