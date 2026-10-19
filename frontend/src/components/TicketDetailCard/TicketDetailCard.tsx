@@ -28,9 +28,11 @@ import StatusBtn from '../Form/StatusBtn/StatusBtn';
 import AssigneeBtn from '../Form/AssigneeBtn/AssigneeBtn';
 import CreateEditEpic from '../../pages/Project/EpicPage/components/CreateEditEpic/CreateEditEpic';
 import TicketDetailCardSkeleton from './TicketDetailCardSkeleton';
-import TicketDetailCardShell from './TicketDetailCardShell';
 
 const NEW_EPIC_OPTION = '_new_epic_';
+
+// Ticket opening animation duration
+const ENTRANCE_DURATION_MS = 200;
 
 interface ITicketDetailCardProps {
   ticketId: string;
@@ -50,6 +52,7 @@ function TicketDetailCard({
   const [ticketInfo, setTicketInfo] = useState<ITicketDetails | null>(null);
   const { visible, setVisible, myRef } = useOutsideAlerter(false);
   const [editTitle, setEditTitle] = useState(false);
+  const [isEntering, setIsEntering] = useState(true);
   const { showModal, closeModal } = useContext(ModalContext);
   const userInfo = useContext(UserContext);
   const projectDetails = useContext(ProjectDetailsContext);
@@ -67,6 +70,13 @@ function TicketDetailCard({
 
     fetchTicketDetails();
   }, [ticketId]);
+
+  // Set duration of entering ticket state
+  useEffect(() => {
+    const timer = setTimeout(() => setIsEntering(false), ENTRANCE_DURATION_MS);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'Enter') {
@@ -94,13 +104,9 @@ function TicketDetailCard({
     setTicketInfo(updatedTicketInfo);
   };
 
-  // On-click before ticket details are fetched, render skeleton in shell
+  // On-click before ticket details are fetched, render the skeleton
   if (!ticketInfo) {
-    return (
-      <TicketDetailCardShell>
-        <TicketDetailCardSkeleton />
-      </TicketDetailCardShell>
-    );
+    return <TicketDetailCardSkeleton isEntering={isEntering} />;
   }
 
   const renderHeader = () => {
@@ -307,66 +313,75 @@ function TicketDetailCard({
     );
   };
 
-  return (
-    <TicketDetailCardShell>
-      {renderHeader()}
-      <div className={styles.ticketTitleContainer}>
-        {editTitle ? (
-          <input
-            type="text"
-            value={ticketInfo.title}
-            onKeyDown={handleKeyPress}
-            onBlur={handleTitleInputBlur}
-            onChange={(e) => {
-              onDefaultChange('title', e.target.value);
-            }}
-          />
-        ) : (
-          <button
-            data-testid="ticket-detail-title"
-            onClick={() => {
-              if (isReadOnly) return;
-              setEditTitle(true);
-            }}
-          >
-            {ticketInfo.title || 'Click to add title'}
-          </button>
-        )}
-      </div>
+  const backgroundClassName = isEntering
+    ? `${styles.background} ${styles.fadeInEntrance}`
+    : styles.background;
+  const containerClassName = isEntering
+    ? `${styles.container} ${styles.slideUpEntrance}`
+    : styles.container;
 
-      <div className={styles.contentWrapper}>
-        <div className={styles.leftColumn}>
-          <div className={styles.ticketDetailsSession}>{renderDetails()}</div>
+  return (
+    <div className={backgroundClassName}>
+      <div className={containerClassName}>
+        {renderHeader()}
+        <div className={styles.ticketTitleContainer}>
+          {editTitle ? (
+            <input
+              type="text"
+              value={ticketInfo.title}
+              onKeyDown={handleKeyPress}
+              onBlur={handleTitleInputBlur}
+              onChange={(e) => {
+                onDefaultChange('title', e.target.value);
+              }}
+            />
+          ) : (
+            <button
+              data-testid="ticket-detail-title"
+              onClick={() => {
+                if (isReadOnly) return;
+                setEditTitle(true);
+              }}
+            >
+              {ticketInfo.title || 'Click to add title'}
+            </button>
+          )}
         </div>
-        <div className={styles.rightColumn}>
-          <DescriptionSession
-            description={ticketInfo.description}
-            attachmentUrls={ticketInfo.attachmentUrls}
-            onSubmitForm={onDefaultSubmit}
-            users={users}
-            isDisabled={isReadOnly}
-            ticketId={ticketId}
-            projectId={projectId}
-            userId={userInfo.id ?? ''}
-          />
-          <Tabs>
-            <TabLabel index={0}>Comment</TabLabel>
-            <TabLabel index={1}>Activity</TabLabel>
-            <TabPanel index={0}>
-              <CommentsSession
-                userId={userInfo.id ?? ''}
-                users={users}
-                ticketId={ticketId}
-                projectId={projectId}
-              />
-            </TabPanel>
-            <TabPanel index={1}>
-              <ActivitiesSession ticketId={ticketId} ticketInfo={ticketInfo ?? null} />
-            </TabPanel>
-          </Tabs>
+
+        <div className={styles.contentWrapper}>
+          <div className={styles.leftColumn}>
+            <div className={styles.ticketDetailsSession}>{renderDetails()}</div>
+          </div>
+          <div className={styles.rightColumn}>
+            <DescriptionSession
+              description={ticketInfo.description}
+              attachmentUrls={ticketInfo.attachmentUrls}
+              onSubmitForm={onDefaultSubmit}
+              users={users}
+              isDisabled={isReadOnly}
+              ticketId={ticketId}
+              projectId={projectId}
+              userId={userInfo.id ?? ''}
+            />
+            <Tabs>
+              <TabLabel index={0}>Comment</TabLabel>
+              <TabLabel index={1}>Activity</TabLabel>
+              <TabPanel index={0}>
+                <CommentsSession
+                  userId={userInfo.id ?? ''}
+                  users={users}
+                  ticketId={ticketId}
+                  projectId={projectId}
+                />
+              </TabPanel>
+              <TabPanel index={1}>
+                <ActivitiesSession ticketId={ticketId} ticketInfo={ticketInfo ?? null} />
+              </TabPanel>
+            </Tabs>
+          </div>
         </div>
       </div>
-    </TicketDetailCardShell>
+    </div>
   );
 }
 
