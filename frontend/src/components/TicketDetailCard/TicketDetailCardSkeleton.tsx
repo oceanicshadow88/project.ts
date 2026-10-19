@@ -6,12 +6,19 @@ const DESCRIPTION_LINES = ['line1', 'line2', 'line3', 'line4'];
 
 interface ITicketDetailCardSkeletonProps {
   isEntering: boolean;
+  onEntranceEnd: (event: React.AnimationEvent<HTMLDivElement>) => void;
 }
 
 // isEntering adds animations to background and container
-export default function TicketDetailCardSkeleton({ isEntering }: ITicketDetailCardSkeletonProps) {
+export default function TicketDetailCardSkeleton({
+  isEntering,
+  onEntranceEnd
+}: ITicketDetailCardSkeletonProps) {
   return (
-    <div className={`${styles.background} ${isEntering ? styles.fadeInEntrance : ''}`}>
+    <div
+      className={`${styles.background} ${isEntering ? styles.fadeInEntrance : ''}`}
+      onAnimationEnd={onEntranceEnd}
+    >
       <div className={`${styles.container} ${isEntering ? styles.slideUpEntrance : ''}`}>
         {/* Header including ticket-type icon and ticket id */}
         <header className={styles.ticketHeader}>

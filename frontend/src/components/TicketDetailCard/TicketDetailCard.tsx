@@ -31,9 +31,6 @@ import TicketDetailCardSkeleton from './TicketDetailCardSkeleton';
 
 const NEW_EPIC_OPTION = '_new_epic_';
 
-// Ticket opening animation duration
-const ENTRANCE_DURATION_MS = 200;
-
 interface ITicketDetailCardProps {
   ticketId: string;
   onDeletedTicket: (id: string) => void;
@@ -71,12 +68,14 @@ function TicketDetailCard({
     fetchTicketDetails();
   }, [ticketId]);
 
-  // Set duration of entering ticket state
-  useEffect(() => {
-    const timer = setTimeout(() => setIsEntering(false), ENTRANCE_DURATION_MS);
+  // When animation finishes, exit entering ticket state.
+  const handleEntranceEnd = (event: React.AnimationEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    setIsEntering(false);
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key !== 'Enter') {
@@ -106,7 +105,7 @@ function TicketDetailCard({
 
   // On-click before ticket details are fetched, render the skeleton
   if (!ticketInfo) {
-    return <TicketDetailCardSkeleton isEntering={isEntering} />;
+    return <TicketDetailCardSkeleton isEntering={isEntering} onEntranceEnd={handleEntranceEnd} />;
   }
 
   const renderHeader = () => {
@@ -321,7 +320,7 @@ function TicketDetailCard({
     : styles.container;
 
   return (
-    <div className={backgroundClassName}>
+    <div className={backgroundClassName} onAnimationEnd={handleEntranceEnd}>
       <div className={containerClassName}>
         {renderHeader()}
         <div className={styles.ticketTitleContainer}>
