@@ -33,7 +33,7 @@ export const submitReviewReport = async (req: Request, res: Response) => {
     }
 
     // All DB/model logic now lives in reviewReportService.
-    await ReviewReportService.submitReviewReport(ticketId, userId, reportContent, tenantId);
+    await ReviewReportService.submitReviewReport(ticketId, userId, reportContent);
 
     res.status(200).json({
       success: true,
@@ -68,7 +68,7 @@ export const getPendingReviewReports = async (req: Request, res: Response) => {
       });
     }
 
-    const pendingReports = await ReviewReportService.getPendingReviewReports(userId, tenantId);
+    const pendingReports = await ReviewReportService.getPendingReviewReports(userId);
 
     res.status(200).json({
       success: true,
@@ -110,11 +110,7 @@ export const getReviewReportByTicket = async (req: Request, res: Response) => {
       });
     }
 
-    const reviewReport = await ReviewReportService.getReviewReportByTicket(
-      ticketId,
-      userId,
-      tenantId,
-    );
+    const reviewReport = await ReviewReportService.getReviewReportByTicket(ticketId, userId);
 
     res.status(200).json({
       success: true,
@@ -154,10 +150,7 @@ export const getOverdueTicketsAdmin = async (req: Request, res: Response) => {
       });
     }
 
-    const reviewReports = await ReviewReportService.getOverdueTicketsAdmin(
-      tenantId,
-      status as string,
-    );
+    const reviewReports = await ReviewReportService.getOverdueTicketsAdmin(status as string);
 
     res.status(200).json({
       success: true,

@@ -4,7 +4,7 @@ import * as Prompt from '../model/prompt';
 import * as Question from '../model/question';
 import * as Ticket from '../model/ticket';
 import { questionClarityCheck } from '../services/aiService';
-import { tenantDBConnection } from '../database/connections';
+import { tenantDBConnection, PUBLIC_DB } from '../database/connections';
 
 export type TempPayload = { 
   questionId: string; 
@@ -17,8 +17,7 @@ export class QuestionJob extends BaseJob<TempPayload> {
 
   async handle() {
     try {
-      // Get tenant-specific database connection
-      const connection = await tenantDBConnection(this.payload.tenantId);
+      const connection = await tenantDBConnection(PUBLIC_DB);
       
       // Get model instances for this tenant
       const promptModel = Prompt.getModel(connection);

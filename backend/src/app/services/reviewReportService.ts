@@ -1,4 +1,5 @@
 import { dataConnectionPool } from '../utils/dbContext';
+import { PUBLIC_DB } from '../database/connections';
 import * as ReviewReport from '../model/reviewReport';
 import * as User from '../model/user';
 import { OverdueTicketService } from './overdueTicketService';
@@ -13,10 +14,8 @@ export class TenantConnectionError extends Error {
   }
 }
 
-// Resolves the cached per-tenant connection, throwing instead of returning undefined so
-// callers don't need to repeat the same not-found check.
-const getTenantConnection = (tenantId: string) => {
-  const connection = dataConnectionPool[tenantId];
+const getPublicDbConnection = () => {
+  const connection = dataConnectionPool[PUBLIC_DB];
   if (!connection) {
     throw new TenantConnectionError();
   }
@@ -28,15 +27,14 @@ export const submitReviewReport = async (
   ticketId: string,
   userId: string,
   reportContent: string,
-  tenantId: string,
 ): Promise<void> => {
-  await OverdueTicketService.submitReviewReport(ticketId, userId, reportContent.trim(), tenantId);
+  await OverdueTicketService.submitReviewReport(ticketId, userId, reportContent.trim());
 };
 
 
 // Get pending review reports assigned to the given user
-export const getPendingReviewReports = async (userId: string, tenantId: string) => {
-  const connection = getTenantConnection(tenantId);
+export const getPendingReviewReports = (userId: string) => {
+  const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
 
   return ReviewReportModel.find({
@@ -53,9 +51,8 @@ export const getPendingReviewReports = async (userId: string, tenantId: string) 
 export const getReviewReportByTicket = async (
   ticketId: string,
   userId: string,
-  tenantId: string,
 ) => {
-  const connection = getTenantConnection(tenantId);
+  const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
 
   const reviewReport = await ReviewReportModel.findOne({
@@ -74,8 +71,8 @@ export const getReviewReportByTicket = async (
 };
 
 // Admin: get all review reports, optionally filtered by status
-export const getOverdueTicketsAdmin = async (tenantId: string, status?: string) => {
-  const connection = getTenantConnection(tenantId);
+export const getOverdueTicketsAdmin = (status?: string) => {
+  const connection = getPublicDbConnection();
   const ReviewReportModel = ReviewReport.getModel(connection);
   User.getModel(connection);
 
