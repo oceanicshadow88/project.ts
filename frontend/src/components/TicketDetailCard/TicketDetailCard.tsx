@@ -27,9 +27,11 @@ import PriorityBtn from '../Form/PriorityBtn/PriorityBtn';
 import StatusBtn from '../Form/StatusBtn/StatusBtn';
 import AssigneeBtn from '../Form/AssigneeBtn/AssigneeBtn';
 import CreateEditEpic from '../../pages/Project/EpicPage/components/CreateEditEpic/CreateEditEpic';
-import TicketDetailCardFrame from './TicketDetailCardFrame';
 
 const NEW_EPIC_OPTION = '_new_epic_';
+
+const DETAIL_ROWS = ['type', 'status', 'assignee', 'priority', 'labels', 'dueDate'];
+const DESCRIPTION_LINES = ['line1', 'line2', 'line3', 'line4'];
 
 interface ITicketDetailCardProps {
   ticketId: string;
@@ -93,9 +95,48 @@ function TicketDetailCard({
     setTicketInfo(updatedTicketInfo);
   };
 
-  // On-click before ticket details are fetched, render the frame's loading state
+  // On-click before ticket details are fetched, render the skeleton. The outer two
+  // elements match the loaded return below, so React updates them in place instead
+  // of recreating them and fadeIn / slideUp play once per open.
   if (!ticketInfo) {
-    return <TicketDetailCardFrame isLoading />;
+    return (
+      <div className={styles.background}>
+        <div className={styles.container}>
+          {/* Header including ticket-type icon and ticket id */}
+          <header className={styles.ticketHeader}>
+            <div className={styles.ticketTypeSection}>
+              {/* Skeleton for header icon and id */}
+              <span className={`${styles.skeletonBlock} ${styles.skeletonIcon}`} />
+              <span className={`${styles.skeletonBlock} ${styles.skeletonLabel}`} />
+            </div>
+          </header>
+
+          {/* Skeleton for title bar */}
+          <div className={styles.ticketTitleContainer}>
+            <span className={`${styles.skeletonBlock} ${styles.skeletonTitle}`} />
+          </div>
+
+          <div className={styles.contentWrapper}>
+            {/* Left column skeleton */}
+            <div className={styles.leftColumn}>
+              <div className={styles.ticketDetailsSession}>
+                {DETAIL_ROWS.map((row) => (
+                  <span key={row} className={`${styles.skeletonBlock} ${styles.skeletonRow}`} />
+                ))}
+              </div>
+            </div>
+
+            {/* Right column skeleton */}
+            <div className={styles.rightColumn}>
+              {DESCRIPTION_LINES.map((line) => (
+                <span key={line} className={`${styles.skeletonBlock} ${styles.skeletonLine}`} />
+              ))}
+              <div className={`${styles.skeletonBlock} ${styles.skeletonTabs}`} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const renderHeader = () => {
@@ -303,65 +344,67 @@ function TicketDetailCard({
   };
 
   return (
-    <TicketDetailCardFrame isLoading={false}>
-      {renderHeader()}
-      <div className={styles.ticketTitleContainer}>
-        {editTitle ? (
-          <input
-            type="text"
-            value={ticketInfo.title}
-            onKeyDown={handleKeyPress}
-            onBlur={handleTitleInputBlur}
-            onChange={(e) => {
-              onDefaultChange('title', e.target.value);
-            }}
-          />
-        ) : (
-          <button
-            data-testid="ticket-detail-title"
-            onClick={() => {
-              if (isReadOnly) return;
-              setEditTitle(true);
-            }}
-          >
-            {ticketInfo.title || 'Click to add title'}
-          </button>
-        )}
-      </div>
+    <div className={styles.background}>
+      <div className={styles.container}>
+        {renderHeader()}
+        <div className={styles.ticketTitleContainer}>
+          {editTitle ? (
+            <input
+              type="text"
+              value={ticketInfo.title}
+              onKeyDown={handleKeyPress}
+              onBlur={handleTitleInputBlur}
+              onChange={(e) => {
+                onDefaultChange('title', e.target.value);
+              }}
+            />
+          ) : (
+            <button
+              data-testid="ticket-detail-title"
+              onClick={() => {
+                if (isReadOnly) return;
+                setEditTitle(true);
+              }}
+            >
+              {ticketInfo.title || 'Click to add title'}
+            </button>
+          )}
+        </div>
 
-      <div className={styles.contentWrapper}>
-        <div className={styles.leftColumn}>
-          <div className={styles.ticketDetailsSession}>{renderDetails()}</div>
-        </div>
-        <div className={styles.rightColumn}>
-          <DescriptionSession
-            description={ticketInfo.description}
-            attachmentUrls={ticketInfo.attachmentUrls}
-            onSubmitForm={onDefaultSubmit}
-            users={users}
-            isDisabled={isReadOnly}
-            ticketId={ticketId}
-            projectId={projectId}
-            userId={userInfo.id ?? ''}
-          />
-          <Tabs>
-            <TabLabel index={0}>Comment</TabLabel>
-            <TabLabel index={1}>Activity</TabLabel>
-            <TabPanel index={0}>
-              <CommentsSession
-                userId={userInfo.id ?? ''}
-                users={users}
-                ticketId={ticketId}
-                projectId={projectId}
-              />
-            </TabPanel>
-            <TabPanel index={1}>
-              <ActivitiesSession ticketId={ticketId} ticketInfo={ticketInfo ?? null} />
-            </TabPanel>
-          </Tabs>
+        <div className={styles.contentWrapper}>
+          <div className={styles.leftColumn}>
+            <div className={styles.ticketDetailsSession}>{renderDetails()}</div>
+          </div>
+          <div className={styles.rightColumn}>
+            <DescriptionSession
+              description={ticketInfo.description}
+              attachmentUrls={ticketInfo.attachmentUrls}
+              onSubmitForm={onDefaultSubmit}
+              users={users}
+              isDisabled={isReadOnly}
+              ticketId={ticketId}
+              projectId={projectId}
+              userId={userInfo.id ?? ''}
+            />
+            <Tabs>
+              <TabLabel index={0}>Comment</TabLabel>
+              <TabLabel index={1}>Activity</TabLabel>
+              <TabPanel index={0}>
+                <CommentsSession
+                  userId={userInfo.id ?? ''}
+                  users={users}
+                  ticketId={ticketId}
+                  projectId={projectId}
+                />
+              </TabPanel>
+              <TabPanel index={1}>
+                <ActivitiesSession ticketId={ticketId} ticketInfo={ticketInfo ?? null} />
+              </TabPanel>
+            </Tabs>
+          </div>
         </div>
       </div>
-    </TicketDetailCardFrame>
+    </div>
   );
 }
 
