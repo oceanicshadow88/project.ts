@@ -123,13 +123,13 @@ export default function RetroPage() {
       content: data.content,
       status: columnId
     });
-    setRetroItems([...retroItems, item.data]);
+    setRetroItems((prev) => [...prev, item.data]);
     setRetroItemsUpdated(true);
   };
 
   const onRemoveItem = async (id: string) => {
     await deleteRetroItem(id);
-    setRetroItems(retroItems.filter((item) => item.id !== id));
+    setRetroItems((prev) => prev.filter((item) => item.id !== id));
     setRetroItemsUpdated(true);
   };
 
@@ -138,17 +138,9 @@ export default function RetroPage() {
       return;
     }
     await updateRetroItem(id, data);
-    const updatedRetroItems = retroItems.map((item: IRetroItem) => {
-      if (item.id === id) {
-        return {
-          ...item,
-          content: data.content
-        };
-      }
-      return item;
-    });
-
-    setRetroItems(updatedRetroItems);
+    setRetroItems((prev) =>
+      prev.map((item: IRetroItem) => (item.id === id ? { ...item, content: data.content } : item))
+    );
     setRetroItemsUpdated(true);
   };
 
@@ -164,7 +156,7 @@ export default function RetroPage() {
       return;
     }
     const updateItem = { ...retroItem, ...{ status: toId } };
-    setRetroItems(retroItems.map((item) => (item.id === retroId ? updateItem : item)));
+    setRetroItems((prev) => prev.map((item) => (item.id === retroId ? updateItem : item)));
     await updateRetroStatus(retroId, toId);
     setRetroItemsUpdated(true);
   };

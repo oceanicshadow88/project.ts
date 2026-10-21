@@ -6,12 +6,29 @@ const socket: Socket = io(config.socketUrl, {
   withCredentials: false
 });
 
+let currentSprintId = '';
+
+// Rooms live in server memory; re-join on every (re)connect.
+const joinCurrentRetroRoom = () => {
+  if (currentSprintId) {
+    socket.emit('join_retro_sprint_room', currentSprintId);
+  }
+};
+
 const onRetroRoomJoin = (sprintId: string) => {
-  socket.connect();
-  socket.emit('join_retro_sprint_room', sprintId);
+  currentSprintId = sprintId;
+  socket.off('connect', joinCurrentRetroRoom);
+  socket.on('connect', joinCurrentRetroRoom);
+  if (socket.connected) {
+    joinCurrentRetroRoom();
+  } else {
+    socket.connect();
+  }
 };
 
 const onRetroRoomLeave = () => {
+  currentSprintId = '';
+  socket.off('connect', joinCurrentRetroRoom);
   socket.disconnect();
 };
 
