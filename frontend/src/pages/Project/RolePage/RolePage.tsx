@@ -38,20 +38,11 @@ function RolePage() {
     fetchRoles();
   }, [fetchRoles]);
 
-  const submitEditHandler = async (
-    role: string,
-    newPermissions: Array<string>,
-    newRole: boolean
-  ) => {
+  const saveRole = async (request: () => Promise<unknown>, successMessage: string) => {
     try {
       setLoader(true);
-      if (newRole) {
-        await addRole(projectId, role, newPermissions);
-        toast.success('Role created.', { theme: 'colored' });
-      } else {
-        await updateRole(projectId, role, newPermissions);
-        toast.success('Role updated.', { theme: 'colored' });
-      }
+      await request();
+      toast.success(successMessage, { theme: 'colored' });
       closeModal('selectedRole');
     } catch (err) {
       setLoader(false);
@@ -61,24 +52,46 @@ function RolePage() {
     }
   };
 
+  const addRoleHandler = (roleName: string, newPermissions: Array<string>) =>
+    saveRole(() => addRole(projectId, roleName, newPermissions), 'Role created.');
+
+  const updateRoleHandler = (roleId: string, roleName: string, newPermissions: Array<string>) =>
+    saveRole(() => updateRole(projectId, roleId, roleName, newPermissions), 'Role updated.');
+
   const newRoleHandler = () => {
     showModal(
       'selectedRole',
       <PermissionSelector
         isNewRole
-        submitRoleHandler={submitEditHandler}
+        submitRoleHandler={addRoleHandler}
         closeHandler={() => closeModal('selectedRole')}
         permissions={permissions}
       />
     );
   };
 
+  const deleteRoleHanlder = async (roleId: string) => {
+    try {
+      setLoader(true);
+      await deleteRole(projectId, roleId);
+      closeModal('selectedRole');
+    } catch (err) {
+      setLoader(false);
+      toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
+    } finally {
+      fetchRoles();
+    }
+  };
+
   const onEditRole = (role: IRole) => {
     showModal(
       'selectedRole',
       <PermissionSelector
-        submitRoleHandler={submitEditHandler}
+        submitRoleHandler={(roleName, newPermissions) =>
+          updateRoleHandler(role.id, roleName, newPermissions)
+        }
         closeHandler={() => closeModal('selectedRole')}
+        deleteRoleHandler={deleteRoleHanlder}
         permissions={permissions}
         role={role}
       />
@@ -87,18 +100,6 @@ function RolePage() {
     // setEditRole(roleId);
     // setSelectedRole(Role);
     // setOpenEdit(true);
-  };
-
-  const deleteRoleHanlder = async (roleId: string) => {
-    try {
-      setLoader(true);
-      await deleteRole(projectId, roleId);
-    } catch (err) {
-      setLoader(false);
-      toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
-    } finally {
-      fetchRoles();
-    }
   };
 
   return (
@@ -112,7 +113,7 @@ function RolePage() {
         {loader && roles.length === 0 ? (
           <Loading />
         ) : (
-          <RoleTable roles={roles} onEditRole={onEditRole} deleteRole={deleteRoleHanlder} />
+          <RoleTable roles={roles} onEditRole={onEditRole} />
         )}
       </div>
     </div>

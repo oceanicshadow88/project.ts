@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { MdWarning } from 'react-icons/md';
 import { IPermissions, IRole } from '../../../../types';
 import styles from './PermissionSelector.module.scss';
 import PermissionCategory from '../PermissionCategory/PermissionCategory';
@@ -9,8 +10,9 @@ import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
 
 interface IProps {
   isNewRole?: boolean;
-  submitRoleHandler: (role: string, permissions: Array<string>, newRole: boolean) => void;
+  submitRoleHandler: (roleName: string, permissions: Array<string>) => void;
   closeHandler: () => void;
+  deleteRoleHandler?: (roleId: string) => Promise<void>;
   permissions: IPermissions[];
   role?: IRole;
 }
@@ -30,9 +32,18 @@ const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1
 const getOperation = (permission: IPermissions) => permission?.slug.split(':')[1];
 
 function PermissionSelector(props: IProps) {
-  const { isNewRole = false, submitRoleHandler, closeHandler, permissions, role } = props;
-  const [roleName, setRoleName] = useState('');
+  const {
+    isNewRole = false,
+    submitRoleHandler,
+    closeHandler,
+    deleteRoleHandler,
+    permissions,
+    role
+  } = props;
+  const [roleName, setRoleName] = useState(role?.name ?? '');
   const [errorMsg, setErrorMsg] = useState('');
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isReadOnly = role?.isPublic ?? false;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
@@ -67,14 +78,33 @@ function PermissionSelector(props: IProps) {
   const submitHandler = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const updatedPermissions = Array.from(selectedIds);
+    const trimmedName = roleName.trim();
+
+    if (!trimmedName) {
+      setErrorMsg('Enter a role name.');
+      return;
+    }
 
     if (updatedPermissions.length === 0) {
       setErrorMsg('Select at least one permission.');
       return;
     }
 
-    submitRoleHandler(isNewRole ? roleName : role?.id ?? '', updatedPermissions, isNewRole);
+    submitRoleHandler(trimmedName, updatedPermissions);
   };
+
+  const confirmDeleteHandler = async () => {
+    if (!role || !deleteRoleHandler) return;
+    try {
+      setIsDeleting(true);
+      await deleteRoleHandler(role.id);
+    } finally {
+      setIsDeleting(false);
+      setIsConfirmingDelete(false);
+    }
+  };
+
+  const canDelete = !isNewRole && !isReadOnly && !!role && !!deleteRoleHandler;
 
   return (
     <Modal classesName={styles.modal}>
@@ -91,13 +121,13 @@ function PermissionSelector(props: IProps) {
           </p>
         )}
 
-        {isNewRole && (
+        {!isReadOnly && (
           <InputV2
             label="Role name"
             name="roleName"
             dataTestId="role-input"
+            defaultValue={role?.name}
             onValueChanged={(e) => setRoleName(e.target.value)}
-            required
           />
         )}
 
@@ -120,6 +150,16 @@ function PermissionSelector(props: IProps) {
         {errorMsg && <p className={styles['error-message']}>{errorMsg}</p>}
 
         <div className={styles['button-container']}>
+          {canDelete && (
+            <ButtonV2
+              text="Delete"
+              danger
+              customStyles={styles['delete-btn']}
+              onClick={() => setIsConfirmingDelete(true)}
+              btnType="button"
+              dataTestId="delete-role-btn"
+            />
+          )}
           <ButtonV2
             text={isReadOnly ? 'Close' : 'Cancel'}
             onClick={closeHandler}
@@ -137,6 +177,29 @@ function PermissionSelector(props: IProps) {
           )}
         </div>
       </form>
+
+      {isConfirmingDelete && (
+        <Modal>
+          <div className={styles['confirm-modal']}>
+            <div className={styles['confirm-header']}>
+              <MdWarning size={18} />
+              <span>Delete role?</span>
+            </div>
+            <p className={styles['confirm-text']}>
+              {`Are you sure you want to delete ${
+                role?.name ?? 'this role'
+              }? This cannot be undone.`}
+            </p>
+            <p className={styles['confirm-text']}>
+              Anyone with this role will be moved to the Guest role.
+            </p>
+            <div className={styles['confirm-actions']}>
+              <ButtonV2 text="Cancel" fill onClick={() => setIsConfirmingDelete(false)} />
+              <ButtonV2 text="Delete" danger disabled={isDeleting} onClick={confirmDeleteHandler} />
+            </div>
+          </div>
+        </Modal>
+      )}
     </Modal>
   );
 }

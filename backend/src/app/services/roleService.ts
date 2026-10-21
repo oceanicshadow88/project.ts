@@ -10,6 +10,8 @@ import jwt from 'jsonwebtoken';
 import config from '../config/app';
 import { createUser } from '../console/temp';
 
+const toRoleSlug = (roleName: string) => roleName.replace('-', '').toLowerCase();
+
 export const getProjectRole = async (req: Request) => {
   //use cache after all features moved to v2
   const roleModel = await Role.getModel(req.dbConnection);
@@ -30,7 +32,7 @@ export const createProjectNewRole = async (req: Request) => {
   const roleModel = await Role.getModel(req.dbConnection);
   const role = new roleModel({
     name: roleName,
-    slug: roleName.replace('-', '').toLowerCase(),
+    slug: toRoleSlug(roleName),
     permissions: permissions,
     tenant: req.tenantId,
   });
@@ -40,13 +42,18 @@ export const createProjectNewRole = async (req: Request) => {
 
 export const updateProjectRole = async (req: Request) => {
   const { roleId } = req.params;
-  const { permissions } = req.body;
+  const { roleName, permissions } = req.body;
   const role = await Role.getModel(req.dbConnection).findById(roleId);
   if (!role) {
     return;
   }
   if (role.isPublic) {
     throw new Error('Cannot Edit Public Role');
+  }
+  const trimmedName = roleName?.trim();
+  if (trimmedName) {
+    role.name = trimmedName;
+    role.slug = toRoleSlug(trimmedName);
   }
   role.permissions = permissions;
   return role.save();
@@ -68,13 +75,27 @@ export const updateUserProjectRole = async (req: Request) => {
 };
 
 export const deleteProjectRole = async (req: Request) => {
-  const { projectId, roleId } = req.params;
-  const project = await Project.getModel(req.dbConnection).findById(projectId);
-  const updatedProjectRoles = project.roles.filter((item: any) => {
-    return item._id?.toString() !== roleId;
-  });
-  project.roles = updatedProjectRoles;
-  return project.save();
+  const { roleId } = req.params;
+  const roleModel = await Role.getModel(req.dbConnection);
+  const role = await roleModel.findOne({ _id: roleId, tenant: req.tenantId, isPublic: false });
+  if (!role) {
+    return null;
+  }
+
+  const guestRole = await roleModel.findOne({ slug: 'guest', isPublic: true });
+  if (!guestRole) {
+    throw new Error('Guest role not found');
+  }
+
+  // move members on the deleted role to Guest before removing it
+  const userModel = await User.getModel(req.tenantsConnection);
+  await userModel.updateMany(
+    { 'projectsRoles.role': role._id },
+    { $set: { 'projectsRoles.$[projectRole].role': guestRole._id } },
+    { arrayFilters: [{ 'projectRole.role': role._id }] },
+  );
+
+  return roleModel.findByIdAndDelete(role._id);
 };
 
 export const removeRoleFromProject = async (req: Request) => {
