@@ -409,3 +409,29 @@ $hover: #f5f5f5;
 .detailsContainer {
   padding: 0 12px;
 }
+
+/* Spacing for the loading placeholders. Their size comes from Placeholder props
+   and their appearance from Placeholder.module.scss. */
+.placeholderTitle {
+  margin: 18px 24px;
+}
+
+.placeholderRow {
+  margin: 14px 16px;
+}
+
+.placeholderLine {
+  margin: 12px 24px;
+}
+
+.placeholderTabs {
+  margin: 28px 24px 0;
+}
+
+// The modal entrance animations
+@media (prefers-reduced-motion: reduce) {
+  .background,
+  .container {
+    animation: none;
+  }
+}
