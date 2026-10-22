@@ -13,7 +13,7 @@ import { ProjectDetailsContext } from '../../context/ProjectDetailsProvider';
 import { ModalContext } from '../../context/ModalProvider';
 import { UserContext } from '../../context/UserInfoProvider';
 import TicketTypeDropDown from '../Form/TicketTypeDropDown/TicketTypeDropDown';
-import Skeleton from '../Loading/Skeleton';
+import Placeholder from '../Loading/Placeholder';
 import { Tabs, TabLabel, TabPanel } from '../Tabs/Tabs';
 import ActivitiesSession from './@components/ActivitiesSession/ActivitiesSession';
 import CommentsSession from './@components/CommentsSession/CommentsSession';
@@ -31,8 +31,8 @@ import CreateEditEpic from '../../pages/Project/EpicPage/components/CreateEditEp
 
 const NEW_EPIC_OPTION = '_new_epic_';
 
-// Widths vary per row so the count prop in Skeleton component is not used.
-// Only for Ticket Card Skeleton.
+// Widths vary per row, so each row is mapped to its own Placeholder.
+// Only for Ticket Card Placeholder.
 const DETAIL_ROWS = [
   { id: 'type', width: '80%' },
   { id: 'status', width: '70%' },
@@ -111,7 +111,7 @@ function TicketDetailCard({
     setTicketInfo(updatedTicketInfo);
   };
 
-  // On-click before ticket details are fetched, render the skeleton. The outer two
+  // On-click before ticket details are fetched, render the placeholder. The outer two
   // elements match the loaded return below, so React updates them in place instead
   // of recreating them and fadeIn / slideUp play once per open.
   if (!ticketInfo) {
@@ -121,43 +121,43 @@ function TicketDetailCard({
           {/* Header including ticket-type icon and ticket id */}
           <header className={styles.ticketHeader}>
             <div className={styles.ticketTypeSection}>
-              {/* Skeleton for header icon and id */}
-              <Skeleton width={28} height={28} radius={4} />
-              <Skeleton width={90} height={14} />
+              {/* Placeholder for header icon and id */}
+              <Placeholder width={28} height={28} radius={4} />
+              <Placeholder width={90} height={14} />
             </div>
           </header>
 
-          {/* Skeleton for title bar */}
+          {/* Placeholder for title bar */}
           <div className={styles.ticketTitleContainer}>
-            <Skeleton width="55%" height={28} className={styles.skeletonTitle} />
+            <Placeholder width="55%" height={28} className={styles.placeholderTitle} />
           </div>
 
           <div className={styles.contentWrapper}>
-            {/* Left column skeleton */}
+            {/* Left column placeholder */}
             <div className={styles.leftColumn}>
               <div className={styles.ticketDetailsSession}>
                 {DETAIL_ROWS.map((row) => (
-                  <Skeleton
+                  <Placeholder
                     key={row.id}
                     width={row.width}
                     height={32}
-                    className={styles.skeletonRow}
+                    className={styles.placeholderRow}
                   />
                 ))}
               </div>
             </div>
 
-            {/* Right column skeleton */}
+            {/* Right column placeholder */}
             <div className={styles.rightColumn}>
               {DESCRIPTION_LINES.map((line) => (
-                <Skeleton
+                <Placeholder
                   key={line.id}
                   width={line.width}
                   height={14}
-                  className={styles.skeletonLine}
+                  className={styles.placeholderLine}
                 />
               ))}
-              <Skeleton height={40} className={styles.skeletonTabs} />
+              <Placeholder height={40} className={styles.placeholderTabs} />
             </div>
           </div>
         </div>

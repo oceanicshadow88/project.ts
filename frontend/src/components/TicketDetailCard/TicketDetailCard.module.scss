@@ -410,21 +410,21 @@ $hover: #f5f5f5;
   padding: 0 12px;
 }
 
-/* Spacing for the loading placeholders. Their size comes from Skeleton props
-   and their appearance from Skeleton.module.scss. */
-.skeletonTitle {
+/* Spacing for the loading placeholders. Their size comes from Placeholder props
+   and their appearance from Placeholder.module.scss. */
+.placeholderTitle {
   margin: 18px 24px;
 }
 
-.skeletonRow {
+.placeholderRow {
   margin: 14px 16px;
 }
 
-.skeletonLine {
+.placeholderLine {
   margin: 12px 24px;
 }
 
-.skeletonTabs {
+.placeholderTabs {
   margin: 28px 24px 0;
 }
 
