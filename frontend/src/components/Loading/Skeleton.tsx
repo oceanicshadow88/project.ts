@@ -17,7 +17,7 @@ const toCssSize = (value?: string | number) => (typeof value === 'number' ? `${v
  *
  * Radius: border radius
  * Count: number of blocks
- * 
+ *
  */
 export default function Skeleton({
   width,
