@@ -13,6 +13,7 @@ import { ProjectDetailsContext } from '../../context/ProjectDetailsProvider';
 import { ModalContext } from '../../context/ModalProvider';
 import { UserContext } from '../../context/UserInfoProvider';
 import TicketTypeDropDown from '../Form/TicketTypeDropDown/TicketTypeDropDown';
+import Skeleton from '../Loading/Skeleton';
 import { Tabs, TabLabel, TabPanel } from '../Tabs/Tabs';
 import ActivitiesSession from './@components/ActivitiesSession/ActivitiesSession';
 import CommentsSession from './@components/CommentsSession/CommentsSession';
@@ -30,8 +31,23 @@ import CreateEditEpic from '../../pages/Project/EpicPage/components/CreateEditEp
 
 const NEW_EPIC_OPTION = '_new_epic_';
 
-const DETAIL_ROWS = ['type', 'status', 'assignee', 'priority', 'labels', 'dueDate'];
-const DESCRIPTION_LINES = ['line1', 'line2', 'line3', 'line4'];
+// Widths vary per row so the count prop in Skeleton component is not used.
+// Only for Ticket Card Skeleton.
+const DETAIL_ROWS = [
+  { id: 'type', width: '80%' },
+  { id: 'status', width: '70%' },
+  { id: 'assignee', width: '80%' },
+  { id: 'priority', width: '70%' },
+  { id: 'labels', width: '80%' },
+  { id: 'dueDate', width: '70%' }
+];
+
+const DESCRIPTION_LINES = [
+  { id: 'line1', width: '80%' },
+  { id: 'line2', width: '80%' },
+  { id: 'line3', width: '80%' },
+  { id: 'line4', width: '50%' }
+];
 
 interface ITicketDetailCardProps {
   ticketId: string;
@@ -106,14 +122,14 @@ function TicketDetailCard({
           <header className={styles.ticketHeader}>
             <div className={styles.ticketTypeSection}>
               {/* Skeleton for header icon and id */}
-              <span className={`${styles.skeletonBlock} ${styles.skeletonIcon}`} />
-              <span className={`${styles.skeletonBlock} ${styles.skeletonLabel}`} />
+              <Skeleton width={28} height={28} radius={4} />
+              <Skeleton width={90} height={14} />
             </div>
           </header>
 
           {/* Skeleton for title bar */}
           <div className={styles.ticketTitleContainer}>
-            <span className={`${styles.skeletonBlock} ${styles.skeletonTitle}`} />
+            <Skeleton width="55%" height={28} className={styles.skeletonTitle} />
           </div>
 
           <div className={styles.contentWrapper}>
@@ -121,7 +137,12 @@ function TicketDetailCard({
             <div className={styles.leftColumn}>
               <div className={styles.ticketDetailsSession}>
                 {DETAIL_ROWS.map((row) => (
-                  <span key={row} className={`${styles.skeletonBlock} ${styles.skeletonRow}`} />
+                  <Skeleton
+                    key={row.id}
+                    width={row.width}
+                    height={32}
+                    className={styles.skeletonRow}
+                  />
                 ))}
               </div>
             </div>
@@ -129,9 +150,14 @@ function TicketDetailCard({
             {/* Right column skeleton */}
             <div className={styles.rightColumn}>
               {DESCRIPTION_LINES.map((line) => (
-                <span key={line} className={`${styles.skeletonBlock} ${styles.skeletonLine}`} />
+                <Skeleton
+                  key={line.id}
+                  width={line.width}
+                  height={14}
+                  className={styles.skeletonLine}
+                />
               ))}
-              <div className={`${styles.skeletonBlock} ${styles.skeletonTabs}`} />
+              <Skeleton height={40} className={styles.skeletonTabs} />
             </div>
           </div>
         </div>
