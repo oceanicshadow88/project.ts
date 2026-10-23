@@ -373,6 +373,17 @@ export interface IRole {
   isPublic: boolean;
 }
 
+export interface IRoleMember {
+  id: string;
+  name?: string;
+  email: string;
+}
+
+export interface IRoleReassignment {
+  userId: string;
+  roleId: string;
+}
+
 export interface IPermissions {
   id: string;
   slug: string;

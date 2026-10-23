@@ -54,9 +54,12 @@
   }
 }
 
+// confirmation styles are top-level because it renders in its own Modal, outside .form-container
+// fixed width so the popup doesn't resize as the member list loads
 .confirm-modal {
+  width: min(480px, 90vw);
   padding: 16px 20px;
-  min-width: 320px;
+  color: $textPrimaryColor;
 }
 
 .confirm-header {
@@ -71,6 +74,56 @@
   margin-top: 8px;
   color: #4f5366;
   font-size: 14px;
+}
+
+// scrolls after about six members instead of growing off screen
+.member-list {
+  max-height: 240px;
+  margin: 12px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  list-style: none;
+
+  li {
+    border-bottom: 1px solid #e5e7eb;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+// name on the left, dropdown on the right
+.member {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+.member-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// fixed width so the dropdowns line up; matches the role dropdown on the Members page
+.role-select {
+  flex-shrink: 0;
+  width: 160px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 14px;
+  outline: none;
+
+  &:focus {
+    border-color: $primaryColor;
+  }
 }
 
 .confirm-actions {

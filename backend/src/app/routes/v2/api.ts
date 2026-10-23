@@ -363,6 +363,13 @@ router.get(
   roleValidation.projectAndRole,
   roleController.roleById,
 );
+// get users assigned to a role, so the delete confirmation can ask for a new role for each of them
+router.get(
+  '/projects/:projectId/roles/:roleId/members',
+  roleValidation.projectAndRole,
+  authenticationTokenMiddleware,
+  roleController.members,
+);
 // add new role
 router.post(
   '/projects/:projectId/roles',
