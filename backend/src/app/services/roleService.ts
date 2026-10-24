@@ -76,6 +76,17 @@ export const updateUserProjectRole = async (req: Request) => {
 
 // Get all users that have a specific role in a project
 export const getRoleMembers = async (req: Request) => {
+  // only list members of this tenant's custom roles; default roles are shared by every tenant,
+  // so their ids are public and would otherwise expose users from other tenants.
+  const roleModel = await Role.getModel(req.dbConnection);
+  const role = await roleModel.findOne({
+    _id: req.params.roleId,
+    tenant: req.tenantId,
+    isPublic: false,
+  });
+  if (!role) {
+    return [];
+  }
   const userModel = await User.getModel(req.tenantsConnection);
   return userModel.find({ 'projectsRoles.role': req.params.roleId }).select('name email');
 };
