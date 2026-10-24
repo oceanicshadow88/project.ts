@@ -47,6 +47,11 @@
 
   .delete-btn {
     margin-right: auto;
+
+    &:hover {
+      background-color: red !important;
+      color: #fff !important;
+    }
   }
 
   .cancel-btn:hover {
@@ -131,4 +136,10 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+}
+
+// same hover fix for the confirmation popup's Delete button
+.confirm-delete-btn:hover {
+  background-color: red !important;
+  color: #fff !important;
 }

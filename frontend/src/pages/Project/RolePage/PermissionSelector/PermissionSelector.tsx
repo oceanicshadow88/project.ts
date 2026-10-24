@@ -304,6 +304,7 @@ function PermissionSelector(props: IProps) {
               <ButtonV2
                 text="Delete"
                 danger
+                customStyles={styles['confirm-delete-btn']}
                 disabled={!canConfirmDelete}
                 onClick={confirmDeleteHandler}
                 dataTestId="confirm-delete-role-btn"

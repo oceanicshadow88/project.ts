@@ -107,8 +107,8 @@ export const deleteProjectRole = async (req: Request) => {
     reassignments.map(({ userId, roleId: newRoleId }: { userId: string; roleId: string }) =>
       userModel.updateOne(
         { _id: userId },
-        { $set: { 'projectsRoles.$[projectRole].role': newRoleId } },
-        { arrayFilters: [{ 'projectRole.role': role._id }] },
+        { $set: { 'projectsRoles.$[projectRole].role': newRoleId } }, // set new role
+        { arrayFilters: [{ 'projectRole.role': role._id }] }, // only where old role matches this one being deleted
       ),
     ),
   );
