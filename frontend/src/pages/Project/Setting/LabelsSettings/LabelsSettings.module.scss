@@ -41,6 +41,17 @@
   font-size: 16px;
 }
 
+// Create label button: keeps the system button look, adds padding around the text.
+// `button.` raises the specificity above ButtonV2's single-class utilities
+// (p-0, min-w-125, justify-around, button-md), so these rules win whatever the CSS load order is.
+button.createButton {
+  height: 40px;
+  min-width: 0;
+  padding: 0 18px 0 14px;
+  gap: 8px;
+  justify-content: center;
+}
+
 .labelsList {
   display: flex;
   flex-direction: column;

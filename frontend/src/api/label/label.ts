@@ -2,6 +2,7 @@ import axios from 'axios';
 import config from '../../config/config';
 import { ILabelInput } from '../../types';
 import { query } from '../../utils/cache';
+import { alphaApiV2 } from '../../config/api';
 
 export function getLabels(projectId: string) {
   return query('labels', () => {
@@ -19,6 +20,10 @@ export function removeLabel(ticketId: string, labelId: string) {
 
 export function createLabel(ticketId: string, data: ILabelInput) {
   return axios.post(`${config.apiAddressV2}/tickets/${ticketId}/labels`, data);
+}
+
+export function createProjectLabel(projectId: string, data: ILabelInput) {
+  return alphaApiV2.post(`/projects/${projectId}/labels`, data);
 }
 
 export function deleteLabel(id: string) {

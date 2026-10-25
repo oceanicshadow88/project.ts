@@ -2,6 +2,8 @@ import { body, param, query } from 'express-validator';
 
 const show = [param('id').notEmpty()];
 
+const validateTitle = [param('id').isMongoId().withMessage('A valid ticket id is required')];
+
 const validateSummary = [
   param('projectId').notEmpty().withMessage('projectId is required').isString(),
   query('summaryBy')
@@ -27,4 +29,4 @@ const update = [
 
 const remove = [param('id').notEmpty().isString()];
 
-export { show, store, update, remove, validateSummary, validateEpicSummary, migrateRanks };
+export { show, store, update, remove, validateSummary, validateEpicSummary, migrateRanks, validateTitle };

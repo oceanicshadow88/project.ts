@@ -399,36 +399,8 @@ const main = async () => {
 
     await globalDbConnection.close();
 
-    // 4. Restore tenant databases
-    console.log(`4. Restoring ${manifest.tenants.length} tenant database(s)...\n`);
-
-    for (const tenantInfo of manifest.tenants) {
-      try {
-        console.log(`  Processing tenant: ${tenantInfo.origin} (${tenantInfo.plan})...`);
-        const tenantDbPath = path.join(backupDir, 'databases', `${tenantInfo.database}.json`);
-
-        if (!fs.existsSync(tenantDbPath)) {
-          console.log('    ⊘ Database backup not found\n');
-          continue;
-        }
-
-        const tenantDbConnectionString = targetPublicConnection.replace(PUBLIC_DB, tenantInfo.database);
-        const tenantDbConnection = await mongoose.createConnection(tenantDbConnectionString, options);
-
-        const tenantData = JSON.parse(fs.readFileSync(tenantDbPath, 'utf-8'));
-        const results = await restoreTenantDatabase(
-          tenantDbConnection,
-          tenantData,
-          tenantInfo.collections,
-        );
-
-        const total = Object.values(results).reduce((sum, count) => sum + count, 0);
-        console.log(`    ✓ Restored ${total} document(s)\n`);
-
-        await tenantDbConnection.close();
-      } catch (error: any) {
-        console.error(`    ✗ Error: ${error.message}\n`);
-      }
+    if (manifest.tenants.length > 0) {
+      console.log(`4. Skipping ${manifest.tenants.length} paid-tenant database(s); all tenants now use ${PUBLIC_DB}.\n`);
     }
 
     console.log('\n========================================');

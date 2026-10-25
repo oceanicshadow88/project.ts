@@ -13,6 +13,7 @@ import { ProjectDetailsContext } from '../../context/ProjectDetailsProvider';
 import { ModalContext } from '../../context/ModalProvider';
 import { UserContext } from '../../context/UserInfoProvider';
 import TicketTypeDropDown from '../Form/TicketTypeDropDown/TicketTypeDropDown';
+import Placeholder from '../Loading/Placeholder';
 import { Tabs, TabLabel, TabPanel } from '../Tabs/Tabs';
 import ActivitiesSession from './@components/ActivitiesSession/ActivitiesSession';
 import CommentsSession from './@components/CommentsSession/CommentsSession';
@@ -26,6 +27,27 @@ import Dropdown from '../../lib/FormV3/Dropdown/Dropdown';
 import PriorityBtn from '../Form/PriorityBtn/PriorityBtn';
 import StatusBtn from '../Form/StatusBtn/StatusBtn';
 import AssigneeBtn from '../Form/AssigneeBtn/AssigneeBtn';
+import CreateEditEpic from '../../pages/Project/EpicPage/components/CreateEditEpic/CreateEditEpic';
+
+const NEW_EPIC_OPTION = '_new_epic_';
+
+// Widths vary per row, so each row is mapped to its own Placeholder.
+// Only for Ticket Card Placeholder.
+const DETAIL_ROWS = [
+  { id: 'type', width: '80%' },
+  { id: 'status', width: '70%' },
+  { id: 'assignee', width: '80%' },
+  { id: 'priority', width: '70%' },
+  { id: 'labels', width: '80%' },
+  { id: 'dueDate', width: '70%' }
+];
+
+const DESCRIPTION_LINES = [
+  { id: 'line1', width: '80%' },
+  { id: 'line2', width: '80%' },
+  { id: 'line3', width: '80%' },
+  { id: 'line4', width: '50%' }
+];
 
 interface ITicketDetailCardProps {
   ticketId: string;
@@ -45,7 +67,7 @@ function TicketDetailCard({
   const [ticketInfo, setTicketInfo] = useState<ITicketDetails | null>(null);
   const { visible, setVisible, myRef } = useOutsideAlerter(false);
   const [editTitle, setEditTitle] = useState(false);
-  const { closeModal } = useContext(ModalContext);
+  const { showModal, closeModal } = useContext(ModalContext);
   const userInfo = useContext(UserContext);
   const projectDetails = useContext(ProjectDetailsContext);
   const { users, ticketTypes } = projectDetails;
@@ -89,8 +111,58 @@ function TicketDetailCard({
     setTicketInfo(updatedTicketInfo);
   };
 
+  // On-click before ticket details are fetched, render the placeholder. The outer two
+  // elements match the loaded return below, so React updates them in place instead
+  // of recreating them and fadeIn / slideUp play once per open.
   if (!ticketInfo) {
-    return <div />;
+    return (
+      <div className={styles.background}>
+        <div className={styles.container}>
+          {/* Header including ticket-type icon and ticket id */}
+          <header className={styles.ticketHeader}>
+            <div className={styles.ticketTypeSection}>
+              {/* Placeholder for header icon and id */}
+              <Placeholder width={28} height={28} radius={4} />
+              <Placeholder width={90} height={14} />
+            </div>
+          </header>
+
+          {/* Placeholder for title bar */}
+          <div className={styles.ticketTitleContainer}>
+            <Placeholder width="55%" height={28} className={styles.placeholderTitle} />
+          </div>
+
+          <div className={styles.contentWrapper}>
+            {/* Left column placeholder */}
+            <div className={styles.leftColumn}>
+              <div className={styles.ticketDetailsSession}>
+                {DETAIL_ROWS.map((row) => (
+                  <Placeholder
+                    key={row.id}
+                    width={row.width}
+                    height={32}
+                    className={styles.placeholderRow}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Right column placeholder */}
+            <div className={styles.rightColumn}>
+              {DESCRIPTION_LINES.map((line) => (
+                <Placeholder
+                  key={line.id}
+                  width={line.width}
+                  height={14}
+                  className={styles.placeholderLine}
+                />
+              ))}
+              <Placeholder height={40} className={styles.placeholderTabs} />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const renderHeader = () => {
@@ -250,15 +322,28 @@ function TicketDetailCard({
         text: 'Epic',
         render: (
           <Dropdown
-            options={projectDetails.epics.map((item) => {
-              return {
+            options={[
+              ...projectDetails.epics.map((item) => ({
                 label: item.title,
                 value: item.id
-              };
-            })}
+              })),
+              { label: '+ New epic', value: NEW_EPIC_OPTION }
+            ]}
             label="Epic"
             name="epic"
             onValueChanged={(e) => {
+              if (e.target.value === NEW_EPIC_OPTION) {
+                showModal(
+                  'create-epic',
+                  <CreateEditEpic
+                    type="Create"
+                    projectId={projectId}
+                    projectDetails={projectDetails}
+                    onClickCloseModal={() => closeModal('create-epic')}
+                  />
+                );
+                return;
+              }
               onDefaultChange('epic', e.target.value);
             }}
             value={ticketInfo.epic}

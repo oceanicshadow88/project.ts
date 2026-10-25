@@ -5,10 +5,18 @@ import search from '../../../../../assets/search-line.svg';
 
 interface ISearchForBoard {
   setInputQuery: any;
+  placeholder?: string;
+  dataTestId?: string;
+  debounceMs?: number;
 }
 
 export default function SearchForBoard(props: ISearchForBoard) {
-  const { setInputQuery } = props;
+  const {
+    setInputQuery,
+    placeholder = 'Search ticket title',
+    dataTestId = 'ticket-search',
+    debounceMs = 500
+  } = props;
   const [searchValue, setSearchValue] = useState('');
   const myRef = useRef<HTMLInputElement>(null);
 
@@ -18,7 +26,7 @@ export default function SearchForBoard(props: ISearchForBoard) {
   useEffect(() => {
     const identifier = setTimeout(() => {
       setInputQuery(searchValue);
-    }, 500);
+    }, debounceMs);
 
     return () => {
       clearTimeout(identifier);
@@ -31,9 +39,9 @@ export default function SearchForBoard(props: ISearchForBoard) {
         type="text"
         name="search"
         ref={myRef}
-        placeholder="Search ticket title"
+        placeholder={placeholder}
         onChange={searchHandler}
-        data-testid="ticket-search"
+        data-testid={dataTestId}
       />
       <span>
         <img

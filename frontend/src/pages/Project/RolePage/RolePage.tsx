@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import Loading from '../../../components/Loading/Loading';
 import RoleTable from './RoleTable/RoleTable';
 import PermissionSelector from './PermissionSelector/PermissionSelector';
-import AddRoleBtn from './AddRoleBtn/AddRoleBtn';
+import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
 import { IPermissions, IRole } from '../../../types';
 import { getRoles, addRole, updateRole, deleteRole, getPermissions } from '../../../api/role/role';
 import styles from './RolePage.module.scss';
@@ -32,29 +32,18 @@ function RolePage() {
   }, [projectId]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getPermissions();
-        setPermissions(res);
-      } catch (err) {
-        toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
-      }
-    })();
+    getPermissions()
+      .then((res) => setPermissions(res))
+      .catch(() => toast.error('Temporary Server Error. Try Again.', { theme: 'colored' }));
     fetchRoles();
   }, [fetchRoles]);
 
-  const submitEditHandler = async (
-    role: string,
-    newPermissions: Array<string>,
-    newRole: boolean
-  ) => {
+  const saveRole = async (request: () => Promise<unknown>, successMessage: string) => {
     try {
       setLoader(true);
-      if (newRole) {
-        await addRole(projectId, role, newPermissions);
-      } else {
-        await updateRole(projectId, role, newPermissions);
-      }
+      await request();
+      toast.success(successMessage, { theme: 'colored' });
+      closeModal('selectedRole');
     } catch (err) {
       setLoader(false);
       toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
@@ -63,24 +52,46 @@ function RolePage() {
     }
   };
 
+  const addRoleHandler = (roleName: string, newPermissions: Array<string>) =>
+    saveRole(() => addRole(projectId, roleName, newPermissions), 'Role created.');
+
+  const updateRoleHandler = (roleId: string, roleName: string, newPermissions: Array<string>) =>
+    saveRole(() => updateRole(projectId, roleId, roleName, newPermissions), 'Role updated.');
+
   const newRoleHandler = () => {
     showModal(
       'selectedRole',
       <PermissionSelector
         isNewRole
-        submitRoleHandler={submitEditHandler}
+        submitRoleHandler={addRoleHandler}
         closeHandler={() => closeModal('selectedRole')}
         permissions={permissions}
       />
     );
   };
 
-  const onEditRole = async (role: IRole) => {
+  const deleteRoleHanlder = async (roleId: string) => {
+    try {
+      setLoader(true);
+      await deleteRole(projectId, roleId);
+      closeModal('selectedRole');
+    } catch (err) {
+      setLoader(false);
+      toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
+    } finally {
+      fetchRoles();
+    }
+  };
+
+  const onEditRole = (role: IRole) => {
     showModal(
       'selectedRole',
       <PermissionSelector
-        submitRoleHandler={submitEditHandler}
+        submitRoleHandler={(roleName, newPermissions) =>
+          updateRoleHandler(role.id, roleName, newPermissions)
+        }
         closeHandler={() => closeModal('selectedRole')}
+        deleteRoleHandler={deleteRoleHanlder}
         permissions={permissions}
         role={role}
       />
@@ -91,30 +102,18 @@ function RolePage() {
     // setOpenEdit(true);
   };
 
-  const deleteRoleHanlder = async (roleId: string) => {
-    try {
-      setLoader(true);
-      await deleteRole(projectId, roleId);
-    } catch (err) {
-      setLoader(false);
-      toast.error('Temporary Server Error. Try Again.', { theme: 'colored' });
-    } finally {
-      fetchRoles();
-    }
-  };
-
   return (
     <div className={[styles['page-container']].join(' ')}>
       <div className={styles['main-container']}>
         <RoleNav />
         <div className={styles['header-container']}>
           <h1>Manage Roles</h1>
-          <AddRoleBtn addRole={newRoleHandler} />
+          <ButtonV2 text="Add Role" onClick={newRoleHandler} dataTestId="add-role-btn" fill />
         </div>
-        {loader ? (
+        {loader && roles.length === 0 ? (
           <Loading />
         ) : (
-          <RoleTable roles={roles} onEditRole={onEditRole} deleteRole={deleteRoleHanlder} />
+          <RoleTable roles={roles} onEditRole={onEditRole} />
         )}
       </div>
     </div>

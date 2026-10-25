@@ -10,10 +10,6 @@ import { dataConnectionPool } from '../utils/dbContext';
 import { winstonLogger } from '../../bootstrap/logger';
 import { tenantsDBConnection, tenantDBConnection, PUBLIC_DB } from '../database/connections';
 
-enum Plans {
-  Free = 'Free',
-}
-
 const getTenant = async (host: string | undefined, connection: any, isLocalEnv: boolean) => {
   if (!host) {
     return null;
@@ -32,11 +28,6 @@ const getTenant = async (host: string | undefined, connection: any, isLocalEnv: 
     throw new Error('Cannot find tenant');
   }
   return tenant;
-};
-
-const getConnectDatabase = (tenant: any): string => {
-  //TODO: Fix this code
-  return tenant?.plan !== Plans.Free ? tenant.id.toString() : PUBLIC_DB;
 };
 
 const getDomain = (req: Request, isLocalEnv: boolean) => {
@@ -70,14 +61,13 @@ const saas = asyncHandler(async (req: Request, res: Response, next: NextFunction
     const tenantsConnection = await tenantsDBConnection();
     const tenant = await getTenant(domain, tenantsConnection, isLocalEnv);
     const tenantId = tenant.id.toString();
-    const connectTenantDbName = getConnectDatabase(tenant);
-    const tenantConnection = await tenantDBConnection(connectTenantDbName);
+    const tenantConnection = await tenantDBConnection(PUBLIC_DB);
     req.tenantsConnection = tenantsConnection;
     req.userConnection = tenantConnection;
-    req.dbConnection = dataConnectionPool[connectTenantDbName];
+    req.dbConnection = dataConnectionPool[PUBLIC_DB];
     req.tenantId = tenantId;
     req.ownerId = tenant.owner.toString();
-    req.dbName = connectTenantDbName;
+    req.dbName = PUBLIC_DB;
     req.domain = req.get('origin') ?? '';
   } catch (e: any) {
     let message = null;

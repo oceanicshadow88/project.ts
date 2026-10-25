@@ -15,6 +15,7 @@ import * as forgetPasswordController from '../../controllers/v1/forgetPasswordCo
 import * as forgetPasswordValidation from '../../validations/forgetPassword';
 import * as boardController from '../../controllers/v1/boardController';
 import * as ticketController from '../../controllers/v1/ticketController';
+import * as ticketTitleValidationController from '../../controllers/v1/ticketTitleValidationController';
 import * as ticketValidation from '../../validations/ticketValidation';
 import * as userControllers from '../../controllers/v1/userController';
 import * as userValidation from '../../validations/user';
@@ -228,6 +229,13 @@ router.get(
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
 
 router.post(
+  '/tickets/:id/validate-title',
+  authenticationTokenMiddleware,
+  ticketValidation.validateTitle,
+  ticketTitleValidationController.validateTitle,
+);
+
+router.post(
   '/tickets',
   ticketValidation.store,
   authenticationTokenMiddleware,
@@ -394,6 +402,13 @@ router.delete('/retro/items/:id', retroItemController.destroy);
 router.get('/labels', labelController.index);
 router.get('/labels/:projectId', labelController.index);
 router.get('/projects/:projectId/labels', labelController.index);
+router.post(
+  '/projects/:projectId/labels',
+  authenticationTokenMiddleware,
+  permissionMiddleware.permission('edit:settings'),
+  labelValidation.storeProjectLabel,
+  labelController.store,
+);
 router.post('/tickets/:ticketId/labels', labelValidation.store, labelController.store);
 router.delete(
   '/tickets/:ticketId/labels/:labelId',
@@ -509,7 +524,7 @@ router.get('/projects/:projectId/dashboards', dashboardValidations.show, dashboa
 
 router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 
-//openAi Function call
+// Claude Function call
 router.post('/ai/optimize', aiController.optimize);
 
 // Prompts CRUD API

@@ -11,11 +11,12 @@ import { ProjectContext, ProjectDispatchContext } from '../../../context/Project
 import { deleteShortcut } from '../../../api/shortcut/shortcut';
 import ProjectHOC from '../../../components/HOC/ProjectHOC';
 import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
-import InputV2 from '../../../lib/FormV2/InputV2/InputV2';
+import SearchForBoard from '../../../components/Board/BoardSearch/components/SearchForBoard/SearchForBoard';
 import Modal from '../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import ShortcutModal from '../../../components/Modals/ShortcutModal/ShortcutModal';
 import { Permission } from '../../../utils/permission';
+import styles from './ShortcutPage.module.scss';
 
 export default function ShortcutPage() {
   const { projectId = '' } = useParams();
@@ -88,7 +89,7 @@ export default function ShortcutPage() {
       : shortcuts;
 
     return (
-      <div className="my-5 mx-12 flex flex-wrap gap-5">
+      <div className={`my-5 mr-12 flex flex-wrap gap-5 ${styles.contentInset}`}>
         {filteredShortcuts.map((shortcutData: IShortcutData) => {
           return (
             <div
@@ -148,7 +149,7 @@ export default function ShortcutPage() {
 
   const renderTip = () => {
     return (
-      <p className="my-5 mx-12 font-black text-base text-gray">
+      <p className={`my-5 mr-12 font-black text-base text-gray ${styles.contentInset}`}>
         Tips: Consider bookmark your links into chrome.
       </p>
     );
@@ -156,16 +157,12 @@ export default function ShortcutPage() {
 
   const renderSubMenu = () => {
     return (
-      <div className="mx-12 flex justify-between items-center gap-4">
-        <InputV2
-          label="Search"
-          onValueChanged={(e) => {
-            setSearchInput(e.target.value);
-          }}
-          defaultValue=""
-          name="search"
-          classes="max-w-400 border-3 border-light"
+      <div className={`mr-12 flex justify-between items-center gap-4 ${styles.contentInset}`}>
+        <SearchForBoard
+          setInputQuery={setSearchInput}
+          placeholder="Search shortcuts"
           dataTestId="search"
+          debounceMs={0}
         />
         <div>
           {checkAccess(Permission.CreateShortcuts, projectId) && (

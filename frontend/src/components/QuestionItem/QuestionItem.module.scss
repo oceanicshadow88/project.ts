@@ -319,14 +319,6 @@
   line-height: 1.6;
   flex: 1;
   min-width: 0;
-
-  span[data-type='mention'] {
-    padding: 2px 8px;
-    border-radius: 4px;
-    background-color: #e9d5ff;
-    color: #0b5fff;
-    font-weight: 500;
-  }
 }
 
 .replyActions {

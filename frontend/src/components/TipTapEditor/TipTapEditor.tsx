@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { JSONContent } from '@tiptap/core';
 import ImageResize from 'tiptap-extension-resize-image';
 import style from './TipTapEditor.module.scss';
+import './mention.scss';
 import TooLBar from './ToolBar/ToolBar';
 import { CommentEditorToolBarButtonConfig } from './@const/CommentEditorToolBarButtonConfig';
 import { IUserInfo } from '../../types';
@@ -12,7 +13,7 @@ import { DropUploadImageExtension } from './@const/DropUploadImageExtension';
 import { useAiOptimize } from './hooks/useAiOptimize';
 
 interface ICommentEditorProps {
-  onSubmit: (content: JSONContent) => void;
+  onSubmit: (content: JSONContent) => void | Promise<void>;
   onCancel: () => void;
   initialContent?: JSONContent;
   users: IUserInfo[];
@@ -27,9 +28,18 @@ function TipTapEditor({
   aiOptimizeAction
 }: ICommentEditorProps) {
   const { optimize, isLoading } = useAiOptimize();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const usersRef = useRef(users);
+  usersRef.current = users;
 
   const editor = useEditor({
-    extensions: [StarterKit, ImageResize, createMentionExtension(users), DropUploadImageExtension],
+    extensions: [
+      StarterKit,
+      ImageResize,
+      createMentionExtension(() => usersRef.current),
+      DropUploadImageExtension
+    ],
     content: initialContent || ''
   });
 
@@ -52,14 +62,23 @@ function TipTapEditor({
     return JSON.stringify(content) === JSON.stringify(initialContent);
   };
 
-  const handleSubmit = () => {
-    if (!editor) return;
+  const handleSubmit = async () => {
+    if (!editor || isSubmitting) return;
 
     const content = editor.getJSON();
     if (isContentEmpty(content) || isContentUnchanged(content)) return;
 
-    onSubmit(content);
-    editor.commands.clearContent();
+    setIsSubmitting(true);
+    try {
+      await onSubmit(content);
+      if (!editor.isDestroyed) {
+        editor.commands.clearContent();
+      }
+    } catch {
+      // Keep the content so it is not lost; the parent shows the error.
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAiOptimize = async () => {
@@ -88,7 +107,7 @@ function TipTapEditor({
       </div>
 
       <div className={style.buttonContainer}>
-        <button onClick={handleSubmit} className={style.submitButton}>
+        <button onClick={handleSubmit} className={style.submitButton} disabled={isSubmitting}>
           {!isContentEmpty(initialContent) ? 'Update' : 'Submit'}
         </button>
         <button onClick={onCancel} className={style.cancelButton}>

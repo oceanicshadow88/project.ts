@@ -42,6 +42,11 @@ export default class ProjectBuilder extends BaseBuilder {
     return this;
   }
 
+  withTenant(tenantId) {
+    this.properties.tenant = tenantId;
+    return this;
+  }
+
   buildDefault() {
     return {
       name: 'project',

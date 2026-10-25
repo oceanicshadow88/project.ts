@@ -2,6 +2,7 @@ export const enum Permission {
   ViewDashboard = 'view:dashboard',
   ViewBacklog = 'view:backlog',
   ViewSettings = 'view:settings',
+  EditSettings = 'edit:settings',
   ViewStandup = 'view:standup',
   CreateProjects = 'add:projects',
   ViewProjects = 'view:projects',

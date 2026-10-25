@@ -1,3 +1,9 @@
+$page-content-inset: 30px;
+
+.contentInset {
+  margin-left: $page-content-inset;
+}
+
 .subMenuContainer{
     margin: 0 50px;
 }

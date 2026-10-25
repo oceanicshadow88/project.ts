@@ -3,8 +3,8 @@ import { BaseJob } from '../../bootstrap/queue/jobs/baseJob';
 import * as Prompt from '../model/prompt';
 import * as Question from '../model/question';
 import * as Ticket from '../model/ticket';
-import { analyzeAndProcessTitle } from '../services/openAiService';
-import { tenantDBConnection } from '../database/connections';
+import { questionClarityCheck } from '../services/aiService';
+import { tenantDBConnection, PUBLIC_DB } from '../database/connections';
 
 export type TempPayload = { 
   questionId: string; 
@@ -17,8 +17,7 @@ export class QuestionJob extends BaseJob<TempPayload> {
 
   async handle() {
     try {
-      // Get tenant-specific database connection
-      const connection = await tenantDBConnection(this.payload.tenantId);
+      const connection = await tenantDBConnection(PUBLIC_DB);
       
       // Get model instances for this tenant
       const promptModel = Prompt.getModel(connection);
@@ -27,16 +26,12 @@ export class QuestionJob extends BaseJob<TempPayload> {
       
       // Find the system prompt for questions
       const systemPrompt = await promptModel.findOne({ title: 'question' });
-      const combinedPrompt = systemPrompt?.prompt + `Evaluate the ticket and respond with: 
-        - isClear: Yes / No
-        - Reasoning: Brief explanation, explicitly referencing alignment between title and question
-        - Clarity Score: 1–5 (1 = very unclear, 5 = very clear)
-        - Alignment Score: 1–5 (1 = completely unrelated, 5 = perfectly aligned)
-        - Suggestions (if unclear or misaligned): How the title or question could be improved to form a coherent ticket`;
       if (!systemPrompt) {
         console.warn(`[QuestionJob] No system prompt found with title 'question' for tenant ${this.payload.tenantId}`);
         return;
       }
+      // Output format and scoring criteria come from the questionClarityCheck tool schema.
+      const combinedPrompt = systemPrompt.prompt;
 
       const ticket = await ticketModel.findById(this.payload.ticketId);
       if (!ticket) {
@@ -57,15 +52,15 @@ export class QuestionJob extends BaseJob<TempPayload> {
       console.log(`[QuestionJob] Processing with AI: "${combinedTitle}"`);
       console.log(`[QuestionJob] Using system prompt: "${combinedPrompt}"`);
 
-      const aiResult = await analyzeAndProcessTitle(combinedTitle, combinedPrompt);
+      const aiResult = await questionClarityCheck(combinedTitle, combinedPrompt, 'claude-sonnet-5');
       console.log('[QuestionJob] AI processing result:', aiResult);
   
-      question.isClear = aiResult.structured.isClear === 'Yes' ? true : false; 
+      question.isClear = aiResult.isClear; 
       question.assignee = undefined;
       question.waitingForStakeholder = false;
-      question.messages = [aiResult.structured.Reasoning + ' ' + aiResult.structured.Suggestions];
+      question.messages = [aiResult.reasoning + ' ' + aiResult.suggestions];
 
-      question.save();
+      await question.save();
       // Here you could update the question with AI results if needed
       // await questionModel.findByIdAndUpdate(this.payload.questionId, {
       //   aiAnalysis: aiResult,

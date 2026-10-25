@@ -15,7 +15,7 @@ import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import { ITicketBasic, ITicketInput } from '../../../types';
 import CreateEditEpic from './components/CreateEditEpic/CreateEditEpic';
 import styles from './EpicPage.module.scss';
-import ButtonGroupEnd from '../../../lib/FormV2/ButtonGroupEnd/ButtonGroupEnd';
+import { customCompare, generateKeyBetween } from '../../../utils/lexoRank';
 
 function EpicPage() {
   const { projectId = '' } = useParams();
@@ -89,21 +89,39 @@ function EpicPage() {
     );
   };
 
+  const sortByEpicRank = (list: ITicketBasic[] = []) =>
+    [...list].sort((a, b) => customCompare(a.epicRank, b.epicRank));
+
+  const ticketsByEpicId = tickets?.groupBy('epic') ?? {};
+
   const onDragEventHandler = async (result: DropResult) => {
-    const { destination, draggableId } = result;
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    const isDroppedInSamePlace =
+      source.droppableId === destination.droppableId && source.index === destination.index;
+    if (isDroppedInSamePlace) return;
 
-    const currentTicket = tickets.find((item) => item.id === draggableId);
-    if (!currentTicket) {
-      return;
-    }
+    const epicId = destination.droppableId;
+    const otherTicketsInEpic = sortByEpicRank(ticketsByEpicId[epicId]).filter(
+      (t) => t.id !== draggableId
+    );
+    const ticketAboveDrop = otherTicketsInEpic[destination.index - 1];
+    const ticketBelowDrop = otherTicketsInEpic[destination.index];
+    const epicRank = generateKeyBetween(
+      ticketAboveDrop?.epicRank ?? null,
+      ticketBelowDrop?.epicRank ?? null
+    );
 
-    const droppedFailed = destination?.droppableId === currentTicket.epic;
-    if (droppedFailed) {
-      return;
+    setTickets((prev) =>
+      prev.map((t) => (t.id === draggableId ? { ...t, epic: epicId, epicRank } : t))
+    );
+
+    try {
+      await updateTicketEpic(draggableId, epicId, epicRank);
+    } catch {
+      toast.error('Failed to move ticket', { theme: 'colored' });
+      await fetchBacklogData(currentFilter);
     }
-    const epicId = destination?.droppableId;
-    await updateTicketEpic(draggableId, epicId);
-    fetchBacklogData(null);
   };
 
   const onIssueCreate = async (data: ITicketInput) => {
@@ -127,11 +145,17 @@ function EpicPage() {
 
   const epicDataFromBackend = projectDetails?.epics ?? [];
 
-  const ticketsByEpicId = tickets?.groupBy('epic') ?? {};
   return (
     <ProjectHOC title="Epic">
       <div className={styles.scrollContainer}>
-        <BoardToolbar onChangeFilter={onChangeFilter} />
+        <BoardToolbar
+          onChangeFilter={onChangeFilter}
+          actions={
+            <Button onClick={showCreateModal} dataTestId="epic-create-epic-btn">
+              Create epic
+            </Button>
+          }
+        />
 
         {/* Filter Status Display */}
         {hasActiveFilters() && (
@@ -186,11 +210,6 @@ function EpicPage() {
           </div>
         )}
 
-        <ButtonGroupEnd>
-          <Button onClick={showCreateModal} dataTestId="epic-create-epic-btn">
-            Create epic
-          </Button>
-        </ButtonGroupEnd>
         <DragDropContext
           onDragEnd={(result) => {
             onDragEventHandler(result);
@@ -201,6 +220,8 @@ function EpicPage() {
               return !epic.isComplete;
             })
             .map((epic) => {
+              const epicTickets = sortByEpicRank(ticketsByEpicId[epic.id]);
+              const lastTicket = epicTickets.at(-1);
               return (
                 <ProjectSectionHOC
                   key={epic.id}
@@ -208,12 +229,12 @@ function EpicPage() {
                   startDate={epic.startDate}
                   endDate={epic.dueAt}
                   epic={epic}
-                  totalIssue={ticketsByEpicId[epic.id]?.length ?? 0}
+                  totalIssue={epicTickets.length}
                   dataTestId={`epic-${epic.id}`}
                 >
                   <DroppableTicketItems
                     onTicketChanged={fetchBacklogData}
-                    data={ticketsByEpicId[epic.id]}
+                    data={epicTickets}
                     droppableId={epic.id}
                     onLabelClick={onLabelClick}
                   />
@@ -225,7 +246,8 @@ function EpicPage() {
                         projectId,
                         epicId: epic.id,
                         dueAt: new Date(),
-                        description: ''
+                        description: '',
+                        epicRank: generateKeyBetween(lastTicket?.epicRank ?? null, null)
                       })
                     }
                   />

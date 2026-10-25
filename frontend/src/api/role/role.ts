@@ -24,14 +24,19 @@ export const addRole = async (projectId: string, roleName: string, permissions: 
   return response.data;
 };
 
-export const updateRole = async (projectId: string, roleId: string, permissions: Array<string>) => {
+export const updateRole = async (
+  projectId: string,
+  roleId: string,
+  roleName: string,
+  permissions: Array<string>
+) => {
   const configHeader = {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('access_token') ?? ''}`
     }
   };
   const path = `${config.apiAddressV2}/projects/${projectId}/roles/${roleId}`;
-  const response = await axios.put(path, { permissions }, configHeader);
+  const response = await axios.put(path, { roleName, permissions }, configHeader);
   return response.data;
 };
 

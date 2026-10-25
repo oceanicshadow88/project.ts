@@ -1,6 +1,11 @@
 import config from '../../config/config';
 import { alphaApiV2 } from '../../config/api';
 import { FeedbackQuestion, ISprintTicket, ITicketInput } from '../../types';
+import { ITicketTitleValidationResult } from './entity/ticket';
+
+export function validateTicketTitle(id: string) {
+  return alphaApiV2.post<ITicketTitleValidationResult>(`/tickets/${id}/validate-title`);
+}
 
 export function validateUserStory(title: string) {
   return alphaApiV2.post(
@@ -88,8 +93,8 @@ export function updateTicketSprint(ticketId: string, sprintId?: string | null, d
   });
 }
 
-export function updateTicketEpic(ticketId: string, epic?: string | null) {
-  return alphaApiV2.put(`${config.apiAddressV2}/tickets/${ticketId}`, { epic });
+export function updateTicketEpic(ticketId: string, epic?: string | null, epicRank?: string) {
+  return alphaApiV2.put(`${config.apiAddressV2}/tickets/${ticketId}`, { epic, epicRank });
 }
 
 export function updateTicketStatus(ticketId: string, statusId: string, rank?: string) {

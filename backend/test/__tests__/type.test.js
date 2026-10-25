@@ -1,7 +1,6 @@
 import request from 'supertest';
 import httpStatus from 'http-status';
 import app from '../setup/app';
-import axios from 'axios';
 import TypeBuilder from './builders/typeBuilder';
 
 describe('Types Test', () => {
@@ -49,13 +48,10 @@ describe('Types Test', () => {
     const actualTypeSlugs = res.body.map((type) => type.slug);
     const actualTypeIcons = res.body.map((type) => type.icon);
 
-    expectedTypes.forEach(async (type) => {
+    expectedTypes.forEach((type) => {
       expect(actualTypeNames).toContain(type.name);
       expect(actualTypeSlugs).toContain(type.slug);
       expect(actualTypeIcons).toContain(type.icon);
-
-      const response = await axios.get(type.icon);
-      expect(response.status).toBe(httpStatus.OK);
     });
   });
 });

@@ -71,7 +71,7 @@ describe('Backlog Page API Tests', () => {
         .save();
       const res = await request(app.application)
         .get(`/api/v2/projects/${ticket.project}/backlogs`)
-        .query({ assign: db.defaultUser.id })
+        .query({ users: db.defaultUser.id })
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
@@ -86,7 +86,7 @@ describe('Backlog Page API Tests', () => {
       
       const res = await request(app.application)
         .get(`/api/v2/projects/${project.id}/backlogs`)
-        .query({ assign: db.defaultUser.id })
+        .query({ users: db.defaultUser.id })
         .expect(200);
 
       expect(Array.isArray(res.body)).toBe(true);
