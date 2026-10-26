@@ -34,6 +34,16 @@ $colorWhite: white;
   text-transform: capitalize;
 }
 
+.placeholderLabel {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.placeholderLine {
+  display: block;
+  margin-bottom: 4px;
+}
+
 .btnContainer {
   max-width: 300px;
   width: 100%;

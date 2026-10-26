@@ -4,7 +4,28 @@ import { ITicketTitleValidationResult } from '../../api/ticket/entity/ticket';
 import Modal from '../../lib/Modal/Modal';
 import DefaultModalHeader from '../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import DefaultModalBody from '../../lib/Modal/ModalBody/DefaultModalHeader/DefaultModalBody';
+import Placeholder from '../Loading/Placeholder';
 import styles from './TicketTitleValidationModal.module.scss';
+
+const RESULT_PLACEHOLDERS: {
+  id: string;
+  labelWidth: number;
+  valueLines: { id: string; width: string | number }[];
+}[] = [
+  { id: 'currentTitle', labelWidth: 110, valueLines: [{ id: 'line1', width: '70%' }] },
+  { id: 'recommendedTitle', labelWidth: 160, valueLines: [{ id: 'line1', width: '80%' }] },
+  { id: 'classification', labelWidth: 115, valueLines: [{ id: 'line1', width: 80 }] },
+  {
+    id: 'reason',
+    labelWidth: 60,
+    valueLines: [
+      { id: 'line1', width: '100%' },
+      { id: 'line2', width: '100%' },
+      { id: 'line3', width: '100%' },
+      { id: 'line4', width: '60%' }
+    ]
+  }
+];
 
 interface ITicketTitleValidationModal {
   ticketId: string;
@@ -67,7 +88,24 @@ export default function TicketTitleValidationModal({
       <DefaultModalHeader title="Improve Ticket Title" onClickClose={onClose} />
       <DefaultModalBody defaultPadding={false} classesName={styles.container}>
         <div className={styles.content}>
-          {loading && <output>Improving ticket title...</output>}
+          {loading && (
+            <div className={styles.result}>
+              {RESULT_PLACEHOLDERS.map((section) => (
+                <div key={section.id}>
+                  <strong className={styles.placeholderLabel}>
+                    <Placeholder width={section.labelWidth} height="1.5em" />
+                  </strong>
+                  <p>
+                    {section.valueLines.map((line) => (
+                      <span key={line.id} className={styles.placeholderLine}>
+                        <Placeholder width={line.width} height="1em" />
+                      </span>
+                    ))}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
           {result && (
             <div className={styles.result}>
               <strong>Current Title</strong>
