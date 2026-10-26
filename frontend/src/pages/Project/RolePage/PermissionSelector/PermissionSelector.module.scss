@@ -49,8 +49,8 @@
     margin-right: auto;
 
     &:hover {
-      background-color: red !important;
-      color: #fff !important;
+      border-color: #c92a2a;
+      color: #c92a2a;
     }
   }
 
@@ -136,10 +136,9 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
-}
 
-// same hover fix for the confirmation popup's Delete button
-.confirm-delete-btn:hover {
-  background-color: red !important;
-  color: #fff !important;
+  .confirm-delete-btn:hover {
+    border-color: #c92a2a;
+    color: #c92a2a;
+  }
 }
