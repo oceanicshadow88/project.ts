@@ -8,12 +8,10 @@ export const mcpEndpoint: RequestHandler = async (req, res, next) => {
   let closePromise: Promise<void> | undefined;
 
   const closeResources = (): Promise<void> => {
-    if (!closePromise) {
-      closePromise = Promise.allSettled([
-        Promise.resolve().then(() => transport?.close()),
-        Promise.resolve().then(() => server?.close()),
-      ]).then(() => undefined);
-    }
+    closePromise ??= Promise.allSettled([
+      Promise.resolve().then(() => transport?.close()),
+      Promise.resolve().then(() => server?.close()),
+    ]).then(() => undefined);
     return closePromise;
   };
 
