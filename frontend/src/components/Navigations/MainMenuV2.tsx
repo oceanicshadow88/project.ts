@@ -68,7 +68,7 @@ export default function MainMenuV2() {
     },
     {
       name: 'Sprint(s)',
-      checkAccess: 'view:backlog',
+      checkAccess: 'view:sprints',
       url: `/projects/${projectId}/backlog`,
       icon: <IoMdList />,
       dataTestId: 'backlog-btn'
