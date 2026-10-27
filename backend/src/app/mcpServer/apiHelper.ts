@@ -10,8 +10,9 @@ export const callRestApi = async (
   request: RestApiRequest,
   context: ServerContext,
 ): Promise<CallToolResult> => {
-  const authorization = context.http?.req?.headers.get('authorization');
-  if (!authorization) {
+  const mcpRequest = context.http?.req;
+  const authorization = mcpRequest?.headers.get('authorization');
+  if (!mcpRequest || !authorization) {
     throw new Error('Authorization header is required to call the REST API');
   }
 
@@ -24,13 +25,9 @@ export const callRestApi = async (
     : undefined;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
-  if (!config.api.backendBaseUrl) {
-    throw new Error('BACKEND_BASE_URL is required');
-  }
-
   const endpoint = new URL(
     `${config.api.prefix}${request.path}`,
-    config.api.backendBaseUrl,
+    mcpRequest.url,
   );
   const response = await fetch(endpoint, {
     method: request.method,

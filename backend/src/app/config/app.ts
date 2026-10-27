@@ -9,7 +9,6 @@ export const config = {
   port: process.env.PORT ?? 8000,
   api: {
     prefix: process.env.API_PREFIX ?? '/api',
-    backendBaseUrl: process.env.BACKEND_BASE_URL ?? '',
   },
   version: '1.0.0',
   companyAddress: process.env.COMPANY_ADDRESS ?? '',
