@@ -1,5 +1,5 @@
 import React from 'react';
-import Placeholder from '../Loading/Placeholder';
+import Placeholder from '../../Loading/Placeholder';
 import styles from './TicketTitleValidationPlaceholder.module.scss';
 
 const RESULT_PLACEHOLDERS: {

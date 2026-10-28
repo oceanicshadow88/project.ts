@@ -5,7 +5,7 @@ import Modal from '../../lib/Modal/Modal';
 import DefaultModalHeader from '../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import DefaultModalBody from '../../lib/Modal/ModalBody/DefaultModalHeader/DefaultModalBody';
 import styles from './TicketTitleValidationModal.module.scss';
-import TicketTitleValidationPlaceholder from './TicketTitleValidationPlaceholder';
+import TicketTitleValidationPlaceholder from './components/TicketTitleValidationPlaceholder';
 
 interface ITicketTitleValidationModal {
   ticketId: string;
