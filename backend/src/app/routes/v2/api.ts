@@ -229,6 +229,13 @@ router.get(
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
 
 router.post(
+  '/tickets/validate-title',
+  authenticationTokenMiddleware,
+  ticketValidation.validateProposedTitle,
+  ticketTitleValidationController.validateProposedTitle,
+);
+
+router.post(
   '/tickets/:id/validate-title',
   authenticationTokenMiddleware,
   ticketValidation.validateTitle,

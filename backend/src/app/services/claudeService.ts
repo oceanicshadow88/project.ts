@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { config } from '../config/app';
+import { CLAUDE_API_KEY } from '../config/claudeAi';
 import type { TicketTitleValidationResult } from '../types/ticketTitleValidationResult';
 import { validateTicketTitleResult } from '../validations/ticketTitleResultValidation';
 
@@ -45,16 +45,16 @@ Return JSON only, using this structure:
 {"classification":"clear|unclear|ambiguous","recommendedTitle":"recommended ticket title","reason":"explanation"}
 `;
 
-export const validateTicketTitle = async (title: string): Promise<TicketTitleValidationResult> => {
-  const { claudeApiKey: apiKey, claudeModel: model } = config.mcp;
+export const validateTicketTitleByClaude = async (title: string): Promise<TicketTitleValidationResult> => {
+  const model = process.env.MCP_CLAUDE_MODEL;
 
-  if (!apiKey || !model) {
+  if (!CLAUDE_API_KEY || !model) {
     throw new Error(
-      'Missing MCP_CLAUDE_API_KEY or MCP_CLAUDE_MODEL',
+      'Missing CLAUDE_API_KEY or MCP_CLAUDE_MODEL',
     );
   }
 
-  const anthropic = new Anthropic({ apiKey });
+  const anthropic = new Anthropic({ apiKey: CLAUDE_API_KEY });
   const response = await anthropic.messages.create({
     model,
     max_tokens: 300,
