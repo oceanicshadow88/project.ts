@@ -74,25 +74,43 @@ export const updateUserProjectRole = async (req: Request) => {
   return updateUser;
 };
 
+// Get all users that have a specific role in a project
+export const getRoleMembers = async (req: Request) => {
+  // only list members of this tenant's custom roles; default roles are shared by every tenant,
+  // so their ids are public and would otherwise expose users from other tenants.
+  const roleModel = await Role.getModel(req.dbConnection);
+  const role = await roleModel.findOne({
+    _id: req.params.roleId,
+    tenant: req.tenantId,
+    isPublic: false,
+  });
+  if (!role) {
+    return [];
+  }
+  const userModel = await User.getModel(req.tenantsConnection);
+  return userModel.find({ 'projectsRoles.role': req.params.roleId }).select('name email');
+};
+
 export const deleteProjectRole = async (req: Request) => {
   const { roleId } = req.params;
+  const { reassignments = [] } = req.body ?? {}; // array of objects with userId and roleId to reassign users to a new role before deleting the old one
   const roleModel = await Role.getModel(req.dbConnection);
   const role = await roleModel.findOne({ _id: roleId, tenant: req.tenantId, isPublic: false });
   if (!role) {
     return null;
   }
 
-  const guestRole = await roleModel.findOne({ slug: 'guest', isPublic: true });
-  if (!guestRole) {
-    throw new Error('Guest role not found');
-  }
-
-  // move members on the deleted role to Guest before removing it
+  // move each member to the role chosen for them before removing this one;
+  // arrayFilters only changes their entries for this role, so their other projects are left alone
   const userModel = await User.getModel(req.tenantsConnection);
-  await userModel.updateMany(
-    { 'projectsRoles.role': role._id },
-    { $set: { 'projectsRoles.$[projectRole].role': guestRole._id } },
-    { arrayFilters: [{ 'projectRole.role': role._id }] },
+  await Promise.all(
+    reassignments.map(({ userId, roleId: newRoleId }: { userId: string; roleId: string }) =>
+      userModel.updateOne(
+        { _id: userId },
+        { $set: { 'projectsRoles.$[projectRole].role': newRoleId } }, // set new role
+        { arrayFilters: [{ 'projectRole.role': role._id }] }, // only where old role matches this one being deleted
+      ),
+    ),
   );
 
   return roleModel.findByIdAndDelete(role._id);
