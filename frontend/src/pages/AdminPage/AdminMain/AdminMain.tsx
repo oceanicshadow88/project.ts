@@ -9,7 +9,7 @@ import styles from './AdminMain.module.scss';
 import Icon from '../../../assets/logo.svg';
 import Email from '../../../assets/email.png';
 import Error from '../../../assets/error.png';
-import Loading from '../../../components/Loading/Loading';
+import BounceLoading from '../../../components/Loading/BounceLoading';
 import { setUserPermissionsLocalStorage } from '../../../utils/helpers';
 
 export default function RegisterMain() {
@@ -115,7 +115,7 @@ export default function RegisterMain() {
   };
 
   if (loading) {
-    return <Loading />;
+    return <BounceLoading />;
   }
   return (
     <div className={styles.registerMain}>

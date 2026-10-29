@@ -229,6 +229,13 @@ router.get(
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
 
 router.post(
+  '/tickets/validate-title',
+  authenticationTokenMiddleware,
+  ticketValidation.validateProposedTitle,
+  ticketTitleValidationController.validateProposedTitle,
+);
+
+router.post(
   '/tickets/:id/validate-title',
   authenticationTokenMiddleware,
   ticketValidation.validateTitle,
@@ -362,6 +369,13 @@ router.get(
   '/projects/:projectId/roles/:roleId',
   roleValidation.projectAndRole,
   roleController.roleById,
+);
+// get users assigned to a role, so the delete confirmation can ask for a new role for each of them
+router.get(
+  '/projects/:projectId/roles/:roleId/members',
+  roleValidation.projectAndRole,
+  authenticationTokenMiddleware,
+  roleController.members,
 );
 // add new role
 router.post(

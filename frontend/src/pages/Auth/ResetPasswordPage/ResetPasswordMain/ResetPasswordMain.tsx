@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './ResetPasswordMain.module.scss';
 import Icon from '../../../../assets/logo.svg';
-import Loading from '../../../../components/Loading/Loading';
+import BounceLoading from '../../../../components/Loading/BounceLoading';
 import { resetPasswordApply } from '../../../../api/resetPassword/resetPassword';
 import ResetPasswordResult from './ResetPasswordResult/ResetPasswordResult';
 
@@ -32,7 +32,7 @@ export default function RegisterMain() {
   };
 
   if (loading) {
-    return <Loading />;
+    return <BounceLoading />;
   }
   return (
     <div className={styles.resetPasswordMain}>

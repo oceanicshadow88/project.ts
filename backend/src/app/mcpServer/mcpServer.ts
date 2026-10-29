@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/server';
-import { ValidateTicketTitleTool } from './validateTicketTitleTool';
+import { registerTools } from './registerTools';
 
 export const createMcpServer = (): McpServer => {
   const server = new McpServer({
@@ -7,6 +7,6 @@ export const createMcpServer = (): McpServer => {
     version: '1.0.0',
   });
 
-  ValidateTicketTitleTool(server);
+  registerTools(server);
   return server;
 };
