@@ -9,7 +9,7 @@ import InputV2 from '../../lib/FormV2/InputV2/InputV2';
 import TextAreaV2 from '../../lib/FormV2/TextAreaV2/TextAreaV2';
 import Modal from '../../lib/Modal/Modal';
 import TimeAgo from '../../components/TimeAgo/TimeAgo';
-import Loading from '../../components/Loading/Loading';
+import BounceLoading from '../../components/Loading/BounceLoading';
 
 interface PromptFormData {
   title: string;
@@ -233,7 +233,7 @@ function PromptsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen p-6 bg-gray-50">
-        <Loading height="70vh" />
+        <BounceLoading height="70vh" />
       </div>
     );
   }

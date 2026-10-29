@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
-import Loading from '../../../components/Loading/Loading';
+import BounceLoading from '../../../components/Loading/BounceLoading';
 import RoleTable from './RoleTable/RoleTable';
 import PermissionSelector from './PermissionSelector/PermissionSelector';
 import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
@@ -122,7 +122,7 @@ function RolePage() {
           <ButtonV2 text="Add Role" onClick={newRoleHandler} dataTestId="add-role-btn" fill />
         </div>
         {loader && roles.length === 0 ? (
-          <Loading />
+          <BounceLoading />
         ) : (
           <RoleTable roles={roles} onEditRole={onEditRole} />
         )}

@@ -24,7 +24,7 @@ import { UserContext } from '../../context/UserInfoProvider';
 import { Permission } from '../../utils/permission';
 import Dropdown from '../../lib/FormV3/Dropdown/Dropdown';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import Loading from '../../components/Loading/Loading';
+import BounceLoading from '../../components/Loading/BounceLoading';
 
 export default function ProjectPage() {
   const fetchProjects = useContext(ProjectDispatchContext);
@@ -496,7 +496,11 @@ export default function ProjectPage() {
       <div className={['px-6', 'py-6'].join(' ')}>
         <div className={['overflow-visible'].join(' ')}>
           {renderHeaderMenu()}
-          {isListLoading && projectList.length === 0 ? <Loading height="60vh" /> : renderTable()}
+          {isListLoading && projectList.length === 0 ? (
+            <BounceLoading height="60vh" />
+          ) : (
+            renderTable()
+          )}
         </div>
       </div>
       {renderModals()}
