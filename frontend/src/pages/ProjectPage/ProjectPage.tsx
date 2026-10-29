@@ -24,6 +24,7 @@ import { UserContext } from '../../context/UserInfoProvider';
 import { Permission } from '../../utils/permission';
 import Dropdown from '../../lib/FormV3/Dropdown/Dropdown';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
+import Loading from '../../components/Loading/Loading';
 
 export default function ProjectPage() {
   const fetchProjects = useContext(ProjectDispatchContext);
@@ -35,6 +36,7 @@ export default function ProjectPage() {
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isListLoading, setIsListLoading] = useState(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [deleteProjectId, setDeleteProjectId] = useState<string>('');
   const [importDropdownValue, setImportDropdownValue] = useState<string | null>(null);
@@ -46,7 +48,14 @@ export default function ProjectPage() {
   const allowedJsonType = ['application/json'];
 
   useEffect(() => {
-    fetchProjects();
+    const loadProjects = async () => {
+      try {
+        await fetchProjects();
+      } finally {
+        setIsListLoading(false);
+      }
+    };
+    loadProjects();
   }, []);
 
   useEffect(() => {
@@ -487,7 +496,7 @@ export default function ProjectPage() {
       <div className={['px-6', 'py-6'].join(' ')}>
         <div className={['overflow-visible'].join(' ')}>
           {renderHeaderMenu()}
-          {renderTable()}
+          {isListLoading && projectList.length === 0 ? <Loading height="60vh" /> : renderTable()}
         </div>
       </div>
       {renderModals()}
