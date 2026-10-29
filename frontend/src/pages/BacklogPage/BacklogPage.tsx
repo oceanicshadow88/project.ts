@@ -5,7 +5,7 @@ import BacklogSection from './components/BacklogSection/BacklogSection';
 import MoveIncompleteTicketsModal from './components/MoveIncompleteTicketsModal/MoveIncompleteTicketsModal';
 import { getBacklogTickets } from '../../api/backlog/backlog';
 import SprintSection from './components/SprintSection/SprintSection';
-import Loading from '../../components/Loading/Loading';
+import BounceLoading from '../../components/Loading/BounceLoading';
 import CreateEditSprint from './components/CreateEditSprint/CreateEditSprint';
 import Button from '../../components/Form/Button/Button';
 import { ProjectDetailsContext } from '../../context/ProjectDetailsProvider';
@@ -420,7 +420,7 @@ export default function BacklogPage() {
   );
 
   if (projectDetails.isLoadingDetails) {
-    return <Loading />;
+    return <BounceLoading />;
   }
 
   return (
