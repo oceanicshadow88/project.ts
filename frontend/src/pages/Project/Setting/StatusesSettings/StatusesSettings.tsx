@@ -10,6 +10,9 @@ import InputV3 from '../../../../lib/FormV3/InputV3/InputV3';
 import Modal from '../../../../lib/Modal/Modal';
 import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/ProjectSettingHOC';
 import { ProjectDetailsContext } from '../../../../context/ProjectDetailsProvider';
+import Placeholder from '../../../../components/Loading/Placeholder';
+
+const PLACEHOLDER_ROWS = ['r1', 'r2', 'r3'];
 
 interface EditableStatus extends IStatus {
   editingName: boolean;
@@ -22,14 +25,13 @@ export default function StatusesSettings() {
   const { projectId = '' } = useParams();
   const { onUpdateStatus } = useContext(ProjectDetailsContext);
   const [statuses, setStatuses] = useState<EditableStatus[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [statusToDelete, setStatusToDelete] = useState<string | null>(null);
   const colorInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const fetchStatuses = async () => {
     try {
-      setLoading(true);
       const response = await getStatuses(projectId);
       const statusesData = (response || [])
         .map((status: IStatus) => ({
@@ -194,7 +196,22 @@ export default function StatusesSettings() {
 
   const renderContent = () => {
     if (loading) {
-      return <div className={styles.loading}>Loading statuses...</div>;
+      return (
+        <div className={styles.statusesList}>
+          {PLACEHOLDER_ROWS.map((rowKey) => (
+            <div key={rowKey} className={styles.statusItem}>
+              <div className={styles.statusPreview}>
+                <Placeholder width={60} height={60} radius={16} />
+              </div>
+              <div className={styles.statusControls}>
+                <Placeholder width="25%" height={20} />
+                <Placeholder width="35%" height={20} />
+                <Placeholder width="80%" height={24} radius={4} />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
     }
     if (statuses.length === 0) {
       return (

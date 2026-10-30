@@ -13,6 +13,9 @@ import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/Proj
 import checkAccess from '../../../../utils/helpers';
 import { Permission } from '../../../../utils/permission';
 import CreateLabelModal from './CreateLabelModal/CreateLabelModal';
+import Placeholder from '../../../../components/Loading/Placeholder';
+
+const PLACEHOLDER_ROWS = ['r1', 'r2', 'r3'];
 
 interface EditableLabel extends ILabelData {
   editingName: boolean;
@@ -24,7 +27,7 @@ interface EditableLabel extends ILabelData {
 export default function LabelsSettings() {
   const { projectId = '' } = useParams();
   const [labels, setLabels] = useState<EditableLabel[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [labelToDelete, setLabelToDelete] = useState<string | null>(null);
   const colorInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -33,7 +36,6 @@ export default function LabelsSettings() {
 
   const fetchLabels = async () => {
     try {
-      setLoading(true);
       const response = await showLabel(projectId);
       const labelsData = (response.data || [])
         .map((label: ILabelData) => ({
@@ -190,7 +192,22 @@ export default function LabelsSettings() {
 
   const renderContent = () => {
     if (loading) {
-      return <div className={styles.loading}>Loading labels...</div>;
+      return (
+        <div className={styles.labelsList}>
+          {PLACEHOLDER_ROWS.map((rowKey) => (
+            <div key={rowKey} className={styles.labelItem}>
+              <div className={styles.labelPreview}>
+                <Placeholder width={60} height={60} radius={16} />
+              </div>
+              <div className={styles.labelControls}>
+                <Placeholder width="25%" height={20} />
+                <Placeholder width="35%" height={20} />
+                <Placeholder width="80%" height={24} radius={4} />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
     }
     if (labels.length === 0) {
       return <div className={styles.emptyState}>No labels yet.</div>;
