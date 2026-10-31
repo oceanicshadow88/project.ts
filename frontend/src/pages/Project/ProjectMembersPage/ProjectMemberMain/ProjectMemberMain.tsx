@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { MdDeleteOutline, MdWarning } from 'react-icons/md';
-import { IUserInfo, IRole } from '../../../../types';
+import { IUserInfo, IRole, IMinEvent } from '../../../../types';
 import Avatar from '../../../../components/Avatar/Avatar';
 import Modal from '../../../../lib/Modal/Modal';
 import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
 import styles from './ProjectMemberMain.module.scss';
+import Dropdown from '../../../../lib/FormV3/Dropdown/Dropdown';
 
 interface Props {
   owner: IUserInfo | null;
   members: IUserInfo[];
   roles: IRole[];
-  onChangeProjectRole: (e: React.ChangeEvent<HTMLSelectElement>, userId: string) => void;
+  onChangeProjectRole: (e: IMinEvent, userId: string) => void;
   onClickRemove: (userId: string) => void;
 }
 
@@ -27,7 +28,7 @@ export default function ProjectMemberMain({
   const [submitting, setSubmitting] = useState(false);
   return (
     <div
-      className={`${styles.projectMemberMainContainer} relative mb-6 p-0 bg-white border rounded-lg shadow-md overflow-hidden`}
+      className={`${styles.projectMemberMainContainer} relative mb-6 p-0 bg-white border rounded-lg shadow-md`}
     >
       <table aria-label="Projects details" className="border-collapse w-full table-fixed m-0">
         <thead className="border-b bg-[#f9fafb]">
@@ -70,16 +71,8 @@ export default function ProjectMemberMain({
               >
                 <span className="truncate text-sm font-normal">{owner.email ?? '-'}</span>
               </th>
-              <th className={`${styles.role} overflow-hidden border-none text-left px-3 py-3`}>
-                <span>
-                  <select
-                    value="Owner"
-                    disabled
-                    className="w-full h-8 border rounded-md bg-white px-2.5 text-sm outline-none transition-all"
-                  >
-                    <option value={owner.id}>Owner</option>
-                  </select>
-                </span>
+              <th className={`${styles.role} border-none text-left px-3 py-3`}>
+                <span className="text-sm font-normal">Owner</span>
               </th>
               <th className={`${styles.buttons} px-3 py-3 flex items-center justify-end`}>
                 <span />
@@ -104,28 +97,24 @@ export default function ProjectMemberMain({
                 >
                   <span className="truncate text-sm font-normal">{member.email ?? '-'}</span>
                 </th>
-                <th className={`${styles.role} overflow-hidden border-none text-left px-3 py-3`}>
-                  <span>
-                    <select
-                      className="w-full h-8 border rounded-md bg-white px-2.5 text-sm outline-none transition-all"
-                      value={
-                        member?.projectsRoles?.find(
-                          (projectRole) => projectRole.project === projectId
-                        )?.role ?? ''
-                      }
-                      onChange={(e) => {
-                        onChangeProjectRole(e, member.id ?? '');
-                      }}
-                    >
-                      {roles.map((role: IRole) => {
-                        return (
-                          <option key={role.id} value={role.id}>
-                            {role.name}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </span>
+                <th className={`${styles.role} border-none text-left px-3 py-3`}>
+                  <Dropdown
+                    label="Role"
+                    name="role"
+                    value={
+                      member?.projectsRoles?.find(
+                        (projectRole) => projectRole.project === projectId
+                      )?.role ?? ''
+                    }
+                    options={roles.map((role: IRole) => ({
+                      value: role.id,
+                      label: role.name ?? ''
+                    }))}
+                    onValueChanged={(e) => {
+                      onChangeProjectRole(e, member.id ?? '');
+                    }}
+                    dataTestId={`member-role-${member.id}`}
+                  />
                 </th>
                 <th className={`${styles.buttons} px-3 py-3 flex items-center justify-end`}>
                   <ButtonV2

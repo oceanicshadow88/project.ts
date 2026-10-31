@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import ProjectMemberTitle from './ProjectMemberTitle/ProjectMemberTitle';
 import ProjectMemberMain from './ProjectMemberMain/ProjectMemberMain';
-import { IUserInfo, IRole } from '../../../types';
+import { IUserInfo, IRole, IMinEvent } from '../../../types';
 import {
   getMembers,
   updateMemberRole,
@@ -51,8 +51,9 @@ export default function ProjectMembersPage() {
     fetchMembers();
   }, [projectId, fetchMembers]);
 
-  const onChangeProjectRole = async (e: React.ChangeEvent<HTMLSelectElement>, userId: string) => {
+  const onChangeProjectRole = async (e: IMinEvent, userId: string) => {
     const roleId = e.target.value;
+    if (!roleId) return;
 
     const res = await updateMemberRole(roleId, userId, projectId);
     if (res.data) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MdWarning } from 'react-icons/md';
 import { IPermissions, IRole, IRoleMember, IRoleReassignment } from '../../../../types';
 import styles from './PermissionSelector.module.scss';
@@ -7,6 +7,7 @@ import Modal from '../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import InputV2 from '../../../../lib/FormV2/InputV2/InputV2';
 import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
+import Dropdown from '../../../../lib/FormV3/Dropdown/Dropdown';
 
 interface IProps {
   isNewRole?: boolean;
@@ -55,8 +56,6 @@ function PermissionSelector(props: IProps) {
   const [newRoleIds, setNewRoleIds] = useState<Record<string, string>>({});
   // disables the confirm button while the request runs
   const [isDeleting, setIsDeleting] = useState(false);
-  // prefix for each dropdown's id so its label can point at it
-  const selectIdPrefix = useId();
 
   const isReadOnly = role?.isPublic ?? false;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
@@ -184,32 +183,30 @@ function PermissionSelector(props: IProps) {
           {members.map((member) => {
             // name is optional on users, so fall back to email
             const memberName = member.name ?? member.email;
-            const selectId = `${selectIdPrefix}-${member.id}`;
             return (
-              <li key={member.id}>
-                <label htmlFor={selectId} className={styles.member}>
-                  <span className={styles['member-name']}>{memberName}</span>
-                  <select
-                    id={selectId}
-                    className={styles['role-select']}
+              <li key={member.id} className={styles.member}>
+                <span className={styles['member-name']}>{memberName}</span>
+                <div className={styles['role-select']}>
+                  <Dropdown
+                    label="New role"
+                    name={`new-role-${member.id}`}
+                    placeHolder="Select a role"
                     value={newRoleIds[member.id] ?? ''}
+                    options={replacementRoles.map((replacementRole) => ({
+                      value: replacementRole.id,
+                      label: replacementRole.name
+                    }))}
                     // copy the existing choices so React sees a new object and re-renders
-                    onChange={(e) =>
-                      setNewRoleIds((previous) => ({ ...previous, [member.id]: e.target.value }))
+                    onValueChanged={(e) =>
+                      setNewRoleIds((previous) => ({
+                        ...previous,
+                        [member.id]: e.target.value ?? ''
+                      }))
                     }
-                    aria-label={`New role for ${memberName}`}
-                    data-testid={`new-role-${member.id}`}
-                  >
-                    <option value="" disabled>
-                      Select a role
-                    </option>
-                    {replacementRoles.map((replacementRole) => (
-                      <option key={replacementRole.id} value={replacementRole.id}>
-                        {replacementRole.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    dataTestId={`new-role-${member.id}`}
+                    fixedMenu
+                  />
+                </div>
               </li>
             );
           })}

@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import React, { useState, useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import { IMinEvent, IOptions } from '../../../types';
 import styles from '../../FormV2/FormV2.module.scss';
@@ -27,6 +28,7 @@ interface IDropdown {
   alignCenter?: boolean;
   padding?: boolean;
   buttonClassName?: string;
+  fixedMenu?: boolean;
 }
 
 function Dropdown(props: IDropdown) {
@@ -50,12 +52,17 @@ function Dropdown(props: IDropdown) {
     overWriteButtonStyle,
     alignCenter = false,
     padding = false,
-    buttonClassName = ''
+    buttonClassName = '',
+    fixedMenu = false
   } = props;
 
   const [isActive, setIsActive] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const dropDownRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  // screen position for the fixed menu, taken from the button when it opens
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
 
   const displayOption = options?.find((item) => item?.value?.toString() === value?.toString());
 
@@ -76,7 +83,13 @@ function Dropdown(props: IDropdown) {
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropDownRef.current && !dropDownRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      // the fixed menu is outside dropDownRef, so clicks in it don't count as outside
+      if (
+        dropDownRef.current &&
+        !dropDownRef.current.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setShowMenu(false);
         setIsActive(false);
       }
@@ -87,9 +100,35 @@ function Dropdown(props: IDropdown) {
     };
   }, []);
 
+  // the fixed menu doesn't move with the page, so close it when anything scrolls or resizes
+  useEffect(() => {
+    if (!fixedMenu || !showMenu) return undefined;
+    const closeMenu = (e: Event) => {
+      // scrolling the menu's own list shouldn't close it
+      if (menuRef.current?.contains(e.target as Node)) return;
+      setShowMenu(false);
+      setIsActive(false);
+    };
+    window.addEventListener('scroll', closeMenu, true);
+    window.addEventListener('resize', closeMenu);
+    return () => {
+      window.removeEventListener('scroll', closeMenu, true);
+      window.removeEventListener('resize', closeMenu);
+    };
+  }, [fixedMenu, showMenu]);
+
   if (loading) {
     return <div className={styles.skeleton} />;
   }
+
+  const toggleMenu = () => {
+    if (fixedMenu && !showMenu && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuPosition({ top: rect.bottom, left: rect.left, width: rect.width });
+    }
+    setShowMenu(!showMenu);
+    setIsActive(true);
+  };
 
   const getDisplayLabel = () => {
     if (displayIcon) {
@@ -99,38 +138,44 @@ function Dropdown(props: IDropdown) {
   };
 
   const renderStyledDropdown = () => {
-    return (
-      <div className="relative">
-        <div className={defaultStyles.dropDownList}>
-          {addNullOptions && (
-            <button onClick={() => handleSelect(null)} data-testid="leader-name-null">
-              None
-            </button>
-          )}
-          {options?.length > 0
-            ? options.map((item) => {
-                return (
-                  <button
-                    key={item.value}
-                    className={item.value === value ? defaultStyles.selected : undefined}
-                    onClick={() => handleSelect(item.value)}
-                    data-testid={`leader-name-${
-                      typeof item.label === 'string' ? item.label : item.value
-                    }`}
-                  >
-                    {item.icon}
-                    {item.label}
-                  </button>
-                );
-              })
-            : !addNullOptions && (
-                <button onClick={() => handleSelect(null)} data-testid="leader-name-null">
-                  No Content
+    const menu = (
+      <div
+        ref={menuRef}
+        className={defaultStyles.dropDownList}
+        style={fixedMenu ? { position: 'fixed', ...menuPosition } : undefined}
+      >
+        {addNullOptions && (
+          <button onClick={() => handleSelect(null)} data-testid="leader-name-null">
+            None
+          </button>
+        )}
+        {options?.length > 0
+          ? options.map((item) => {
+              return (
+                <button
+                  key={item.value}
+                  className={item.value === value ? defaultStyles.selected : undefined}
+                  onClick={() => handleSelect(item.value)}
+                  data-testid={`leader-name-${
+                    typeof item.label === 'string' ? item.label : item.value
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
                 </button>
-              )}
-        </div>
+              );
+            })
+          : !addNullOptions && (
+              <button onClick={() => handleSelect(null)} data-testid="leader-name-null">
+                No Content
+              </button>
+            )}
       </div>
     );
+    if (fixedMenu) {
+      return ReactDOM.createPortal(menu, document.body);
+    }
+    return <div className="relative">{menu}</div>;
   };
 
   const renderDropdown = () => {
@@ -194,11 +239,9 @@ function Dropdown(props: IDropdown) {
       data-testid={dataTestId}
     >
       <button
+        ref={buttonRef}
         type={type}
-        onClick={() => {
-          setShowMenu(!showMenu);
-          setIsActive(true);
-        }}
+        onClick={toggleMenu}
         onBlur={handleValueBlur}
         className={[styles.input, buttonClassName].filter(Boolean).join(' ')}
         style={{
