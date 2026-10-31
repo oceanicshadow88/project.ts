@@ -10,9 +10,7 @@ import InputV3 from '../../../../lib/FormV3/InputV3/InputV3';
 import Modal from '../../../../lib/Modal/Modal';
 import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/ProjectSettingHOC';
 import { ProjectDetailsContext } from '../../../../context/ProjectDetailsProvider';
-import Placeholder from '../../../../components/Loading/Placeholder';
-
-const PLACEHOLDER_ROWS = ['r1', 'r2', 'r3'];
+import SettingRowsPlaceholder from '../../../../components/Loading/SettingRowsPlaceholder';
 
 interface EditableStatus extends IStatus {
   editingName: boolean;
@@ -196,22 +194,7 @@ export default function StatusesSettings() {
 
   const renderContent = () => {
     if (loading) {
-      return (
-        <div className={styles.statusesList}>
-          {PLACEHOLDER_ROWS.map((rowKey) => (
-            <div key={rowKey} className={styles.statusItem}>
-              <div className={styles.statusPreview}>
-                <Placeholder width={60} height={60} radius={16} />
-              </div>
-              <div className={styles.statusControls}>
-                <Placeholder width="25%" height={20} />
-                <Placeholder width="35%" height={20} />
-                <Placeholder width="80%" height={24} radius={4} />
-              </div>
-            </div>
-          ))}
-        </div>
-      );
+      return <SettingRowsPlaceholder />;
     }
     if (statuses.length === 0) {
       return (

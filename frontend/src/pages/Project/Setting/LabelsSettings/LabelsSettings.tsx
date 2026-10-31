@@ -13,9 +13,7 @@ import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/Proj
 import checkAccess from '../../../../utils/helpers';
 import { Permission } from '../../../../utils/permission';
 import CreateLabelModal from './CreateLabelModal/CreateLabelModal';
-import Placeholder from '../../../../components/Loading/Placeholder';
-
-const PLACEHOLDER_ROWS = ['r1', 'r2', 'r3'];
+import SettingRowsPlaceholder from '../../../../components/Loading/SettingRowsPlaceholder';
 
 interface EditableLabel extends ILabelData {
   editingName: boolean;
@@ -192,22 +190,7 @@ export default function LabelsSettings() {
 
   const renderContent = () => {
     if (loading) {
-      return (
-        <div className={styles.labelsList}>
-          {PLACEHOLDER_ROWS.map((rowKey) => (
-            <div key={rowKey} className={styles.labelItem}>
-              <div className={styles.labelPreview}>
-                <Placeholder width={60} height={60} radius={16} />
-              </div>
-              <div className={styles.labelControls}>
-                <Placeholder width="25%" height={20} />
-                <Placeholder width="35%" height={20} />
-                <Placeholder width="80%" height={24} radius={4} />
-              </div>
-            </div>
-          ))}
-        </div>
-      );
+      return <SettingRowsPlaceholder />;
     }
     if (labels.length === 0) {
       return <div className={styles.emptyState}>No labels yet.</div>;
