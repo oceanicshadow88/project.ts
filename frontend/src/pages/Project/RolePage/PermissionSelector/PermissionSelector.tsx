@@ -204,6 +204,7 @@ function PermissionSelector(props: IProps) {
                       }))
                     }
                     dataTestId={`new-role-${member.id}`}
+                    fixedMenu
                   />
                 </div>
               </li>

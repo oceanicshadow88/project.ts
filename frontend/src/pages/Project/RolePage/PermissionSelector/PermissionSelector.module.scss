@@ -81,10 +81,12 @@
   font-size: 14px;
 }
 
-// no scroll here, so the role menus aren't clipped; the popup itself scrolls if the list is long
+// scrolls on its own; the role menus use fixedMenu so this doesn't clip them
 .member-list {
+  max-height: 240px;
   margin: 12px 0 0;
   padding: 0;
+  overflow-y: auto;
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   list-style: none;
