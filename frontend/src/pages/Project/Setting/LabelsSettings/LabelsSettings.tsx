@@ -13,6 +13,7 @@ import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/Proj
 import checkAccess from '../../../../utils/helpers';
 import { Permission } from '../../../../utils/permission';
 import CreateLabelModal from './CreateLabelModal/CreateLabelModal';
+import SettingRowsPlaceholder from '../../../../components/Loading/SettingRowsPlaceholder';
 
 interface EditableLabel extends ILabelData {
   editingName: boolean;
@@ -24,7 +25,7 @@ interface EditableLabel extends ILabelData {
 export default function LabelsSettings() {
   const { projectId = '' } = useParams();
   const [labels, setLabels] = useState<EditableLabel[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [labelToDelete, setLabelToDelete] = useState<string | null>(null);
   const colorInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -33,7 +34,6 @@ export default function LabelsSettings() {
 
   const fetchLabels = async () => {
     try {
-      setLoading(true);
       const response = await showLabel(projectId);
       const labelsData = (response.data || [])
         .map((label: ILabelData) => ({
@@ -190,7 +190,7 @@ export default function LabelsSettings() {
 
   const renderContent = () => {
     if (loading) {
-      return <div className={styles.loading}>Loading labels...</div>;
+      return <SettingRowsPlaceholder />;
     }
     if (labels.length === 0) {
       return <div className={styles.emptyState}>No labels yet.</div>;
