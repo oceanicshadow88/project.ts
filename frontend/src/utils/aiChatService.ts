@@ -5,12 +5,14 @@ import {
   AiChatMessage,
   AiChatProject,
   AiChatReply,
-  IAiChatConversation
+  IAiChatConversation,
+  TicketSummary
 } from '../api/ai/entity/chat';
 import config from '../config/config';
 import checkAccess from './helpers';
 import { Permission } from './permission';
 
+const MAX_SEARCH_ROWS = 10;
 const ERROR_REPLY: AiChatReply = { kind: 'error', text: 'Something went wrong. Please try again.' };
 
 export type ConversationUpdate = (conversation: IAiChatConversation) => IAiChatConversation;
@@ -96,3 +98,7 @@ export const finishRequest = (
 
 export const fetchReply = (projectId: string, text: string, project: AiChatProject) =>
   sendAiChat(projectId, text, project).catch(() => ERROR_REPLY);
+
+export const getShownTickets = (tickets: TicketSummary[]) => tickets.slice(0, MAX_SEARCH_ROWS);
+
+export const getTicketStatusName = (ticket: TicketSummary) => ticket.status ?? 'Backlog';

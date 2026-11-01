@@ -4,6 +4,7 @@ import { AiChatMessage, IAiChatAssistantMessage } from '../../api/ai/entity/chat
 import AiChatWelcome from './AiChatWelcome';
 import ErrorMessage from './messages/ErrorMessage';
 import OutOfScopeNotice from './messages/OutOfScopeNotice';
+import TicketSearchResult from './messages/TicketSearchResult';
 import styles from './AiChat.module.scss';
 
 export interface IAiChatActions {
@@ -14,12 +15,14 @@ export interface IAiChatActions {
 interface IAiChatConversationProps {
   messages: AiChatMessage[];
   isPending: boolean;
+  backlogUrl: string;
   actions: IAiChatActions;
 }
 
 export default function AiChatConversation({
   messages,
   isPending,
+  backlogUrl,
   actions
 }: IAiChatConversationProps) {
   const endRef = useRef<HTMLDivElement>(null);
@@ -31,6 +34,15 @@ export default function AiChatConversation({
   const renderReply = (message: IAiChatAssistantMessage) => {
     const { reply } = message;
     switch (reply.kind) {
+      case 'search_results':
+        return (
+          <TicketSearchResult
+            filters={reply.filters}
+            total={reply.total}
+            tickets={reply.tickets}
+            backlogUrl={backlogUrl}
+          />
+        );
       case 'out_of_scope':
         return <OutOfScopeNotice onPickExample={actions.onPickExample} />;
       default:

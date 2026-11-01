@@ -63,7 +63,12 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
           />
         </div>
       </div>
-      <AiChatConversation messages={chat.messages} isPending={chat.isPending} actions={actions} />
+      <AiChatConversation
+        messages={chat.messages}
+        isPending={chat.isPending}
+        backlogUrl={`/projects/${projectId}/backlog`}
+        actions={actions}
+      />
       <AiChatInput
         value={input}
         projectName={chat.projectName}
