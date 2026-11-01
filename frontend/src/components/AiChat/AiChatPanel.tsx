@@ -39,7 +39,10 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
 
   const actions: IAiChatActions = {
     onPickExample: handlePickExample,
-    onRetry: chat.retry
+    onRetry: chat.retry,
+    onDraftChange: chat.updateDraft,
+    onCancelDraft: chat.cancelDraft,
+    onCreate: chat.createTicket
   };
 
   return (
@@ -66,6 +69,7 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
       <AiChatConversation
         messages={chat.messages}
         isPending={chat.isPending}
+        canCreate={chat.canCreate}
         backlogUrl={`/projects/${projectId}/backlog`}
         actions={actions}
       />

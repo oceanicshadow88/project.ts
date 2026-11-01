@@ -5,23 +5,35 @@ import {
   AiChatMessage,
   AiChatProject,
   AiChatReply,
+  CreatedTicket,
+  DEFAULT_PRIORITY,
+  IAiChatAssistantMessage,
   IAiChatConversation,
+  TicketDraft,
   TicketSummary
 } from '../api/ai/entity/chat';
 import config from '../config/config';
+import { ISprint, ITypes, IUserInfo } from '../types';
 import checkAccess from './helpers';
 import { Permission } from './permission';
 
 const MAX_SEARCH_ROWS = 10;
+// The draft dropdowns use this value for Unassigned and Backlog
+const NO_SELECTION = '';
 const ERROR_REPLY: AiChatReply = { kind: 'error', text: 'Something went wrong. Please try again.' };
 
 export type ConversationUpdate = (conversation: IAiChatConversation) => IAiChatConversation;
+
+export type AssistantMessagePatch = Partial<Omit<IAiChatAssistantMessage, 'id' | 'role'>>;
 
 export type AskAiButtonState = 'enabled' | 'disabled' | 'hidden';
 
 export const EMPTY_CONVERSATION: IAiChatConversation = { messages: [], pendingRequestId: null };
 
 export const canUseAiChat = (projectId: string) => checkAccess(Permission.viewTickets, projectId);
+
+export const canCreateTickets = (projectId: string) =>
+  checkAccess(Permission.CreateTickets, projectId);
 
 export const getAskAiButtonState = (activeProjectId: string | null): AskAiButtonState => {
   if (!activeProjectId) {
@@ -96,9 +108,53 @@ export const finishRequest = (
     ? { messages: [...conversation.messages, message], pendingRequestId: null }
     : conversation;
 
+export const updateAssistantMessage = (
+  conversation: IAiChatConversation,
+  id: string,
+  patch: AssistantMessagePatch
+): IAiChatConversation => ({
+  ...conversation,
+  messages: conversation.messages.map((message) =>
+    message.id === id && message.role === 'assistant' ? { ...message, ...patch } : message
+  )
+});
+
 export const fetchReply = (projectId: string, text: string, project: AiChatProject) =>
   sendAiChat(projectId, text, project).catch(() => ERROR_REPLY);
 
 export const getShownTickets = (tickets: TicketSummary[]) => tickets.slice(0, MAX_SEARCH_ROWS);
 
 export const getTicketStatusName = (ticket: TicketSummary) => ticket.status ?? 'Backlog';
+
+export const isDraftValid = (draft: TicketDraft) =>
+  draft.title.trim() !== '' && Boolean(draft.typeId);
+
+export const getDraftOptions = (ticketTypes: ITypes[], users: IUserInfo[], sprints: ISprint[]) => ({
+  types: ticketTypes.map((type) => ({ label: type.name, value: type.id })),
+  assignees: [
+    { label: 'Unassigned', value: NO_SELECTION },
+    ...users.map((user) => ({ label: user.name, value: user.id }))
+  ],
+  sprints: [
+    { label: 'Backlog', value: NO_SELECTION },
+    ...sprints.map((sprint) => ({ label: sprint.name, value: sprint.id }))
+  ]
+});
+
+export const getDraftFieldValues = (draft: TicketDraft) => ({
+  typeId: draft.typeId ?? NO_SELECTION,
+  priority: draft.priority ?? DEFAULT_PRIORITY,
+  assigneeId: draft.assigneeId ?? NO_SELECTION,
+  sprintId: draft.sprintId ?? NO_SELECTION
+});
+
+export const applyDraftField = (
+  draft: TicketDraft,
+  name: string,
+  value: string | null
+): TicketDraft => ({ ...draft, [name]: value || undefined });
+
+export const getCreatedTicketSummary = (ticket: CreatedTicket) =>
+  [ticket.type, ticket.priority, ticket.assignee ?? 'Unassigned', ticket.sprint ?? 'Backlog'].join(
+    ' · '
+  );

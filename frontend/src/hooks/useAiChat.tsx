@@ -1,9 +1,13 @@
 import { useContext, useEffect } from 'react';
-import { AiChatProject, IAiChatAssistantMessage } from '../api/ai/entity/chat';
+import { toast } from 'react-toastify';
+import { createTicketFromDraft } from '../api/ai/chat';
+import { AiChatProject, IAiChatAssistantMessage, TicketDraft } from '../api/ai/entity/chat';
 import { AiChatContext } from '../context/AiChatProvider';
 import { ProjectDetailsContext } from '../context/ProjectDetailsProvider';
 import {
   addMessage,
+  AssistantMessagePatch,
+  canCreateTickets,
   canSendMessage,
   ConversationUpdate,
   createAssistantMessage,
@@ -17,6 +21,7 @@ import {
   removeMessage,
   shouldShowAiChat,
   startRequest,
+  updateAssistantMessage,
   updateConversationIn
 } from '../utils/aiChatService';
 
@@ -51,6 +56,10 @@ export function useAiChat(projectId: string) {
     setConversations((prev) => updateConversationIn(prev, projectId, update));
   };
 
+  const updateMessage = (id: string, patch: AssistantMessagePatch) => {
+    updateConversation((current) => updateAssistantMessage(current, id, patch));
+  };
+
   const requestReply = async (text: string) => {
     const requestId = createRequestId();
     updateConversation((current) => startRequest(current, requestId));
@@ -79,13 +88,25 @@ export function useAiChat(projectId: string) {
     requestReply(failed.requestText);
   };
 
+  const createTicket = async (message: IAiChatAssistantMessage, draft: TicketDraft) => {
+    const createdTicket = await createTicketFromDraft(projectId, draft, project);
+    updateMessage(message.id, { createdTicket });
+    toast.success(`Ticket ${createdTicket.key} created`);
+  };
+
   return {
     messages: conversation.messages,
     isPending,
     isDemoMode: isDemoMode(),
     projectName: details.name,
+    canCreate: canCreateTickets(projectId),
     send,
     retry,
+    updateDraft: (message: IAiChatAssistantMessage, editedDraft: TicketDraft) =>
+      updateMessage(message.id, { editedDraft }),
+    cancelDraft: (message: IAiChatAssistantMessage) =>
+      updateMessage(message.id, { isCancelled: true }),
+    createTicket,
     startNewChat: () => updateConversation(() => EMPTY_CONVERSATION),
     closePanel: () => setIsOpen(false)
   };

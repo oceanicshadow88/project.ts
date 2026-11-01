@@ -1,20 +1,26 @@
 import React, { useEffect, useRef } from 'react';
 import { FaRobot } from 'react-icons/fa';
-import { AiChatMessage, IAiChatAssistantMessage } from '../../api/ai/entity/chat';
+import { AiChatMessage, IAiChatAssistantMessage, TicketDraft } from '../../api/ai/entity/chat';
 import AiChatWelcome from './AiChatWelcome';
 import ErrorMessage from './messages/ErrorMessage';
 import OutOfScopeNotice from './messages/OutOfScopeNotice';
+import TicketCreatedCard from './messages/TicketCreatedCard';
+import TicketDraftCard from './messages/TicketDraftCard';
 import TicketSearchResult from './messages/TicketSearchResult';
 import styles from './AiChat.module.scss';
 
 export interface IAiChatActions {
   onPickExample: (text: string) => void;
   onRetry: (message: IAiChatAssistantMessage) => void;
+  onDraftChange: (message: IAiChatAssistantMessage, draft: TicketDraft) => void;
+  onCancelDraft: (message: IAiChatAssistantMessage) => void;
+  onCreate: (message: IAiChatAssistantMessage, draft: TicketDraft) => Promise<void>;
 }
 
 interface IAiChatConversationProps {
   messages: AiChatMessage[];
   isPending: boolean;
+  canCreate: boolean;
   backlogUrl: string;
   actions: IAiChatActions;
 }
@@ -22,6 +28,7 @@ interface IAiChatConversationProps {
 export default function AiChatConversation({
   messages,
   isPending,
+  canCreate,
   backlogUrl,
   actions
 }: IAiChatConversationProps) {
@@ -34,6 +41,23 @@ export default function AiChatConversation({
   const renderReply = (message: IAiChatAssistantMessage) => {
     const { reply } = message;
     switch (reply.kind) {
+      case 'ticket_draft':
+        if (message.createdTicket) {
+          return <TicketCreatedCard ticket={message.createdTicket} backlogUrl={backlogUrl} />;
+        }
+        if (message.isCancelled) {
+          return <p className={styles.mutedText}>Cancelled</p>;
+        }
+        return (
+          <TicketDraftCard
+            draft={message.editedDraft ?? reply.draft}
+            missingFields={reply.missingFields}
+            canCreate={canCreate}
+            onChange={(draft) => actions.onDraftChange(message, draft)}
+            onCancel={() => actions.onCancelDraft(message)}
+            onCreate={(draft) => actions.onCreate(message, draft)}
+          />
+        );
       case 'search_results':
         return (
           <TicketSearchResult
