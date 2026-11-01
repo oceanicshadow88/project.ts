@@ -1,8 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { AiOutlineClose, AiOutlinePlus } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineExpandAlt, AiOutlinePlus } from 'react-icons/ai';
 import { FaRobot } from 'react-icons/fa';
 import { useAiChat } from '../../hooks/useAiChat';
 import IconButton from '../Form/Button/IconButton/IconButton';
+import Modal from '../../lib/Modal/Modal';
 import AiChatConversation, { IAiChatActions } from './AiChatConversation';
 import AiChatInput from './AiChatInput';
 import styles from './AiChat.module.scss';
@@ -14,6 +15,7 @@ interface IAiChatPanel {
 export default function AiChatPanel({ projectId }: IAiChatPanel) {
   const chat = useAiChat(projectId);
   const [input, setInput] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSend = () => {
@@ -34,6 +36,10 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
   };
 
   const handleClose = () => {
+    if (isExpanded) {
+      setIsExpanded(false);
+      return;
+    }
     chat.closePanel();
   };
 
@@ -45,8 +51,8 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
     onCreate: chat.createTicket
   };
 
-  return (
-    <aside className={styles.panel} aria-label="TechScrum AI" data-testid="ai-chat-panel">
+  const content = (
+    <>
       <div className={styles.header}>
         <FaRobot className={styles.headerIcon} aria-hidden="true" />
         <h2 className={styles.headerTitle}>TechScrum AI</h2>
@@ -58,6 +64,14 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
             overrideStyle={styles.headerButton}
             onClick={handleNewChat}
           />
+          {!isExpanded && (
+            <IconButton
+              icon={<AiOutlineExpandAlt aria-label="Expand" />}
+              tooltip="Expand"
+              overrideStyle={styles.headerButton}
+              onClick={() => setIsExpanded(true)}
+            />
+          )}
           <IconButton
             icon={<AiOutlineClose aria-label="Close" />}
             tooltip="Close"
@@ -82,6 +96,20 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
         onSend={handleSend}
         onClose={handleClose}
       />
+    </>
+  );
+
+  if (isExpanded) {
+    return (
+      <Modal classesName={styles.expanded}>
+        <div className={styles.expandedContent}>{content}</div>
+      </Modal>
+    );
+  }
+
+  return (
+    <aside className={styles.panel} aria-label="TechScrum AI" data-testid="ai-chat-panel">
+      {content}
     </aside>
   );
 }
