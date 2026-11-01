@@ -14,5 +14,6 @@ export default {
   kScrumAddress: 'https://be-kscrum-production.up.railway.app/api/v1',
   isCI: process.env.REACT_APP_CI ?? false,
   apiKToken: process.env.REACT_APP_KSCRUM_API_TOKEN ?? 'your_api_token_secret_here',
-  socketUrl: process.env.REACT_APP_SOCKET_URL ?? 'http://localhost:8000'
+  socketUrl: process.env.REACT_APP_SOCKET_URL ?? 'http://localhost:8000',
+  aiChatMock: (process.env.REACT_APP_AI_CHAT_MOCK ?? 'true') === 'true'
 };

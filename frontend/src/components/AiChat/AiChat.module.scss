@@ -87,6 +87,7 @@ $panelWidth: 400px;
 }
 
 .userMessage {
+  width: fit-content;
   max-width: 80%;
   margin: 0 0 12px auto;
   padding: 8px 12px;
@@ -274,6 +275,17 @@ $panelWidth: 400px;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+}
+
+// ButtonV2 forces a transparent background on outline buttons, which hides their white hover text
+.outlineButton:hover {
+  background-color: $primaryColor !important;
+  color: white !important;
+}
+
+.dangerButton:hover {
+  background-color: red !important;
+  color: white !important;
 }
 
 .fieldset {
