@@ -9,7 +9,9 @@ interface ISettingRowsPlaceholderProps {
 /* Project settings list configuration for placeholder skeletons
  * Rows: number of placeholder rows
  */
-export default function SettingRowsPlaceholder({ rows = 3 }: ISettingRowsPlaceholderProps) {
+export default function SettingRowsPlaceholder({
+  rows = 3
+}: Readonly<ISettingRowsPlaceholderProps>) {
   const rowKeys = Array.from({ length: rows }, (_, index) => `row-${index}`);
 
   return (
