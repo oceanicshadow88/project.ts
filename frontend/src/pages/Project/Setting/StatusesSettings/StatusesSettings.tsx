@@ -10,6 +10,7 @@ import InputV3 from '../../../../lib/FormV3/InputV3/InputV3';
 import Modal from '../../../../lib/Modal/Modal';
 import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/ProjectSettingHOC';
 import { ProjectDetailsContext } from '../../../../context/ProjectDetailsProvider';
+import SettingRowsPlaceholder from '../../../../components/Loading/SettingRowsPlaceholder';
 
 interface EditableStatus extends IStatus {
   editingName: boolean;
@@ -22,14 +23,13 @@ export default function StatusesSettings() {
   const { projectId = '' } = useParams();
   const { onUpdateStatus } = useContext(ProjectDetailsContext);
   const [statuses, setStatuses] = useState<EditableStatus[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [statusToDelete, setStatusToDelete] = useState<string | null>(null);
   const colorInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
   const fetchStatuses = async () => {
     try {
-      setLoading(true);
       const response = await getStatuses(projectId);
       const statusesData = (response || [])
         .map((status: IStatus) => ({
@@ -194,7 +194,7 @@ export default function StatusesSettings() {
 
   const renderContent = () => {
     if (loading) {
-      return <div className={styles.loading}>Loading statuses...</div>;
+      return <SettingRowsPlaceholder />;
     }
     if (statuses.length === 0) {
       return (
