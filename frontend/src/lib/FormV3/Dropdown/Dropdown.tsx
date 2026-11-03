@@ -28,7 +28,13 @@ interface IDropdown {
   alignCenter?: boolean;
   padding?: boolean;
   buttonClassName?: string;
-  fixedMenu?: boolean;
+  /**
+   * Renders the menu on <body> instead of inside the dropdown.
+   * Use this when the dropdown is inside something that scrolls or has overflow hidden
+   * (e.g. a popup or a scrolling list), so the menu isn't cut off and doesn't make it scroll.
+   * The menu closes when the page scrolls or resizes. Only applies when option labels are text.
+   */
+  renderMenuInBody?: boolean;
 }
 
 function Dropdown(props: IDropdown) {
@@ -53,7 +59,7 @@ function Dropdown(props: IDropdown) {
     alignCenter = false,
     padding = false,
     buttonClassName = '',
-    fixedMenu = false
+    renderMenuInBody = false
   } = props;
 
   const [isActive, setIsActive] = useState(false);
@@ -102,7 +108,7 @@ function Dropdown(props: IDropdown) {
 
   // the fixed menu doesn't move with the page, so close it when anything scrolls or resizes
   useEffect(() => {
-    if (!fixedMenu || !showMenu) return undefined;
+    if (!renderMenuInBody || !showMenu) return undefined;
     const closeMenu = (e: Event) => {
       // scrolling the menu's own list shouldn't close it
       if (menuRef.current?.contains(e.target as Node)) return;
@@ -115,14 +121,14 @@ function Dropdown(props: IDropdown) {
       window.removeEventListener('scroll', closeMenu, true);
       window.removeEventListener('resize', closeMenu);
     };
-  }, [fixedMenu, showMenu]);
+  }, [renderMenuInBody, showMenu]);
 
   if (loading) {
     return <div className={styles.skeleton} />;
   }
 
   const toggleMenu = () => {
-    if (fixedMenu && !showMenu && buttonRef.current) {
+    if (renderMenuInBody && !showMenu && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setMenuPosition({ top: rect.bottom, left: rect.left, width: rect.width });
     }
@@ -142,7 +148,7 @@ function Dropdown(props: IDropdown) {
       <div
         ref={menuRef}
         className={defaultStyles.dropDownList}
-        style={fixedMenu ? { position: 'fixed', ...menuPosition } : undefined}
+        style={renderMenuInBody ? { position: 'fixed', ...menuPosition } : undefined}
       >
         {addNullOptions && (
           <button onClick={() => handleSelect(null)} data-testid="leader-name-null">
@@ -172,7 +178,7 @@ function Dropdown(props: IDropdown) {
             )}
       </div>
     );
-    if (fixedMenu) {
+    if (renderMenuInBody) {
       return ReactDOM.createPortal(menu, document.body);
     }
     return <div className="relative">{menu}</div>;
