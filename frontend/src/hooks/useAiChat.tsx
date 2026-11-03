@@ -1,6 +1,5 @@
 import { useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { createTicketFromDraft } from '../api/ai/chat';
 import { AiChatProject, IAiChatAssistantMessage, TicketDraft } from '../api/ai/entity/chat';
 import { AiChatContext } from '../context/AiChatProvider';
 import { ProjectDetailsContext } from '../context/ProjectDetailsProvider';
@@ -11,6 +10,7 @@ import {
   canSendMessage,
   ConversationUpdate,
   createAssistantMessage,
+  createDraftTicket,
   createRequestId,
   createUserMessage,
   EMPTY_CONVERSATION,
@@ -89,7 +89,7 @@ export function useAiChat(projectId: string) {
   };
 
   const createTicket = async (message: IAiChatAssistantMessage, draft: TicketDraft) => {
-    const createdTicket = await createTicketFromDraft(projectId, draft, project);
+    const createdTicket = await createDraftTicket(projectId, draft, project);
     updateMessage(message.id, { createdTicket });
     toast.success(`Ticket ${createdTicket.key} created`);
   };

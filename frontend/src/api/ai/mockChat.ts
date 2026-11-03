@@ -1,9 +1,9 @@
+import { ITicketInput } from '../../types';
 import {
   AiChatFilter,
   AiChatProject,
   AiChatReply,
-  CreatedTicket,
-  DEFAULT_PRIORITY,
+  SavedTicket,
   TicketDraft,
   TicketSummary
 } from './entity/chat';
@@ -23,9 +23,6 @@ const wait = () =>
   new Promise((resolve) => {
     setTimeout(resolve, MOCK_DELAY_MS);
   });
-
-const findName = (items: { id?: string; name?: string }[], id?: string | null) =>
-  id ? items.find((item) => item.id === id)?.name ?? null : null;
 
 const sampleTickets = (projectKey: string): TicketSummary[] => [
   {
@@ -114,23 +111,12 @@ export async function mockSendAiChat(
   return { kind: 'out_of_scope', text: "That's outside what I can do right now." };
 }
 
-export async function mockCreateTicketFromDraft(
-  draft: TicketDraft,
-  project: AiChatProject
-): Promise<CreatedTicket> {
+export async function mockCreateTicket(input: ITicketInput): Promise<SavedTicket> {
   await wait();
-  if (draft.title.toLowerCase().includes('fail')) {
+  if (input.title.toLowerCase().includes('fail')) {
     throw new Error('Mock create failed');
   }
   const ticketNumber = nextTicketNumber;
   nextTicketNumber += 1;
-  return {
-    id: `mock-ticket-${ticketNumber}`,
-    key: `${project.key}-${ticketNumber}`,
-    title: draft.title.trim(),
-    type: findName(project.ticketTypes, draft.typeId) ?? '',
-    priority: draft.priority ?? DEFAULT_PRIORITY,
-    assignee: findName(project.users, draft.assigneeId),
-    sprint: findName(project.sprints, draft.sprintId)
-  };
+  return { id: `mock-ticket-${ticketNumber}`, ticketNumber };
 }

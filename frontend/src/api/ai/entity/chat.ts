@@ -6,6 +6,11 @@ export const TICKET_PRIORITIES: TicketPriority[] = ['Highest', 'High', 'Medium',
 
 export const DEFAULT_PRIORITY: TicketPriority = 'Medium';
 
+// The body of the Chat API request. The backend part adds `history` here (TS-37 M2)
+export interface AiChatRequest {
+  message: string;
+}
+
 export interface TicketDraft {
   title: string;
   typeId?: string;
@@ -41,6 +46,12 @@ export type AiChatReply =
     }
   | { kind: 'out_of_scope'; text: string }
   | { kind: 'error'; text: string };
+
+// What creating a ticket returns: POST /tickets sends the whole ticket, the chat only needs these
+export interface SavedTicket {
+  id: string;
+  ticketNumber: string | number;
+}
 
 export interface CreatedTicket {
   id: string;
