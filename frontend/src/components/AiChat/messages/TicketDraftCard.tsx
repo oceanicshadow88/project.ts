@@ -84,6 +84,7 @@ export default function TicketDraftCard({
           required
           placeHolder="Select type"
           onValueChanged={handleDropdownChange}
+          listClassName={styles.draftOptions}
           dataTestId="ai-draft-type"
         />
         <Dropdown
@@ -92,6 +93,7 @@ export default function TicketDraftCard({
           value={values.priority}
           options={PRIORITY_OPTIONS}
           onValueChanged={handleDropdownChange}
+          listClassName={styles.draftOptions}
           dataTestId="ai-draft-priority"
         />
         <Dropdown
@@ -100,6 +102,7 @@ export default function TicketDraftCard({
           value={values.assigneeId}
           options={options.assignees}
           onValueChanged={handleDropdownChange}
+          listClassName={styles.draftOptions}
           dataTestId="ai-draft-assignee"
         />
         <Dropdown
@@ -108,6 +111,7 @@ export default function TicketDraftCard({
           value={values.sprintId}
           options={options.sprints}
           onValueChanged={handleDropdownChange}
+          listClassName={styles.draftOptions}
           dataTestId="ai-draft-sprint"
         />
         {/* TextAreaV2 has an inline min-width of 600px, so it does not fit the 400px panel */}

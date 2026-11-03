@@ -289,10 +289,23 @@ $panelWidth: 400px;
 }
 
 .fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
+}
+
+// More room for each option in the draft card dropdowns; the hover bar matches the taller row
+.fieldset .draftOptions button {
+  padding: 12px 16px;
+
+  &:hover::before,
+  &:hover::after {
+    height: 44px;
+  }
 }
 
 .descriptionInput {
