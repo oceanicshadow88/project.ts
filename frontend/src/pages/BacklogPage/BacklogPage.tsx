@@ -425,7 +425,13 @@ export default function BacklogPage() {
 
   return (
     <ProjectHOC title="Backlog">
-      <BoardToolbar onChangeFilter={onChangeFilter} />
+      <BoardToolbar
+        onChangeFilter={onChangeFilter}
+        showCompletedSprints={{
+          checked: showCompletedSprints,
+          onChange: setShowCompletedSprints
+        }}
+      />
 
       {/* Filter Status Display */}
       {hasActiveFilters() && (
@@ -549,12 +555,6 @@ export default function BacklogPage() {
           );
         })}
         <ButtonGroupEnd>
-          <Button
-            onClick={() => setShowCompletedSprints(!showCompletedSprints)}
-            dataTestId="backlog-toggle-completed-sprints-btn"
-          >
-            {showCompletedSprints ? 'Hide Completed Sprints' : 'Show Completed Sprints'}
-          </Button>
           {checkAccess(Permission.CreateSprints, projectId) && (
             <Button onClick={showCreateModal} dataTestId="backlog-create-sprint-btn">
               Create sprint
