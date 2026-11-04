@@ -6,13 +6,16 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import ScrollToTop from './hooks/ScrollToTop';
 import './utils/arrayUtils';
+import AiChatProvider from './context/AiChatProvider';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   // <React.StrictMode>
   <BrowserRouter>
     <ScrollToTop />
-    <App />
+    <AiChatProvider>
+      <App />
+    </AiChatProvider>
   </BrowserRouter>
   // </React.StrictMode>
 );
