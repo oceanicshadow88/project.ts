@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 import * as Ticket from '../model/ticket';
 import * as Project from '../model/project';
 import type { TicketTitleValidationResult } from '../types/ticketTitleValidationResult';
-import { callValidateTicketTitleTool } from './mcpService';
+import { validateTicketTitleByClaude } from './claudeService';
 
 type TicketTitleValidationResponse = {
   status: number;
@@ -31,6 +31,6 @@ export const validateTicketTitle = async (req: Request): Promise<TicketTitleVali
     if (!accessibleProjectIds.includes(project.id)) return { status: httpStatus.FORBIDDEN };
   }
 
-  const result = await callValidateTicketTitleTool(ticket.title);
+  const result = await validateTicketTitleByClaude(ticket.title);
   return { status: httpStatus.OK, result: { title: ticket.title, ...result } };
 };

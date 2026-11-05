@@ -8,7 +8,6 @@
   },
   "scripts": {
     "test": "jest --runInBand",
-    "test:mcp": "ts-node src/app/console/runMcpValidation.ts",
     "coverage": "nyc --reporter=text npm test",
     "build": "tsc",
     "setup": "node dist/src/app/console/init.js",

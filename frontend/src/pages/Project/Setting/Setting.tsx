@@ -205,6 +205,7 @@ export default function Setting() {
             name="websiteUrl"
             loading={!formValues}
             dataTestId="websiteUrl"
+            classes="mt-2"
           />
         </div>
         <div className={[styles.gap, styles.row, 'flex'].join(' ')}>

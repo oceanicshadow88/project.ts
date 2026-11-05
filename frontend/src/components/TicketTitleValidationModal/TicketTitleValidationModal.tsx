@@ -5,6 +5,7 @@ import Modal from '../../lib/Modal/Modal';
 import DefaultModalHeader from '../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import DefaultModalBody from '../../lib/Modal/ModalBody/DefaultModalHeader/DefaultModalBody';
 import styles from './TicketTitleValidationModal.module.scss';
+import TicketTitleValidationPlaceholder from './components/TicketTitleValidationPlaceholder';
 
 interface ITicketTitleValidationModal {
   ticketId: string;
@@ -67,7 +68,7 @@ export default function TicketTitleValidationModal({
       <DefaultModalHeader title="Improve Ticket Title" onClickClose={onClose} />
       <DefaultModalBody defaultPadding={false} classesName={styles.container}>
         <div className={styles.content}>
-          {loading && <output>Improving ticket title...</output>}
+          {loading && <TicketTitleValidationPlaceholder />}
           {result && (
             <div className={styles.result}>
               <strong>Current Title</strong>

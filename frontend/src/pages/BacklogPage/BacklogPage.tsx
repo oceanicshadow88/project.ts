@@ -5,7 +5,7 @@ import BacklogSection from './components/BacklogSection/BacklogSection';
 import MoveIncompleteTicketsModal from './components/MoveIncompleteTicketsModal/MoveIncompleteTicketsModal';
 import { getBacklogTickets } from '../../api/backlog/backlog';
 import SprintSection from './components/SprintSection/SprintSection';
-import Loading from '../../components/Loading/Loading';
+import BounceLoading from '../../components/Loading/BounceLoading';
 import CreateEditSprint from './components/CreateEditSprint/CreateEditSprint';
 import Button from '../../components/Form/Button/Button';
 import { ProjectDetailsContext } from '../../context/ProjectDetailsProvider';
@@ -420,12 +420,18 @@ export default function BacklogPage() {
   );
 
   if (projectDetails.isLoadingDetails) {
-    return <Loading />;
+    return <BounceLoading />;
   }
 
   return (
     <ProjectHOC title="Backlog">
-      <BoardToolbar onChangeFilter={onChangeFilter} />
+      <BoardToolbar
+        onChangeFilter={onChangeFilter}
+        showCompletedSprints={{
+          checked: showCompletedSprints,
+          onChange: setShowCompletedSprints
+        }}
+      />
 
       {/* Filter Status Display */}
       {hasActiveFilters() && (
@@ -549,12 +555,6 @@ export default function BacklogPage() {
           );
         })}
         <ButtonGroupEnd>
-          <Button
-            onClick={() => setShowCompletedSprints(!showCompletedSprints)}
-            dataTestId="backlog-toggle-completed-sprints-btn"
-          >
-            {showCompletedSprints ? 'Hide Completed Sprints' : 'Show Completed Sprints'}
-          </Button>
           {checkAccess(Permission.CreateSprints, projectId) && (
             <Button onClick={showCreateModal} dataTestId="backlog-create-sprint-btn">
               Create sprint

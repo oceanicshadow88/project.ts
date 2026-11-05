@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MdWarning } from 'react-icons/md';
-import { IPermissions, IRole } from '../../../../types';
+import { IPermissions, IRole, IRoleMember, IRoleReassignment } from '../../../../types';
 import styles from './PermissionSelector.module.scss';
 import PermissionCategory from '../PermissionCategory/PermissionCategory';
 import Modal from '../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import InputV2 from '../../../../lib/FormV2/InputV2/InputV2';
 import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
+import Dropdown from '../../../../lib/FormV3/Dropdown/Dropdown';
 
 interface IProps {
   isNewRole?: boolean;
   submitRoleHandler: (roleName: string, permissions: Array<string>) => void;
   closeHandler: () => void;
-  deleteRoleHandler?: (roleId: string) => Promise<void>;
+  // delete-related props are only passed when editing a role, not when adding one
+  deleteRoleHandler?: (roleId: string, reassignments: IRoleReassignment[]) => Promise<void>;
+  loadRoleMembers?: (roleId: string) => Promise<IRoleMember[]>;
+  roles?: IRole[];
   permissions: IPermissions[];
   role?: IRole;
 }
@@ -37,18 +41,43 @@ function PermissionSelector(props: IProps) {
     submitRoleHandler,
     closeHandler,
     deleteRoleHandler,
+    loadRoleMembers,
+    roles = [],
     permissions,
     role
   } = props;
   const [roleName, setRoleName] = useState(role?.name ?? '');
   const [errorMsg, setErrorMsg] = useState('');
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  // null while loading, [] when nobody holds the role
+  const [members, setMembers] = useState<IRoleMember[] | null>(null);
+  const [hasMembersLoadError, setHasMembersLoadError] = useState(false);
+  // each member's chosen role, keyed by user id
+  const [newRoleIds, setNewRoleIds] = useState<Record<string, string>>({});
+  // disables the confirm button while the request runs
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isReadOnly = role?.isPublic ?? false;
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     () => new Set((role?.permissions ?? []).map((permission) => permission.id))
   );
+
+  // load who holds the role each time the delete confirmation opens
+  useEffect(() => {
+    if (!isConfirmingDelete || !role || !loadRoleMembers) return undefined;
+    let isCancelled = false;
+    // ignore a late result if the confirmation was closed before it arrived
+    loadRoleMembers(role.id)
+      .then((res) => {
+        if (!isCancelled) setMembers(res);
+      })
+      .catch(() => {
+        if (!isCancelled) setHasMembersLoadError(true);
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, [isConfirmingDelete, role, loadRoleMembers]);
 
   const setPermissionsSelected = (permissionIds: string[], checked: boolean) => {
     setSelectedIds((previous) => {
@@ -93,18 +122,97 @@ function PermissionSelector(props: IProps) {
     submitRoleHandler(trimmedName, updatedPermissions);
   };
 
+  // clear anything left from opening the confirmation earlier
+  const openDeleteConfirm = () => {
+    setMembers(null);
+    setHasMembersLoadError(false);
+    setNewRoleIds({});
+    setIsConfirmingDelete(true);
+  };
+
   const confirmDeleteHandler = async () => {
-    if (!role || !deleteRoleHandler) return;
+    if (!role || !deleteRoleHandler || !members) return;
     try {
       setIsDeleting(true);
-      await deleteRoleHandler(role.id);
+      // one { userId, roleId } per member, as the backend expects
+      await deleteRoleHandler(
+        role.id,
+        members.map((member) => ({ userId: member.id, roleId: newRoleIds[member.id] }))
+      );
     } finally {
+      // RolePage closes the whole popup on success; on failure this returns to the edit popup
       setIsDeleting(false);
       setIsConfirmingDelete(false);
     }
   };
 
-  const canDelete = !isNewRole && !isReadOnly && !!role && !!deleteRoleHandler;
+  const canDelete = !isNewRole && !isReadOnly && !!role && !!deleteRoleHandler && !!loadRoleMembers;
+  // true once the list has loaded and everyone has a role picked (also true for an empty list)
+  const everyMemberHasNewRole = !!members && members.every((member) => newRoleIds[member.id]);
+  const canConfirmDelete = !isDeleting && !hasMembersLoadError && everyMemberHasNewRole;
+  // members can't be moved to the role being deleted
+  const replacementRoles = roles.filter((item) => item.id !== role?.id);
+
+  // load error, loading, nobody holds the role, or one row per member with a role dropdown
+  const renderDeleteBody = () => {
+    const deletedRoleName = role?.name ?? 'this role';
+    if (hasMembersLoadError) {
+      return (
+        <p className={styles['confirm-text']}>
+          Couldn&apos;t check who has this role. Close this and try again.
+        </p>
+      );
+    }
+    if (members === null) {
+      return <p className={styles['confirm-text']}>Checking who has this role…</p>;
+    }
+    if (members.length === 0) {
+      return (
+        <p className={styles['confirm-text']}>
+          {`Are you sure you want to delete ${deletedRoleName}? This cannot be undone.`}
+        </p>
+      );
+    }
+    const peopleText = members.length === 1 ? '1 person has' : `${members.length} people have`;
+    return (
+      <>
+        <p className={styles['confirm-text']}>
+          {`${peopleText} the ${deletedRoleName} role. Choose a new role for each person before deleting it.`}
+        </p>
+        <ul className={styles['member-list']}>
+          {members.map((member) => {
+            // name is optional on users, so fall back to email
+            const memberName = member.name ?? member.email;
+            return (
+              <li key={member.id} className={styles.member}>
+                <span className={styles['member-name']}>{memberName}</span>
+                <div className={styles['role-select']}>
+                  <Dropdown
+                    label="New role"
+                    name={`new-role-${member.id}`}
+                    placeHolder="Select a role"
+                    value={newRoleIds[member.id] ?? ''}
+                    options={replacementRoles.map((replacementRole) => ({
+                      value: replacementRole.id,
+                      label: replacementRole.name
+                    }))}
+                    // copy the existing choices so React sees a new object and re-renders
+                    onValueChanged={(e) =>
+                      setNewRoleIds((previous) => ({
+                        ...previous,
+                        [member.id]: e.target.value ?? ''
+                      }))
+                    }
+                    dataTestId={`new-role-${member.id}`}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    );
+  };
 
   return (
     <Modal classesName={styles.modal}>
@@ -155,7 +263,7 @@ function PermissionSelector(props: IProps) {
               text="Delete"
               danger
               customStyles={styles['delete-btn']}
-              onClick={() => setIsConfirmingDelete(true)}
+              onClick={openDeleteConfirm}
               btnType="button"
               dataTestId="delete-role-btn"
             />
@@ -178,6 +286,7 @@ function PermissionSelector(props: IProps) {
         </div>
       </form>
 
+      {/* opens on top of the edit popup, outside the form */}
       {isConfirmingDelete && (
         <Modal>
           <div className={styles['confirm-modal']}>
@@ -185,17 +294,17 @@ function PermissionSelector(props: IProps) {
               <MdWarning size={18} />
               <span>Delete role?</span>
             </div>
-            <p className={styles['confirm-text']}>
-              {`Are you sure you want to delete ${
-                role?.name ?? 'this role'
-              }? This cannot be undone.`}
-            </p>
-            <p className={styles['confirm-text']}>
-              Anyone with this role will be moved to the Guest role.
-            </p>
+            {renderDeleteBody()}
             <div className={styles['confirm-actions']}>
               <ButtonV2 text="Cancel" fill onClick={() => setIsConfirmingDelete(false)} />
-              <ButtonV2 text="Delete" danger disabled={isDeleting} onClick={confirmDeleteHandler} />
+              <ButtonV2
+                text="Delete"
+                danger
+                customStyles={styles['confirm-delete-btn']}
+                disabled={!canConfirmDelete}
+                onClick={confirmDeleteHandler}
+                dataTestId="confirm-delete-role-btn"
+              />
             </div>
           </div>
         </Modal>

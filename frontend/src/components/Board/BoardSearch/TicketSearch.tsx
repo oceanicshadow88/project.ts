@@ -9,6 +9,7 @@ import TicketLabelFilter from './components/TicketLabelFilter/TicketLabelFilter'
 import { ILabelData, ITypes } from '../../../types';
 import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import TicketEpicFilter from './components/TicketEpicFilter/TicketEpicFilter';
+import ShowCompletedSprintsCheckbox from './components/ShowCompletedSprintsCheckbox/ShowCompletedSprintsCheckbox';
 
 export interface IFilterData {
   userIds: string[] | null;
@@ -21,10 +22,14 @@ export interface IFilterData {
 interface IBoardToolbarProps {
   onChangeFilter: (filterData: IFilterData) => void;
   actions?: React.ReactNode;
+  showCompletedSprints?: {
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+  };
 }
 
 function BoardToolbar(props: IBoardToolbarProps) {
-  const { onChangeFilter, actions } = props;
+  const { onChangeFilter, actions, showCompletedSprints } = props;
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<ILabelData[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<ITypes[]>([]);
@@ -73,6 +78,13 @@ function BoardToolbar(props: IBoardToolbarProps) {
         changeSelectedEpics={changeSelectedItems}
         dataTestId="epic-filter"
       />
+      {showCompletedSprints && (
+        <ShowCompletedSprintsCheckbox
+          checked={showCompletedSprints.checked}
+          onChange={showCompletedSprints.onChange}
+          dataTestId="backlog-toggle-completed-sprints-btn"
+        />
+      )}
       <TicketLabelFilter selectedLabels={selectedLabels} setSelectedLabels={setSelectedLabels} />
       {actions && <div className={styles.addNewButtonContainer}>{actions}</div>}
     </div>
