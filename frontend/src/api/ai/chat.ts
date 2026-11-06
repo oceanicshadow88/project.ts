@@ -1,6 +1,6 @@
 import config from '../../config/config';
 import { ITicketInput } from '../../types';
-import { AiChatProject, AiChatReply, AiChatRequest, SavedTicket } from './entity/chat';
+import { AiChatProject, AiChatReply, AiChatRequest, SavedTicket } from '../../types/aiChat';
 import { mockCreateTicket, mockSendAiChat } from './mockChat';
 
 // Replaced by the Chat API and POST /tickets when the backend is connected (TS-37 M2)

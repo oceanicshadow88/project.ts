@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { FaRobot } from 'react-icons/fa';
-import { AiChatMessage, IAiChatAssistantMessage, TicketDraft } from '../../api/ai/entity/chat';
+import { AiChatMessage, IAiChatAssistantMessage, TicketDraft } from '../../types/aiChat';
 import AiChatWelcome from './AiChatWelcome';
 import ErrorMessage from './messages/ErrorMessage';
 import OutOfScopeNotice from './messages/OutOfScopeNotice';

@@ -1,5 +1,5 @@
 import React, { createContext, Dispatch, SetStateAction, useMemo, useState } from 'react';
-import { AiChatConversations } from '../api/ai/entity/chat';
+import { AiChatConversations } from '../types/aiChat';
 
 interface IAiChatContext {
   isOpen: boolean;

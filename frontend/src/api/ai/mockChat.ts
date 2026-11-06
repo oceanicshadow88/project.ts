@@ -6,7 +6,7 @@ import {
   SavedTicket,
   TicketDraft,
   TicketSummary
-} from './entity/chat';
+} from '../../types/aiChat';
 
 const MOCK_DELAY_MS = 800;
 

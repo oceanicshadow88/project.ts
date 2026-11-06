@@ -5,7 +5,7 @@ import InputV3 from '../../../lib/FormV3/InputV3/InputV3';
 import formStyles from '../../../lib/FormV2/FormV2.module.scss';
 import { PriorityIcon } from '../../Form/PriorityBtn/PriorityBtn';
 import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
-import { TICKET_PRIORITIES, TicketDraft } from '../../../api/ai/entity/chat';
+import { TICKET_PRIORITIES, TicketDraft } from '../../../types/aiChat';
 import {
   applyDraftField,
   getDraftFieldValues,

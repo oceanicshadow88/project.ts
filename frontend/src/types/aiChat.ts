@@ -1,4 +1,4 @@
-import { ISprint, ITypes, IUserInfo } from '../../../types';
+import { ISprint, ITypes, IUserInfo } from '../types';
 
 export type TicketPriority = 'Highest' | 'High' | 'Medium' | 'Low' | 'Lowest';
 

@@ -12,7 +12,7 @@ import {
   SavedTicket,
   TicketDraft,
   TicketSummary
-} from '../api/ai/entity/chat';
+} from '../types/aiChat';
 import config from '../config/config';
 import { ISprint, ITicketInput, ITypes, IUserInfo } from '../types';
 import checkAccess from './helpers';

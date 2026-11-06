@@ -1,6 +1,6 @@
 import { useContext, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { AiChatProject, IAiChatAssistantMessage, TicketDraft } from '../api/ai/entity/chat';
+import { AiChatProject, IAiChatAssistantMessage, TicketDraft } from '../types/aiChat';
 import { AiChatContext } from '../context/AiChatProvider';
 import { ProjectDetailsContext } from '../context/ProjectDetailsProvider';
 import {

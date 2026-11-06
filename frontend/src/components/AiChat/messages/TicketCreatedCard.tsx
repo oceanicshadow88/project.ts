@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineCheckCircle } from 'react-icons/ai';
 import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
-import { CreatedTicket } from '../../../api/ai/entity/chat';
+import { CreatedTicket } from '../../../types/aiChat';
 import { getCreatedTicketSummary } from '../../../utils/aiChatService';
 import styles from '../AiChat.module.scss';
 
