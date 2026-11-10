@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import styles from './BoardSearch.module.scss';
 import UserFilter from './components/UserFilter/UserFilter';
 import SearchForBoard from './components/SearchForBoard/SearchForBoard';
@@ -10,6 +10,9 @@ import { ILabelData, ITypes } from '../../../types';
 import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import TicketEpicFilter from './components/TicketEpicFilter/TicketEpicFilter';
 import ShowCompletedSprintsCheckbox from './components/ShowCompletedSprintsCheckbox/ShowCompletedSprintsCheckbox';
+
+// Must match $top-nav-height in BoardSearch.module.scss
+const TOP_NAV_HEIGHT = 62;
 
 export interface IFilterData {
   userIds: string[] | null;
@@ -35,8 +38,22 @@ function BoardToolbar(props: IBoardToolbarProps) {
   const [selectedTypes, setSelectedTypes] = useState<ITypes[]>([]);
   const [selectedEpics, setSelectedEpics] = useState<any[]>([]);
   const [inputQuery, setInputQuery] = useState<string>('');
+  const [isStuck, setIsStuck] = useState(false);
+  const stickySentinelRef = useRef<HTMLDivElement>(null);
 
   const projectDetails = useContext(ProjectDetailsContext);
+
+  useEffect(() => {
+    const sentinel = stickySentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) =>
+        setIsStuck(!entry.isIntersecting && entry.boundingClientRect.top < TOP_NAV_HEIGHT),
+      { rootMargin: `-${TOP_NAV_HEIGHT}px 0px 0px 0px` }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
 
   const changeSelectedItems = (isExist, selectedItems, item) => {
     if (!isExist) {
@@ -56,38 +73,43 @@ function BoardToolbar(props: IBoardToolbarProps) {
   }, [selectedUsers, selectedTypes, selectedEpics, selectedLabels, inputQuery]);
 
   return (
-    <div className={styles.searchBarContainer}>
-      <div className={styles.searchInputContainer}>
-        <SearchForBoard setInputQuery={setInputQuery} />
-      </div>
-      <UserFilter
-        selectedUsers={selectedUsers}
-        setSelectedUsers={setSelectedUsers}
-        changeSelectedUsers={changeSelectedItems}
-        userList={projectDetails.users}
-      />
-      <TicketTypeFilter
-        selectedTypes={selectedTypes}
-        setSelectedTypes={setSelectedTypes}
-        changeSelectedTypes={changeSelectedItems}
-        dataTestId="type-filter"
-      />
-      <TicketEpicFilter
-        selectedEpics={selectedEpics}
-        setSelectedEpics={setSelectedEpics}
-        changeSelectedEpics={changeSelectedItems}
-        dataTestId="epic-filter"
-      />
-      {showCompletedSprints && (
-        <ShowCompletedSprintsCheckbox
-          checked={showCompletedSprints.checked}
-          onChange={showCompletedSprints.onChange}
-          dataTestId="backlog-toggle-completed-sprints-btn"
+    <>
+      <div ref={stickySentinelRef} className={styles.stickySentinel} aria-hidden="true" />
+      <div
+        className={`${styles.searchBarContainer} ${isStuck ? styles.searchBarContainerStuck : ''}`}
+      >
+        <div className={styles.searchInputContainer}>
+          <SearchForBoard setInputQuery={setInputQuery} />
+        </div>
+        <UserFilter
+          selectedUsers={selectedUsers}
+          setSelectedUsers={setSelectedUsers}
+          changeSelectedUsers={changeSelectedItems}
+          userList={projectDetails.users}
         />
-      )}
-      <TicketLabelFilter selectedLabels={selectedLabels} setSelectedLabels={setSelectedLabels} />
-      {actions && <div className={styles.addNewButtonContainer}>{actions}</div>}
-    </div>
+        <TicketTypeFilter
+          selectedTypes={selectedTypes}
+          setSelectedTypes={setSelectedTypes}
+          changeSelectedTypes={changeSelectedItems}
+          dataTestId="type-filter"
+        />
+        <TicketEpicFilter
+          selectedEpics={selectedEpics}
+          setSelectedEpics={setSelectedEpics}
+          changeSelectedEpics={changeSelectedItems}
+          dataTestId="epic-filter"
+        />
+        {showCompletedSprints && (
+          <ShowCompletedSprintsCheckbox
+            checked={showCompletedSprints.checked}
+            onChange={showCompletedSprints.onChange}
+            dataTestId="backlog-toggle-completed-sprints-btn"
+          />
+        )}
+        <TicketLabelFilter selectedLabels={selectedLabels} setSelectedLabels={setSelectedLabels} />
+        {actions && <div className={styles.addNewButtonContainer}>{actions}</div>}
+      </div>
+    </>
   );
 }
 
