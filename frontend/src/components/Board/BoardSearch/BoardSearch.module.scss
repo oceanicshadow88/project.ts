@@ -40,15 +40,13 @@
   }
 }
 
-$top-nav-height: 62px;
-
 .stickySentinel {
   height: 18px;
 }
 
 .searchBarContainer {
   position: sticky;
-  top: $top-nav-height;
+  top: var(--top-nav-height, 62px);
   margin: 0 0 18px;
   padding: 12px 0;
   background: #f6f8f9;

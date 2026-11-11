@@ -11,9 +11,6 @@ import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import TicketEpicFilter from './components/TicketEpicFilter/TicketEpicFilter';
 import ShowCompletedSprintsCheckbox from './components/ShowCompletedSprintsCheckbox/ShowCompletedSprintsCheckbox';
 
-// Must match $top-nav-height in BoardSearch.module.scss
-const TOP_NAV_HEIGHT = 62;
-
 export interface IFilterData {
   userIds: string[] | null;
   ticketTypesIds: string[] | null;
@@ -40,19 +37,31 @@ function BoardToolbar(props: IBoardToolbarProps) {
   const [inputQuery, setInputQuery] = useState<string>('');
   const [isStuck, setIsStuck] = useState(false);
   const stickySentinelRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
 
   const projectDetails = useContext(ProjectDetailsContext);
 
   useEffect(() => {
     const sentinel = stickySentinelRef.current;
-    if (!sentinel || typeof IntersectionObserver === 'undefined') return undefined;
-    const observer = new IntersectionObserver(
-      ([entry]) =>
-        setIsStuck(!entry.isIntersecting && entry.boundingClientRect.top < TOP_NAV_HEIGHT),
-      { rootMargin: `-${TOP_NAV_HEIGHT}px 0px 0px 0px` }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+    const toolbar = toolbarRef.current;
+    if (!sentinel || !toolbar) return undefined;
+    let frame = 0;
+    const checkStuck = () => {
+      frame = 0;
+      const stickyTop = parseFloat(getComputedStyle(toolbar).top) || 0;
+      setIsStuck(sentinel.getBoundingClientRect().bottom <= stickyTop);
+    };
+    const scheduleCheck = () => {
+      if (!frame) frame = requestAnimationFrame(checkStuck);
+    };
+    checkStuck();
+    window.addEventListener('scroll', scheduleCheck, { passive: true });
+    window.addEventListener('resize', scheduleCheck);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', scheduleCheck);
+      window.removeEventListener('resize', scheduleCheck);
+    };
   }, []);
 
   const changeSelectedItems = (isExist, selectedItems, item) => {
@@ -76,6 +85,7 @@ function BoardToolbar(props: IBoardToolbarProps) {
     <>
       <div ref={stickySentinelRef} className={styles.stickySentinel} aria-hidden="true" />
       <div
+        ref={toolbarRef}
         className={`${styles.searchBarContainer} ${isStuck ? styles.searchBarContainerStuck : ''}`}
       >
         <div className={styles.searchInputContainer}>
