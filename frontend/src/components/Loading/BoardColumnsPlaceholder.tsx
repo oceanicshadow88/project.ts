@@ -5,6 +5,7 @@ import styles from './BoardColumnsPlaceholder.module.scss';
 interface IBoardColumnsPlaceholderProps {
   columns?: number;
   cardsPerColumn?: number;
+  cardHeight?: number;
   withHeader?: boolean;
   dataTestId?: string;
 }
@@ -12,6 +13,7 @@ interface IBoardColumnsPlaceholderProps {
 export default function BoardColumnsPlaceholder({
   columns = 4,
   cardsPerColumn = 3,
+  cardHeight = 130,
   withHeader = false,
   dataTestId
 }: IBoardColumnsPlaceholderProps) {
@@ -41,7 +43,7 @@ export default function BoardColumnsPlaceholder({
             </div>
             <div className={styles.column}>
               {cardKeys.map((cardKey) => (
-                <Placeholder key={cardKey} height={130} className={styles.card} />
+                <Placeholder key={cardKey} height={cardHeight} className={styles.card} />
               ))}
             </div>
           </div>
