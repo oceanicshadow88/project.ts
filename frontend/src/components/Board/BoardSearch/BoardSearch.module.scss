@@ -40,14 +40,10 @@
   }
 }
 
-.stickySentinel {
-  height: 18px;
-}
-
 .searchBarContainer {
   position: sticky;
   top: var(--top-nav-height, 62px);
-  margin: 0 0 18px;
+  margin: 18px 0;
   padding: 12px 0;
   background: #f6f8f9;
   border-bottom: 1px solid transparent;
@@ -61,11 +57,9 @@
   }
 }
 
-@media (min-width: 801px) {
-  .searchBarContainerStuck {
-    border-bottom-color: #e4e7ec;
-    box-shadow: 0 6px 8px -6px rgba(15, 23, 42, 0.18);
-  }
+.searchBarContainerPinned {
+  border-bottom-color: #e4e7ec;
+  box-shadow: 0 6px 8px -6px rgba(15, 23, 42, 0.18);
 }
 
 .searchInputContainer {
