@@ -423,6 +423,65 @@ export default function BacklogPage() {
     [ticketsBySprintId, projectDetails, showModal, closeModal, fetchBacklogData]
   );
 
+  const renderSprintTickets = (sprint: ISprint) => {
+    if (isTicketsLoading) {
+      return <TicketRowsPlaceholder rows={2} dataTestId={`sprint-loading-${sprint.id}`} />;
+    }
+
+    return (
+      <>
+        <DroppableTicketItems
+          onTicketChanged={fetchBacklogData}
+          data={ticketsBySprintId[sprint.id]}
+          droppableId={sprint.id}
+          onLabelClick={onLabelClick}
+          onAIClick={(id: string, data: ITicketInput) =>
+            validateAndUpdateIssue(id, data, fetchBacklogData)
+          }
+          unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
+        />
+        <CreateIssue
+          onIssueCreate={(data: ICreateIssue) =>
+            onIssueCreate({
+              title: data.name,
+              type: data.type,
+              sprintId: sprint.id
+            })
+          }
+        />
+      </>
+    );
+  };
+
+  const renderBacklogTickets = () => {
+    if (isTicketsLoading) {
+      return <TicketRowsPlaceholder rows={3} dataTestId="backlog-loading" />;
+    }
+
+    return (
+      <>
+        <DroppableTicketItems
+          onTicketChanged={fetchBacklogData}
+          data={ticketsBySprintId.backlog}
+          isBacklog
+          droppableId="backlog"
+          unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
+          onLabelClick={onLabelClick}
+        />
+        <CreateIssue
+          onIssueCreate={(data: ICreateIssue) =>
+            onIssueCreate({
+              title: data.name,
+              type: data.type,
+              sprintId: null
+            })
+          }
+          showDropDownOnTop={calculateShowDropDownTop()}
+        />
+      </>
+    );
+  };
+
   if (projectDetails.isLoadingDetails) {
     return <BounceLoading />;
   }
@@ -530,31 +589,7 @@ export default function BacklogPage() {
               onSprintComplete={onSprintComplete}
               dataTestId={`sprint-${sprint.id}`}
             >
-              {isTicketsLoading ? (
-                <TicketRowsPlaceholder rows={2} dataTestId={`sprint-loading-${sprint.id}`} />
-              ) : (
-                <>
-                  <DroppableTicketItems
-                    onTicketChanged={fetchBacklogData}
-                    data={ticketsBySprintId[sprint.id]}
-                    droppableId={sprint.id}
-                    onLabelClick={onLabelClick}
-                    onAIClick={(id: string, data: ITicketInput) =>
-                      validateAndUpdateIssue(id, data, fetchBacklogData)
-                    }
-                    unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
-                  />
-                  <CreateIssue
-                    onIssueCreate={(data: ICreateIssue) =>
-                      onIssueCreate({
-                        title: data.name,
-                        type: data.type,
-                        sprintId: sprint.id
-                      })
-                    }
-                  />
-                </>
-              )}
+              {renderSprintTickets(sprint)}
             </SprintSection>
           );
         })}
@@ -575,30 +610,7 @@ export default function BacklogPage() {
           data-testid="backlog-section"
           totalIssue={ticketsBySprintId?.backlog?.length ?? 0}
         >
-          {isTicketsLoading ? (
-            <TicketRowsPlaceholder rows={3} dataTestId="backlog-loading" />
-          ) : (
-            <>
-              <DroppableTicketItems
-                onTicketChanged={fetchBacklogData}
-                data={ticketsBySprintId.backlog}
-                isBacklog
-                droppableId="backlog"
-                unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
-                onLabelClick={onLabelClick}
-              />
-              <CreateIssue
-                onIssueCreate={(data: ICreateIssue) =>
-                  onIssueCreate({
-                    title: data.name,
-                    type: data.type,
-                    sprintId: null
-                  })
-                }
-                showDropDownOnTop={calculateShowDropDownTop()}
-              />
-            </>
-          )}
+          {renderBacklogTickets()}
         </BacklogSection>
       </DragDropContext>
       {!isTicketsLoading && Object.values(ticketsBySprintId).flat().length === 0 && (

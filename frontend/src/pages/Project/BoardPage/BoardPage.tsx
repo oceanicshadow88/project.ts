@@ -215,8 +215,7 @@ export default function BoardPage() {
     }
     (async () => {
       try {
-        await fetchSprintTickets();
-        await fetchBoardDetails();
+        await Promise.all([fetchSprintTickets(), fetchBoardDetails()]);
       } finally {
         setIsTicketsLoading(false);
       }
