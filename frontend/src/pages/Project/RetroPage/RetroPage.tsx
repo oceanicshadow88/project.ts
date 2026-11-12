@@ -122,7 +122,12 @@ export default function RetroPage() {
     return (
       <ProjectHOC title="Board">
         <div className={styles.boardMainContainer}>
-          <BoardColumnsPlaceholder columns={3} cardHeight={55} dataTestId="retro-loading" />
+          <BoardColumnsPlaceholder
+            columns={3}
+            dropdowns={2}
+            cardHeight={55}
+            dataTestId="retro-loading"
+          />
         </div>
       </ProjectHOC>
     );
@@ -201,7 +206,12 @@ export default function RetroPage() {
     <ProjectHOC title="Board">
       {isRetroLoading && (
         <div className={styles.boardMainContainer}>
-          <BoardColumnsPlaceholder columns={3} cardHeight={55} dataTestId="retro-loading" />
+          <BoardColumnsPlaceholder
+            columns={3}
+            dropdowns={2}
+            cardHeight={55}
+            dataTestId="retro-loading"
+          />
         </div>
       )}
       {!isRetroLoading && (!hasSprint || !selectedBoard || !boardDetails) && (
