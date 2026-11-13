@@ -68,6 +68,22 @@ export const findTickets = async (
   }
 };
 
+const getRankForNewTicket = async (
+  ticketModel: any,
+  projectId: string,
+  sprintId: Types.ObjectId | undefined,
+): Promise<string> => {
+  const lastInSection = await ticketModel
+    .findOne({
+      project: projectId,
+      sprint: sprintId ?? null, // null matches backlog tickets
+      rank: { $nin: [null, ''] },
+    })
+    .sort({ rank: -1 })
+    .select('rank');
+  return generateKeyBetween(lastInSection?.rank ?? null, null);
+};
+
 export const createTicket = async (req: Request) => {
   const { board, sprintId, projectId, project, epicId, ...restBody } = req.body;
   const ticketModel = Ticket.getModel(req.dbConnection);
@@ -76,8 +92,11 @@ export const createTicket = async (req: Request) => {
   const sprintRes = await sprintModel.findById(sprintId);
   const epicRes = await epicModel.findById(epicId);
   const projectParams = projectId || project;
+  // put the new ticket at the bottom of its sprint or the backlog
+  const rank = restBody.rank || (await getRankForNewTicket(ticketModel, projectParams, sprintRes?._id));
   const ticket = await ticketModel.create({
     ...restBody,
+    rank,
     board: board,
     project: projectParams,
     reporter: req.userId,

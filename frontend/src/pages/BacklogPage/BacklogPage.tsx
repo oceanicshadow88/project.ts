@@ -5,7 +5,8 @@ import BacklogSection from './components/BacklogSection/BacklogSection';
 import MoveIncompleteTicketsModal from './components/MoveIncompleteTicketsModal/MoveIncompleteTicketsModal';
 import { getBacklogTickets } from '../../api/backlog/backlog';
 import SprintSection from './components/SprintSection/SprintSection';
-import Loading from '../../components/Loading/Loading';
+import BounceLoading from '../../components/Loading/BounceLoading';
+import TicketRowsPlaceholder from '../../components/Loading/TicketRowsPlaceholder';
 import CreateEditSprint from './components/CreateEditSprint/CreateEditSprint';
 import Button from '../../components/Form/Button/Button';
 import { ProjectDetailsContext } from '../../context/ProjectDetailsProvider';
@@ -27,6 +28,7 @@ import ButtonGroupEnd from '../../lib/FormV2/ButtonGroupEnd/ButtonGroupEnd';
 export default function BacklogPage() {
   const { projectId = '' } = useParams();
   const [tickets, setTickets] = useState<ITicketBasic[]>([]);
+  const [isTicketsLoading, setIsTicketsLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<IFilterData | null>(null);
   const [showCompletedSprints, setShowCompletedSprints] = useState(false);
   const [unresolvedQuestionsByTicket, setUnresolvedQuestionsByTicket] = useState<{
@@ -86,6 +88,8 @@ export default function BacklogPage() {
       await fetchUnresolvedQuestions();
     } catch (error) {
       setTickets([]);
+    } finally {
+      setIsTicketsLoading(false);
     }
   };
 
@@ -419,13 +423,78 @@ export default function BacklogPage() {
     [ticketsBySprintId, projectDetails, showModal, closeModal, fetchBacklogData]
   );
 
+  const renderSprintTickets = (sprint: ISprint) => {
+    if (isTicketsLoading) {
+      return <TicketRowsPlaceholder rows={2} dataTestId={`sprint-loading-${sprint.id}`} />;
+    }
+
+    return (
+      <>
+        <DroppableTicketItems
+          onTicketChanged={fetchBacklogData}
+          data={ticketsBySprintId[sprint.id]}
+          droppableId={sprint.id}
+          onLabelClick={onLabelClick}
+          onAIClick={(id: string, data: ITicketInput) =>
+            validateAndUpdateIssue(id, data, fetchBacklogData)
+          }
+          unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
+        />
+        <CreateIssue
+          onIssueCreate={(data: ICreateIssue) =>
+            onIssueCreate({
+              title: data.name,
+              type: data.type,
+              sprintId: sprint.id
+            })
+          }
+        />
+      </>
+    );
+  };
+
+  const renderBacklogTickets = () => {
+    if (isTicketsLoading) {
+      return <TicketRowsPlaceholder rows={3} dataTestId="backlog-loading" />;
+    }
+
+    return (
+      <>
+        <DroppableTicketItems
+          onTicketChanged={fetchBacklogData}
+          data={ticketsBySprintId.backlog}
+          isBacklog
+          droppableId="backlog"
+          unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
+          onLabelClick={onLabelClick}
+        />
+        <CreateIssue
+          onIssueCreate={(data: ICreateIssue) =>
+            onIssueCreate({
+              title: data.name,
+              type: data.type,
+              sprintId: null
+            })
+          }
+          showDropDownOnTop={calculateShowDropDownTop()}
+        />
+      </>
+    );
+  };
+
   if (projectDetails.isLoadingDetails) {
-    return <Loading />;
+    return <BounceLoading />;
   }
 
   return (
     <ProjectHOC title="Backlog">
-      <BoardToolbar onChangeFilter={onChangeFilter} />
+      <BoardToolbar
+        onChangeFilter={onChangeFilter}
+        showCompletedSprints={{
+          checked: showCompletedSprints,
+          onChange: setShowCompletedSprints
+        }}
+      />
 
       {/* Filter Status Display */}
       {hasActiveFilters() && (
@@ -526,35 +595,11 @@ export default function BacklogPage() {
               onSprintComplete={onSprintComplete}
               dataTestId={`sprint-${sprint.id}`}
             >
-              <DroppableTicketItems
-                onTicketChanged={fetchBacklogData}
-                data={ticketsBySprintId[sprint.id]}
-                droppableId={sprint.id}
-                onLabelClick={onLabelClick}
-                onAIClick={(id: string, data: ITicketInput) =>
-                  validateAndUpdateIssue(id, data, fetchBacklogData)
-                }
-                unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
-              />
-              <CreateIssue
-                onIssueCreate={(data: ICreateIssue) =>
-                  onIssueCreate({
-                    title: data.name,
-                    type: data.type,
-                    sprintId: sprint.id
-                  })
-                }
-              />
+              {renderSprintTickets(sprint)}
             </SprintSection>
           );
         })}
         <ButtonGroupEnd>
-          <Button
-            onClick={() => setShowCompletedSprints(!showCompletedSprints)}
-            dataTestId="backlog-toggle-completed-sprints-btn"
-          >
-            {showCompletedSprints ? 'Hide Completed Sprints' : 'Show Completed Sprints'}
-          </Button>
           {checkAccess(Permission.CreateSprints, projectId) && (
             <Button onClick={showCreateModal} dataTestId="backlog-create-sprint-btn">
               Create sprint
@@ -565,27 +610,10 @@ export default function BacklogPage() {
           data-testid="backlog-section"
           totalIssue={ticketsBySprintId?.backlog?.length ?? 0}
         >
-          <DroppableTicketItems
-            onTicketChanged={fetchBacklogData}
-            data={ticketsBySprintId.backlog}
-            isBacklog
-            droppableId="backlog"
-            unresolvedQuestionsByTicket={unresolvedQuestionsByTicket}
-            onLabelClick={onLabelClick}
-          />
-          <CreateIssue
-            onIssueCreate={(data: ICreateIssue) =>
-              onIssueCreate({
-                title: data.name,
-                type: data.type,
-                sprintId: null
-              })
-            }
-            showDropDownOnTop={calculateShowDropDownTop()}
-          />
+          {renderBacklogTickets()}
         </BacklogSection>
       </DragDropContext>
-      {Object.values(ticketsBySprintId).flat().length === 0 && (
+      {!isTicketsLoading && Object.values(ticketsBySprintId).flat().length === 0 && (
         <div className="mt-8 text-center">
           <div data-testid="empty-ticket-result" className="empty-state">
             There is nothing that matches this filter.

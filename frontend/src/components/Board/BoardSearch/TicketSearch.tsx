@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import styles from './BoardSearch.module.scss';
 import UserFilter from './components/UserFilter/UserFilter';
 import SearchForBoard from './components/SearchForBoard/SearchForBoard';
@@ -9,6 +9,8 @@ import TicketLabelFilter from './components/TicketLabelFilter/TicketLabelFilter'
 import { ILabelData, ITypes } from '../../../types';
 import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import TicketEpicFilter from './components/TicketEpicFilter/TicketEpicFilter';
+import ShowCompletedSprintsCheckbox from './components/ShowCompletedSprintsCheckbox/ShowCompletedSprintsCheckbox';
+import useIsStickyElementPinned from '../../../hooks/useIsStickyElementPinned';
 
 export interface IFilterData {
   userIds: string[] | null;
@@ -21,15 +23,21 @@ export interface IFilterData {
 interface IBoardToolbarProps {
   onChangeFilter: (filterData: IFilterData) => void;
   actions?: React.ReactNode;
+  showCompletedSprints?: {
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+  };
 }
 
 function BoardToolbar(props: IBoardToolbarProps) {
-  const { onChangeFilter, actions } = props;
+  const { onChangeFilter, actions, showCompletedSprints } = props;
   const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<ILabelData[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<ITypes[]>([]);
   const [selectedEpics, setSelectedEpics] = useState<any[]>([]);
   const [inputQuery, setInputQuery] = useState<string>('');
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const isToolbarPinned = useIsStickyElementPinned(toolbarRef);
 
   const projectDetails = useContext(ProjectDetailsContext);
 
@@ -51,7 +59,12 @@ function BoardToolbar(props: IBoardToolbarProps) {
   }, [selectedUsers, selectedTypes, selectedEpics, selectedLabels, inputQuery]);
 
   return (
-    <div className={styles.searchBarContainer}>
+    <div
+      ref={toolbarRef}
+      className={`${styles.searchBarContainer} ${
+        isToolbarPinned ? styles.searchBarContainerPinned : ''
+      }`}
+    >
       <div className={styles.searchInputContainer}>
         <SearchForBoard setInputQuery={setInputQuery} />
       </div>
@@ -73,6 +86,13 @@ function BoardToolbar(props: IBoardToolbarProps) {
         changeSelectedEpics={changeSelectedItems}
         dataTestId="epic-filter"
       />
+      {showCompletedSprints && (
+        <ShowCompletedSprintsCheckbox
+          checked={showCompletedSprints.checked}
+          onChange={showCompletedSprints.onChange}
+          dataTestId="backlog-toggle-completed-sprints-btn"
+        />
+      )}
       <TicketLabelFilter selectedLabels={selectedLabels} setSelectedLabels={setSelectedLabels} />
       {actions && <div className={styles.addNewButtonContainer}>{actions}</div>}
     </div>
