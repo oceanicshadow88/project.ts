@@ -39,14 +39,27 @@
     transition-duration: 0s, 0.15s;
   }
 }
+
 .searchBarContainer {
-  margin: 30px 0;
-  z-index: 1;
+  position: sticky;
+  top: var(--top-nav-height, 62px);
+  margin: 18px 0;
+  padding: 12px 0;
+  background: #f6f8f9;
+  border-bottom: 1px solid transparent;
+  z-index: 10;
   display: flex;
   align-items: center;
+  transition: box-shadow 150ms ease, border-color 150ms ease;
   @media (max-width: 800px) {
+    position: static;
     flex-direction: column;
   }
+}
+
+.searchBarContainerPinned {
+  border-bottom-color: #e4e7ec;
+  box-shadow: 0 6px 8px -6px rgba(15, 23, 42, 0.18);
 }
 
 .searchInputContainer {

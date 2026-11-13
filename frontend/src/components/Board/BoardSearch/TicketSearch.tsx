@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import styles from './BoardSearch.module.scss';
 import UserFilter from './components/UserFilter/UserFilter';
 import SearchForBoard from './components/SearchForBoard/SearchForBoard';
@@ -10,6 +10,7 @@ import { ILabelData, ITypes } from '../../../types';
 import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
 import TicketEpicFilter from './components/TicketEpicFilter/TicketEpicFilter';
 import ShowCompletedSprintsCheckbox from './components/ShowCompletedSprintsCheckbox/ShowCompletedSprintsCheckbox';
+import useIsStickyElementPinned from '../../../hooks/useIsStickyElementPinned';
 
 export interface IFilterData {
   userIds: string[] | null;
@@ -35,6 +36,8 @@ function BoardToolbar(props: IBoardToolbarProps) {
   const [selectedTypes, setSelectedTypes] = useState<ITypes[]>([]);
   const [selectedEpics, setSelectedEpics] = useState<any[]>([]);
   const [inputQuery, setInputQuery] = useState<string>('');
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const isToolbarPinned = useIsStickyElementPinned(toolbarRef);
 
   const projectDetails = useContext(ProjectDetailsContext);
 
@@ -56,7 +59,12 @@ function BoardToolbar(props: IBoardToolbarProps) {
   }, [selectedUsers, selectedTypes, selectedEpics, selectedLabels, inputQuery]);
 
   return (
-    <div className={styles.searchBarContainer}>
+    <div
+      ref={toolbarRef}
+      className={`${styles.searchBarContainer} ${
+        isToolbarPinned ? styles.searchBarContainerPinned : ''
+      }`}
+    >
       <div className={styles.searchInputContainer}>
         <SearchForBoard setInputQuery={setInputQuery} />
       </div>
