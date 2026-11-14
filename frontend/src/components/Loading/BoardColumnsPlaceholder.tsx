@@ -3,12 +3,12 @@ import Placeholder from './Placeholder';
 import styles from './BoardColumnsPlaceholder.module.scss';
 
 interface IBoardColumnsPlaceholderProps {
-  columns?: number;
-  cardsPerColumn?: number;
-  dropdowns?: number;
-  cardHeight?: number;
-  withToolbar?: boolean;
-  dataTestId?: string;
+  readonly columns?: number;
+  readonly cardsPerColumn?: number;
+  readonly dropdowns?: number;
+  readonly cardHeight?: number;
+  readonly withToolbar?: boolean;
+  readonly dataTestId?: string;
 }
 
 export default function BoardColumnsPlaceholder({
@@ -33,11 +33,9 @@ export default function BoardColumnsPlaceholder({
         ))}
       </div>
       {withToolbar && (
-        <>
-          <div className={styles.toolbar}>
-            <Placeholder width={500} height={36} radius={4} />
-          </div>
-        </>
+        <div className={styles.toolbar}>
+          <Placeholder width={500} height={36} radius={4} />
+        </div>
       )}
       <div className={styles.columnsRow}>
         {columnKeys.map((columnKey) => (

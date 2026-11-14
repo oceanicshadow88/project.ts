@@ -108,14 +108,11 @@ export default function RetroPage() {
       return;
     }
 
-    (async () => {
-      try {
-        await fetchBoards();
-        await fetchRetroItems(selectedSprintId);
-      } finally {
+    Promise.all([fetchBoards(), fetchRetroItems(selectedSprintId)])
+      .finally(() => {
         setIsRetroLoading(false);
-      }
-    })();
+      })
+      .catch(() => {});
   }, [selectedSprintId, projectDetails.isLoadingDetails]);
 
   if (projectDetails.isLoadingDetails) {
