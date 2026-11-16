@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { AiOutlineSend } from 'react-icons/ai';
-import { canSendMessage } from '../../utils/aiChatService';
+import { canSendMessage } from '../../utils/aiChatUtil';
 import styles from './AiChat.module.scss';
 
 interface IAiChatInput {

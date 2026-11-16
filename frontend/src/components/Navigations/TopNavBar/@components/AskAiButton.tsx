@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from 'react';
 import { FaRobot } from 'react-icons/fa';
 import { AiChatContext } from '../../../../context/AiChatProvider';
-import { getAskAiButtonState } from '../../../../utils/aiChatService';
+import { getAskAiButtonState } from '../../../../utils/aiChatUtil';
 
 export default function AskAiButton() {
   const { isOpen, setIsOpen, activeProjectId } = useContext(AiChatContext);

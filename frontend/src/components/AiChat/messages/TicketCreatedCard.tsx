@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AiOutlineCheckCircle } from 'react-icons/ai';
 import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
 import { CreatedTicket } from '../../../types/aiChat';
-import { getCreatedTicketSummary } from '../../../utils/aiChatService';
+import { getCreatedTicketSummary } from '../../../utils/aiChatUtil';
 import styles from '../AiChat.module.scss';
 
 interface ITicketCreatedCard {

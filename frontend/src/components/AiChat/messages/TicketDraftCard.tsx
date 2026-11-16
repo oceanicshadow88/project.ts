@@ -11,7 +11,7 @@ import {
   getDraftFieldValues,
   getDraftOptions,
   isDraftValid
-} from '../../../utils/aiChatService';
+} from '../../../utils/aiChatUtil';
 import { IMinEvent } from '../../../types';
 import styles from '../AiChat.module.scss';
 

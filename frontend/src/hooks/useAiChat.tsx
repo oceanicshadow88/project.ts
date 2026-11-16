@@ -23,7 +23,7 @@ import {
   startRequest,
   updateAssistantMessage,
   updateConversationIn
-} from '../utils/aiChatService';
+} from '../utils/aiChatUtil';
 
 // DashboardLayout tells the chat which project is open, and gets back whether to show the panel
 export function useAiChatProject(projectId: string | null) {

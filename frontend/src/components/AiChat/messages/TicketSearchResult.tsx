@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { PriorityIcon } from '../../Form/PriorityBtn/PriorityBtn';
 import { AiChatFilter, TicketSummary } from '../../../types/aiChat';
-import { getShownTickets, getTicketStatusName } from '../../../utils/aiChatService';
+import { getShownTickets, getTicketStatusName } from '../../../utils/aiChatUtil';
 import styles from '../AiChat.module.scss';
 
 interface ITicketSearchResult {
