@@ -58,11 +58,12 @@ export default function TicketItem({
   const { projectId = '' } = useParams();
 
   const updateTicketTitleContent = async () => {
-    if (title.trim() === ticket.title) {
+    const nextTitle = title.trim();
+    if (nextTitle === ticket.title) {
       return;
     }
-    const data = { title: title.trim() };
-    await updateTicket(ticket.id, data);
+    setTitle(nextTitle);
+    await updateTicket(ticket.id, { title: nextTitle });
     onTicketChanged();
   };
 
@@ -80,13 +81,12 @@ export default function TicketItem({
 
   const { visible, setVisible, myRef } = useOutsideAlerter(false);
 
-  const saveKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const saveKeyPress = async (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key !== 'Enter') {
       return;
     }
-    updateTicketTitleContent();
     setVisible(false);
-    onTicketChanged();
+    await updateTicketTitleContent();
   };
 
   const onClickDelete = async () => {
@@ -162,6 +162,7 @@ export default function TicketItem({
   };
 
   const onSavedTicket = async (data: ITicketDetails) => {
+    setTitle(data.title);
     const updateData = {
       ...data,
       project: data.project.id,
@@ -244,7 +245,7 @@ export default function TicketItem({
             data-testid={`ticket-${ticket.id}`}
             style={{ maxWidth: '60%' }}
           >
-            <div className="truncate overflow-hidden w-full mb-1">{ticket.title}</div>
+            <div className="truncate overflow-hidden w-full mb-1">{title}</div>
             {(ticket as any).labels && (ticket as any).labels.length > 0 && (
               <div className="flex flex-wrap gap-2.5 mt-1">
                 {[...((ticket as any).labels || [])]
