@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { createTicketFromDraft, sendAiChat } from '../api/ai/chat';
+import { createTicketFromDraft, sendAiChat, USE_AI_CHAT_MOCK } from '../api/ai/chat';
 import {
   AiChatConversations,
   AiChatMessage,
@@ -13,7 +13,6 @@ import {
   TicketDraft,
   TicketSummary
 } from '../types/aiChat';
-import config from '../config/config';
 import { ISprint, ITicketInput, ITypes, IUserInfo } from '../types';
 import checkAccess from './helpers';
 import { Permission } from './permission';
@@ -61,7 +60,7 @@ export const updateConversationIn = (
   [projectId]: update(conversations[projectId] ?? EMPTY_CONVERSATION)
 });
 
-export const isDemoMode = () => config.aiChatMock;
+export const isDemoMode = () => USE_AI_CHAT_MOCK;
 
 export const isWaitingForReply = (conversation: IAiChatConversation) =>
   conversation.pendingRequestId !== null;
