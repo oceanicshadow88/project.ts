@@ -26,9 +26,11 @@ import {
   onRetroItemBroadcast
 } from '../../../utils/socket';
 import Dropdown from '../../../lib/FormV3/Dropdown/Dropdown';
+import BoardColumnsPlaceholder from '../../../components/Loading/BoardColumnsPlaceholder';
 
 export default function RetroPage() {
   const [retroItems, setRetroItems] = useState<IRetroItem[]>([]);
+  const [isRetroLoading, setIsRetroLoading] = useState(true);
   const [retroItemsUpdated, setRetroItemsUpdated] = useState<boolean>(false);
   const [boardDetails, setBoardDetails] = useState<any>();
   const [selectedSprintId, setSelectedSprintId] = useState<string>('');
@@ -92,6 +94,7 @@ export default function RetroPage() {
       ? projectDetails.sprints.find((item) => item.id === sprintId)
       : projectDetails.sprints.find((item) => item.status === 'active');
     if (!result) {
+      setIsRetroLoading(false);
       return;
     }
     setSelectedSprintId(result.id);
@@ -105,15 +108,28 @@ export default function RetroPage() {
       return;
     }
 
-    fetchBoards();
-    fetchRetroItems(selectedSprintId);
+    Promise.all([fetchBoards(), fetchRetroItems(selectedSprintId)])
+      .finally(() => {
+        setIsRetroLoading(false);
+      })
+      .catch(() => {});
   }, [selectedSprintId, projectDetails.isLoadingDetails]);
 
   if (projectDetails.isLoadingDetails) {
-    return <></>;
+    return (
+      <ProjectHOC title="Board">
+        <div className={styles.boardMainContainer}>
+          <BoardColumnsPlaceholder
+            columns={3}
+            dropdowns={2}
+            cardHeight={55}
+            dataTestId="retro-loading"
+          />
+        </div>
+      </ProjectHOC>
+    );
   }
   const hasSprint = projectDetails.sprints.some((item) => item.status === 'active') && boardDetails;
-  const loading = projectDetails.isLoadingDetails;
 
   const onRetroItemCreate = async (data: IRetroItem, columnId: string) => {
     if (data.content === '') {
@@ -165,9 +181,6 @@ export default function RetroPage() {
     setSelectedSprintId(e.target.value as string);
   };
 
-  if (loading) {
-    return <></>;
-  }
   const ticketByStatus = retroItems?.groupBy('status') ?? [];
 
   const sprintsOptions = projectDetails.sprints
@@ -188,10 +201,20 @@ export default function RetroPage() {
 
   return (
     <ProjectHOC title="Board">
-      {(!hasSprint || !selectedBoard || !boardDetails) && (
+      {isRetroLoading && (
+        <div className={styles.boardMainContainer}>
+          <BoardColumnsPlaceholder
+            columns={3}
+            dropdowns={2}
+            cardHeight={55}
+            dataTestId="retro-loading"
+          />
+        </div>
+      )}
+      {!isRetroLoading && (!hasSprint || !selectedBoard || !boardDetails) && (
         <p className={styles.noSprint}>No Active Sprint</p>
       )}
-      {hasSprint && (
+      {!isRetroLoading && hasSprint && (
         <>
           <div className={styles.filterRow}>
             <div style={{ maxWidth: '250px', width: '100%' }}>

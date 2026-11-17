@@ -232,7 +232,7 @@ export default function BoardPage() {
     return (
       <ProjectHOC title="Board">
         <div className="px-5">
-          <BoardColumnsPlaceholder withHeader dataTestId="board-loading" />
+          <BoardColumnsPlaceholder withToolbar dataTestId="board-loading" />
         </div>
       </ProjectHOC>
     );
@@ -243,7 +243,7 @@ export default function BoardPage() {
       <div className="px-5">
         {isTicketsLoading && (
           <BoardColumnsPlaceholder
-            withHeader
+            withToolbar
             columns={projectDetails.statuses?.length || undefined}
             dataTestId="board-loading"
           />
