@@ -73,6 +73,15 @@ import * as promptValidation from '../../validations/promptValidation';
 import * as promptController from '../../controllers/v1/promptController';
 import * as apiTokenController from '../../controllers/v1/apiTokenController';
 import * as apiTokenValidation from '../../validations/apiToken';
+import { mcpAuthMiddleware } from '../../middleware/mcpAuthMiddleware';
+
+// MCP requests
+router.post(
+  '/tickets/validate-title',
+  mcpAuthMiddleware,
+  ticketValidation.validateProposedTitle,
+  ticketTitleValidationController.validateProposedTitle,
+);
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -230,13 +239,6 @@ router.get(
 );
 
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
-
-router.post(
-  '/tickets/validate-title',
-  authenticationTokenMiddleware,
-  ticketValidation.validateProposedTitle,
-  ticketTitleValidationController.validateProposedTitle,
-);
 
 router.post(
   '/tickets/:id/validate-title',
