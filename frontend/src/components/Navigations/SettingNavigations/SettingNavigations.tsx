@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AiOutlineSetting, AiOutlineUnorderedList } from 'react-icons/ai';
 import { BsBriefcase } from 'react-icons/bs';
-import { MdLabel, MdCheckCircle } from 'react-icons/md';
+import { MdLabel, MdCheckCircle, MdManageAccounts } from 'react-icons/md';
 import styles from './SettingNavigations.module.scss';
-import checkAccess from '../../../utils/helpers';
+import checkAccess, { isProjectAdmin } from '../../../utils/helpers';
+import { UserContext } from '../../../context/UserInfoProvider';
 
 interface IItem {
   name: string;
@@ -22,6 +23,8 @@ export default function SettingNavigations() {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const { projectId = '' } = useParams();
+  const currentUser = useContext(UserContext);
+  const isAdmin = isProjectAdmin(currentUser, projectId);
 
   const buttons = [
     {
@@ -52,6 +55,14 @@ export default function SettingNavigations() {
       icon: <MdCheckCircle />,
       dataTestId: 'statuses',
       active: location.pathname === `/projects/${projectId}/settings/statuses`
+    },
+    {
+      name: 'Service Account',
+      isVisible: isAdmin === true,
+      url: `/projects/${projectId}/settings/service-account`,
+      icon: <MdManageAccounts />,
+      dataTestId: 'service-account',
+      active: location.pathname === `/projects/${projectId}/settings/service-account`
     },
     {
       name: 'Custom Fields (WIP)',
@@ -92,7 +103,11 @@ export default function SettingNavigations() {
     return (
       <ul className={[styles.menu, isMenuOpen ? '' : styles.menuCollapsed].join(' ')}>
         {buttons
-          .filter((item) => !item.checkAccess || checkAccess(item.checkAccess, projectId))
+          .filter(
+            (item) =>
+              item.isVisible !== false &&
+              (!item.checkAccess || checkAccess(item.checkAccess, projectId))
+          )
           .map((item) => {
             return (
               <li

@@ -8,6 +8,7 @@ import { authenticationTokenMiddleware } from '../../middleware/authMiddleware';
 import { authenticationEmailTokenMiddlewareV2 } from '../../middleware/registerMiddlewareV2';
 import { authenticationForgetPasswordMiddleware } from '../../middleware/forgetPasswordMiddleware';
 import { requireProductOwner } from '../../middleware/productOwnerMiddleware';
+import { requireProjectAdmin } from '../../middleware/projectAdminMiddleware';
 import * as loginControllerV2 from '../../controllers/v1/loginControllerV2';
 import * as loginValidation from '../../validations/login';
 import * as registerValidation from '../../validations/register';
@@ -70,6 +71,8 @@ import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
 import * as promptValidation from '../../validations/promptValidation';
 import * as promptController from '../../controllers/v1/promptController';
+import * as apiTokenController from '../../controllers/v1/apiTokenController';
+import * as apiTokenValidation from '../../validations/apiToken';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -329,6 +332,13 @@ router.delete(
   permissionMiddleware.permission('delete:projects'),
   projectValidation.remove,
   projectsController.deleteOne,
+);
+router.post(
+  '/projects/:id/api-tokens',
+  authenticationTokenMiddleware,
+  apiTokenValidation.store,
+  requireProjectAdmin,
+  apiTokenController.store,
 );
 //TODO: s
 router.post('/projects/:id/shortcuts', shortcutValidation.store, shortcutControllers.store);

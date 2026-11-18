@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import axios from 'axios';
 import config from '../config/config';
-import { IProjectRole, IPermission } from '../types';
+import { IProjectRole, IPermission, IUserInfo } from '../types';
 
 let roleData: any = {};
 let userProjectRoles: any = {};
@@ -57,6 +57,22 @@ const checkAccess = (accessLevel: string, projectId?: string) => {
   } catch (error) {
     return false;
   }
+};
+
+interface ProjectRole {
+  project: string;
+  role: string | { slug: string };
+}
+
+export const isProjectAdmin = (currentUser: IUserInfo, projectId: string): boolean => {
+  if (!currentUser.id) return false;
+
+  const projectRoles: ProjectRole[] = currentUser.projectsRoles ?? [];
+  const isAdmin = projectRoles.some(
+    ({ project, role }) =>
+      project === projectId && typeof role === 'object' && role?.slug === 'admin'
+  );
+  return isAdmin;
 };
 
 export const projectRolesToObject = (projectsRoles: any) => {
