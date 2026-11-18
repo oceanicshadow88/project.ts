@@ -94,8 +94,16 @@ function TicketDetailCard({
   };
 
   const handleTitleInputBlur = () => {
-    onSavedTicket(ticketInfo);
+    if (ticketInfo) {
+      onSavedTicket(ticketInfo);
+    }
     setEditTitle(false);
+  };
+
+  // Title is saved once on blur / Enter, not on every keystroke
+  const onTitleChange = (value: string) => {
+    if (!ticketInfo) return;
+    setTicketInfo({ ...ticketInfo, title: value });
   };
 
   const onDefaultChange = async (fieldName: string, value: any) => {
@@ -381,7 +389,7 @@ function TicketDetailCard({
               onKeyDown={handleKeyPress}
               onBlur={handleTitleInputBlur}
               onChange={(e) => {
-                onDefaultChange('title', e.target.value);
+                onTitleChange(e.target.value);
               }}
             />
           ) : (

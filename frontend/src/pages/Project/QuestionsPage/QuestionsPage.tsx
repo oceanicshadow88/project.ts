@@ -20,6 +20,7 @@ import ProjectHOC from '../../../components/HOC/ProjectHOC';
 import QuestionItem from '../../../components/QuestionItem/QuestionItem';
 import SendToPOModal from '../../../components/QuestionItem/components/SendToPOModal/SendToPOModal';
 import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
+import Placeholder from '../../../components/Loading/Placeholder';
 import styles from './QuestionsPage.module.scss';
 
 interface QuestionWithTicket extends IQuestion {
@@ -34,6 +35,9 @@ interface QuestionWithTicket extends IQuestion {
   };
   replies?: IReply[];
 }
+
+const SECTION_TITLES = ['Current Sprint', 'Planning Sprint', 'Other'];
+const QUESTION_ITEM_HEIGHT = 150;
 
 function QuestionsPage() {
   const { projectId } = useParams();
@@ -221,7 +225,17 @@ function QuestionsPage() {
   if (isLoading) {
     return (
       <ProjectHOC title="Questions">
-        <div className={styles.loading}>Loading questions...</div>
+        <div className={styles.container}>
+          {SECTION_TITLES.map((sectionTitle) => (
+            <div key={sectionTitle} className={styles.section}>
+              {/* SectionTitle CSS */}
+              <div className="flex items-center justify-between mb-4 border-b-2 border-gray-200 pb-2">
+                <Placeholder width={180} height={24} />
+              </div>
+              <Placeholder height={QUESTION_ITEM_HEIGHT} radius={8} />
+            </div>
+          ))}
+        </div>
       </ProjectHOC>
     );
   }

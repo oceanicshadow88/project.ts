@@ -6,6 +6,7 @@ import TimeAgo from '../../../TimeAgo/TimeAgo';
 import Avatar from '../../../Avatar/Avatar';
 import { getActivity } from '../../../../api/activity/activity';
 import { IActivityData, ITicketDetails } from '../../../../types';
+import CommentsPlaceholder from '../../../Loading/CommentsPlaceholder';
 
 interface IActivitiesSessionProps {
   ticketId: string;
@@ -14,6 +15,7 @@ interface IActivitiesSessionProps {
 
 export default function ActivitiesSession({ ticketId, ticketInfo }: IActivitiesSessionProps) {
   const [activities, setActivities] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchActivities = async () => {
     const { data } = await getActivity(ticketId);
@@ -21,8 +23,12 @@ export default function ActivitiesSession({ ticketId, ticketInfo }: IActivitiesS
   };
 
   const setActivitiesData = async () => {
-    const activitiesData = await fetchActivities();
-    setActivities(activitiesData);
+    try {
+      const activitiesData = await fetchActivities();
+      setActivities(activitiesData);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -139,6 +145,10 @@ export default function ActivitiesSession({ ticketId, ticketInfo }: IActivitiesS
       </p>
     );
   };
+
+  if (isLoading) {
+    return <CommentsPlaceholder dataTestId="activities-loading" />;
+  }
 
   return (
     <>

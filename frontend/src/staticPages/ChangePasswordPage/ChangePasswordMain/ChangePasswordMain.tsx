@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import styles from './ChangePasswordMain.module.scss';
 import Icon from '../../../assets/logo.svg';
 import Error from '../../../assets/error.png';
-import Loading from '../../../components/Loading/Loading';
+import BounceLoading from '../../../components/Loading/BounceLoading';
 import { getResetPasswordApplication, setPassword } from '../../../api/resetPassword/resetPassword';
 import { IResetPasswordForm } from '../../../types';
 
@@ -79,7 +79,7 @@ export default function RegisterMain() {
   };
 
   if (loading) {
-    return <Loading />;
+    return <BounceLoading />;
   }
   if (invalideTokenStatus) {
     return <div />;

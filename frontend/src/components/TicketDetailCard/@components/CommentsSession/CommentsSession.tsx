@@ -18,6 +18,7 @@ import checkAccess from '../../../../utils/helpers';
 import Avatar from '../../../Avatar/Avatar';
 import TimeAgo from '../../../TimeAgo/TimeAgo';
 import { Permission } from '../../../../utils/permission';
+import CommentsPlaceholder from '../../../Loading/CommentsPlaceholder';
 import styles from './CommentsSession.module.scss';
 
 interface ICommentsSessionProps {
@@ -169,20 +170,7 @@ function CommentsSession(Props: ICommentsSessionProps) {
 
   const renderCommentsList = () => {
     if (isLoading) {
-      return (
-        <div className={styles.loading} data-testid="comments-loading">
-          {[0, 1].map((row) => (
-            <div key={row} className={styles.skeletonItem}>
-              <div className={styles.skeletonHeader}>
-                <span className={styles.skeletonAvatar} />
-                <span className={styles.skeletonName} />
-              </div>
-              <span className={styles.skeletonLine} />
-              <span className={`${styles.skeletonLine} ${styles.short}`} />
-            </div>
-          ))}
-        </div>
-      );
+      return <CommentsPlaceholder dataTestId="comments-loading" />;
     }
 
     if (!comments.length) {

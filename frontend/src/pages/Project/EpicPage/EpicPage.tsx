@@ -10,9 +10,10 @@ import ProjectHOC from '../../../components/HOC/ProjectHOC';
 import ProjectSectionHOC from '../../../components/HOC/ProjectSectionHOC/ProjectSectionHOC';
 import CreateIssue, { ICreateIssue } from '../../../components/Projects/CreateIssue/CreateIssue';
 import DroppableTicketItems from '../../../components/Projects/DroppableTicketItems/DroppableTicketItems';
+import TicketRowsPlaceholder from '../../../components/Loading/TicketRowsPlaceholder';
 import { ModalContext } from '../../../context/ModalProvider';
 import { ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
-import { ITicketBasic, ITicketInput } from '../../../types';
+import { IEpicData, ITicketBasic, ITicketInput } from '../../../types';
 import CreateEditEpic from './components/CreateEditEpic/CreateEditEpic';
 import styles from './EpicPage.module.scss';
 import { customCompare, generateKeyBetween } from '../../../utils/lexoRank';
@@ -20,6 +21,7 @@ import { customCompare, generateKeyBetween } from '../../../utils/lexoRank';
 function EpicPage() {
   const { projectId = '' } = useParams();
   const [tickets, setTickets] = useState<ITicketBasic[]>([]);
+  const [isTicketsLoading, setIsTicketsLoading] = useState(true);
   const [currentFilter, setCurrentFilter] = useState<IFilterData | null>(null);
   const { showModal, closeModal } = useContext(ModalContext);
   const projectDetails = useContext(ProjectDetailsContext);
@@ -32,6 +34,8 @@ function EpicPage() {
       toast.error(error instanceof Error ? error.message : 'Temporary Server Error. Try Again.', {
         theme: 'colored'
       });
+    } finally {
+      setIsTicketsLoading(false);
     }
   };
 
@@ -143,6 +147,38 @@ function EpicPage() {
     );
   };
 
+  const renderEpicTickets = (epic: IEpicData, epicTickets: ITicketBasic[]) => {
+    if (isTicketsLoading) {
+      return <TicketRowsPlaceholder rows={2} dataTestId={`epic-loading-${epic.id}`} />;
+    }
+
+    const lastTicket = epicTickets.at(-1);
+
+    return (
+      <>
+        <DroppableTicketItems
+          onTicketChanged={fetchBacklogData}
+          data={epicTickets}
+          droppableId={epic.id}
+          onLabelClick={onLabelClick}
+        />
+        <CreateIssue
+          onIssueCreate={(data: ICreateIssue) =>
+            onIssueCreate({
+              title: data.name,
+              type: data.type,
+              projectId,
+              epicId: epic.id,
+              dueAt: new Date(),
+              description: '',
+              epicRank: generateKeyBetween(lastTicket?.epicRank ?? null, null)
+            })
+          }
+        />
+      </>
+    );
+  };
+
   const epicDataFromBackend = projectDetails?.epics ?? [];
 
   return (
@@ -221,7 +257,6 @@ function EpicPage() {
             })
             .map((epic) => {
               const epicTickets = sortByEpicRank(ticketsByEpicId[epic.id]);
-              const lastTicket = epicTickets.at(-1);
               return (
                 <ProjectSectionHOC
                   key={epic.id}
@@ -232,25 +267,7 @@ function EpicPage() {
                   totalIssue={epicTickets.length}
                   dataTestId={`epic-${epic.id}`}
                 >
-                  <DroppableTicketItems
-                    onTicketChanged={fetchBacklogData}
-                    data={epicTickets}
-                    droppableId={epic.id}
-                    onLabelClick={onLabelClick}
-                  />
-                  <CreateIssue
-                    onIssueCreate={(data: ICreateIssue) =>
-                      onIssueCreate({
-                        title: data.name,
-                        type: data.type,
-                        projectId,
-                        epicId: epic.id,
-                        dueAt: new Date(),
-                        description: '',
-                        epicRank: generateKeyBetween(lastTicket?.epicRank ?? null, null)
-                      })
-                    }
-                  />
+                  {renderEpicTickets(epic, epicTickets)}
                 </ProjectSectionHOC>
               );
             })}

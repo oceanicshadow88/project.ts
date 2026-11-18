@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
 import { MdContentCopy, MdTitle } from 'react-icons/md';
 import { HiChevronDoubleUp, HiChevronUp, HiChevronDown, HiChevronDoubleDown } from 'react-icons/hi';
@@ -31,6 +31,11 @@ export default function DraggableBoardCard(props: IDraggableBoardCard) {
   const { item, index, projectId, onTicketUpdated, unresolvedQuestions = [] } = props;
   const { showModal } = useContext(ModalContext);
   const projectDetails = useContext(ProjectDetailsContext);
+  const [title, setTitle] = useState(item.title);
+
+  useEffect(() => {
+    setTitle(item.title);
+  }, [item.title]);
 
   const handleDeletedTicket = async (id: string) => {
     await removeTicket(id);
@@ -38,6 +43,7 @@ export default function DraggableBoardCard(props: IDraggableBoardCard) {
   };
 
   const handleSavedTicket = async (data: ITicketDetails) => {
+    setTitle(data.title);
     const updateData = {
       ...data,
       ...{ project: data.project.id },
@@ -57,7 +63,7 @@ export default function DraggableBoardCard(props: IDraggableBoardCard) {
 
   const onClickCopyTitle = () => {
     const ticketNumber = `${projectDetails.details.key}-${item.ticketNumber}`;
-    const fullTitle = `${ticketNumber}: ${item.title}`;
+    const fullTitle = `${ticketNumber}: ${title}`;
     navigator.clipboard.writeText(fullTitle);
     toast.success('Title Copied', {
       theme: 'colored',
@@ -162,7 +168,7 @@ export default function DraggableBoardCard(props: IDraggableBoardCard) {
             {/* Title and Assignee Column */}
             <div className={styles.titleAssigneeSection}>
               <p className={styles.titleLine}>
-                {item?.title
+                {title
                   ?.split(' ')
                   .map((word: string) => {
                     return word.length > 27 ? `${word.substring(0, 27)}...` : word;

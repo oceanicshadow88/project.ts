@@ -1,11 +1,11 @@
 import React from 'react';
-import styles from './Loading.module.scss';
+import styles from './BounceLoading.module.scss';
 
-interface ILoading {
+interface IBounceLoading {
   height?: string;
 }
 
-export default function Loading(props: ILoading) {
+export default function BounceLoading(props: IBounceLoading) {
   const { height = '90vh' } = props;
   return (
     <div className={styles.loadingContainer} style={{ height }}>
@@ -19,6 +19,6 @@ export default function Loading(props: ILoading) {
   );
 }
 
-Loading.defaultProps = {
+BounceLoading.defaultProps = {
   height: '90vh'
 };

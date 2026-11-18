@@ -4,6 +4,10 @@ const show = [param('id').notEmpty()];
 
 const validateTitle = [param('id').isMongoId().withMessage('A valid ticket id is required')];
 
+const validateProposedTitle = [
+  body('title').isString().bail().trim().notEmpty().withMessage('A ticket title is required'),
+];
+
 const validateSummary = [
   param('projectId').notEmpty().withMessage('projectId is required').isString(),
   query('summaryBy')
@@ -29,4 +33,4 @@ const update = [
 
 const remove = [param('id').notEmpty().isString()];
 
-export { show, store, update, remove, validateSummary, validateEpicSummary, migrateRanks, validateTitle };
+export { show, store, update, remove, validateSummary, validateEpicSummary, migrateRanks, validateTitle, validateProposedTitle };
