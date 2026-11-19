@@ -17,7 +17,6 @@
 .backlogUserIcon {
   height: 25px;
   width: 25px;
-  // keep the circle round when a long user name shares the flex row
   flex-shrink: 0;
   border-radius: 100%;
   cursor: pointer;
