@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { Request } from 'express';
 import * as ApiToken from '../model/apiToken';
 import mongoose from 'mongoose';

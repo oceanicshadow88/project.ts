@@ -10,7 +10,7 @@ interface ApiTokenModalProps {
   onClose: () => void;
 }
 
-export default function ApiTokenModal({ token, onClose }: ApiTokenModalProps) {
+export default function ApiTokenModal({ token, onClose }: Readonly<ApiTokenModalProps>) {
   const onClickCopyToken = async () => {
     try {
       await navigator.clipboard.writeText(token);
