@@ -11,12 +11,16 @@ interface ApiTokenModalProps {
 }
 
 export default function ApiTokenModal({ token, onClose }: ApiTokenModalProps) {
-  const onClickCopyToken = () => {
-    navigator.clipboard.writeText(token);
-    toast.success('API Token Copied', {
-      theme: 'colored',
-      className: 'primaryColorBackground'
-    });
+  const onClickCopyToken = async () => {
+    try {
+      await navigator.clipboard.writeText(token);
+      toast.success('API Token Copied', {
+        theme: 'colored',
+        className: 'primaryColorBackground'
+      });
+    } catch {
+      toast.error('Unable to copy API token. Please try again.');
+    }
   };
 
   return (
