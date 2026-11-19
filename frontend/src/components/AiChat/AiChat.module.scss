@@ -299,7 +299,7 @@ $panelWidth: 400px;
 }
 
 // More room for each option in the draft card dropdowns; the hover bar matches the taller row
-.fieldset .draftOptions button {
+div.draftOptions button {
   padding: 12px 16px;
 
   &:hover::before,
