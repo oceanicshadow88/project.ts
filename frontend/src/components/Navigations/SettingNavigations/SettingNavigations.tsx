@@ -16,6 +16,7 @@ interface IItem {
   checkAccess?: string;
   action?: () => void;
   active?: boolean;
+  isVisible?: boolean;
 }
 
 export default function SettingNavigations() {
@@ -58,7 +59,7 @@ export default function SettingNavigations() {
     },
     {
       name: 'Service Account',
-      isVisible: isAdmin === true,
+      isVisible: isAdmin,
       url: `/projects/${projectId}/settings/service-account`,
       icon: <MdManageAccounts />,
       dataTestId: 'service-account',
