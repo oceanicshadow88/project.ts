@@ -5,12 +5,12 @@ import DefaultModalHeader from '../../../../../lib/Modal/ModalHeader/DefaultModa
 import DefaultModalBody from '../../../../../lib/Modal/ModalBody/DefaultModalHeader/DefaultModalBody';
 import styles from './ApiTokenModal.module.scss';
 
-interface ApiTokenModalProps {
+interface IApiTokenModalProps {
   token: string;
   onClose: () => void;
 }
 
-export default function ApiTokenModal({ token, onClose }: Readonly<ApiTokenModalProps>) {
+export default function ApiTokenModal({ token, onClose }: Readonly<IApiTokenModalProps>) {
   const onClickCopyToken = async () => {
     try {
       await navigator.clipboard.writeText(token);
