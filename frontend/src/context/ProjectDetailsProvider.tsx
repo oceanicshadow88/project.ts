@@ -35,6 +35,7 @@ export interface IProjectDetails {
   onUpdateEpic: (id: string, item: any) => void;
   onRemoveEpic: (itemId: string) => void;
   onUpdateStatus: (id: string, item: Partial<IStatus>) => void;
+  onUpdateBoard: (board: IBoard) => void;
 }
 
 const ProjectDetailsContext = createContext<IProjectDetails>({
@@ -83,6 +84,9 @@ const ProjectDetailsContext = createContext<IProjectDetails>({
   },
   onUpdateStatus: (id: string, item: Partial<IStatus>) => {
     return;
+  },
+  onUpdateBoard: (board: IBoard) => {
+    return;
   }
 });
 const ProjectDetailsDispatchContext = createContext<Dispatch<SetStateAction<IProjectDetails>>>(
@@ -120,7 +124,8 @@ function ProjectDetailsProvider({ children }: IProjectDetailsProvider) {
     onUpsertEpic: () => {},
     onUpdateEpic: () => {},
     onRemoveEpic: () => {},
-    onUpdateStatus: () => {}
+    onUpdateStatus: () => {},
+    onUpdateBoard: () => {}
   });
   const [isLoadingDetails, setIsLoadingDetails] = useState(true);
   const { projectId = null } = useParams();
@@ -210,6 +215,19 @@ function ProjectDetailsProvider({ children }: IProjectDetailsProvider) {
     }));
   };
 
+  const onUpdateBoard = (board: IBoard) => {
+    setDetails((prev) => {
+      const knownStatusIds = prev.statuses.map((item) => item.id);
+      const newStatuses = board.statuses.filter((item) => !knownStatusIds.includes(item.id));
+      const backlog = prev.statuses[prev.statuses.length - 1];
+      return {
+        ...prev,
+        boards: prev.boards.map((item) => (board.id === item.id ? board : item)),
+        statuses: [...prev.statuses.slice(0, -1), ...newStatuses, backlog]
+      };
+    });
+  };
+
   useEffect(() => {
     // Wait until we know who the current user is, so we can always inject them into the users list
     if (!currentUser || !currentUser.id) {
@@ -229,7 +247,8 @@ function ProjectDetailsProvider({ children }: IProjectDetailsProvider) {
         onUpsertEpic,
         onUpdateEpic,
         onRemoveEpic,
-        onUpdateStatus
+        onUpdateStatus,
+        onUpdateBoard
       }}
     >
       <ProjectDetailsDispatchContext.Provider value={setDetails}>

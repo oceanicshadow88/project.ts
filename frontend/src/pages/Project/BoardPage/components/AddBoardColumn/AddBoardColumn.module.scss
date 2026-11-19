@@ -1,0 +1,53 @@
+@import "../../../../../variables-only.scss";
+
+.addBtn {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0 10px;
+  border: none;
+  border-radius: 5px;
+  background: #f1f2f4;
+  color: #44546f;
+  font-size: 20px;
+  cursor: pointer;
+
+  &:hover {
+    background: #dcdfe4;
+  }
+}
+
+.form {
+  flex-shrink: 0;
+  width: 270px;
+  margin: 0 10px;
+}
+
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 2px solid $primaryColor;
+  border-radius: 5px;
+  font-size: 14px;
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 5px;
+  background: #f1f2f4;
+  cursor: pointer;
+
+  &:hover {
+    background: #dcdfe4;
+  }
+}

@@ -11,6 +11,7 @@ import { requireProductOwner } from '../../middleware/productOwnerMiddleware';
 import * as loginControllerV2 from '../../controllers/v1/loginControllerV2';
 import * as loginValidation from '../../validations/login';
 import * as registerValidation from '../../validations/register';
+import * as boardValidation from '../../validations/board';
 import * as forgetPasswordController from '../../controllers/v1/forgetPasswordController';
 import * as forgetPasswordValidation from '../../validations/forgetPassword';
 import * as boardController from '../../controllers/v1/boardController';
@@ -404,6 +405,20 @@ router.post('/uploads', multerMiddleware.upload.array('photos') as any, (req: an
 });
 
 router.get('/types', typeController.index);
+
+router.post('/projects/:projectId/boards/:boardId/statuses', 
+  authenticationTokenMiddleware,
+  permissionMiddleware.permission('edit:settings'),
+  boardValidation.addStatus,
+  boardController.addStatus,
+);
+
+router.put('/projects/:projectId/boards/:boardId/statuses',
+  authenticationTokenMiddleware,
+  permissionMiddleware.permission('edit:settings'),
+  boardValidation.reorderStatus,
+  boardController.reorderStatus,
+);
 
 router.get('/board/:boardId', boardController.showBoard);
 router.get('/sprints/:sprintId/tickets', boardController.showBoardTickets);

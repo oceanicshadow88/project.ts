@@ -1,8 +1,9 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React, { useContext, useEffect, useState, useMemo } from 'react';
-import { DragDropContext, DropResult } from 'react-beautiful-dnd';
+import { DragDropContext, DropResult, Droppable } from 'react-beautiful-dnd';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { IProjectDetails, ProjectDetailsContext } from '../../../context/ProjectDetailsProvider';
-import { getSprintTickets } from '../../../api/board/board';
+import { addStatusToBoard, getSprintTickets, reorderBoardStatuses } from '../../../api/board/board';
 import { createNewTicket, updateTicketStatus } from '../../../api/ticket/ticket';
 import BoardToolbar, { IFilterData } from '../../../components/Board/BoardSearch/TicketSearch';
 import { IBoard, IMinEvent, ISprint, ISprintTicket, IStatus } from '../../../types';
@@ -16,6 +17,8 @@ import { generateKeyBetween, customCompare } from '../../../utils/lexoRank';
 import { getQuestionsByProject } from '../../../api/question/question';
 import { IQuestion } from '../../../api/question/entity/question';
 import Dropdown from '../../../lib/FormV3/Dropdown/Dropdown';
+import AddBoardColumn from './components/AddBoardColumn/AddBoardColumn';
+import checkAccess from '../../../utils/helpers';
 
 interface IGroupedTickets {
   status: IStatus;
@@ -181,6 +184,47 @@ export default function BoardPage() {
     await updateTicketStatus(currentTicketId, destination.droppableId, newRank);
   };
 
+  const onColumnDrop = async (dropResult: DropResult) => {
+    const { source, destination } = dropResult;
+    if (!boardDetails || !destination || destination.index === source.index) {
+      return;
+    }
+
+    const previousBoard = boardDetails;
+    const statuses = [...boardDetails.statuses];
+    const [movedStatus] = statuses.splice(source.index, 1);
+    statuses.splice(destination.index, 0, movedStatus);
+    setBoardDetails({ ...boardDetails, statuses });
+
+    try {
+      const updatedBoard = await reorderBoardStatuses(
+        boardDetails.id,
+        projectId,
+        statuses.map((status) => status.id)
+      );
+      projectDetails.onUpdateBoard(updatedBoard);
+    } catch {
+      setBoardDetails(previousBoard);
+    }
+  };
+
+  const onAddColumn = async (name: string) => {
+    if (!boardDetails) {
+      return;
+    }
+    const updatedBoard = await addStatusToBoard(boardDetails.id, projectId, name);
+    setBoardDetails(updatedBoard);
+    projectDetails.onUpdateBoard(updatedBoard);
+  };
+
+  const onDragEnd = (dropResult: DropResult) => {
+    if (dropResult.type === 'COLUMN') {
+      onColumnDrop(dropResult);
+      return;
+    }
+    onTicketDrop(dropResult);
+  };
+
   const onChangeFilter = async (filterData: IFilterData) => {
     await fetchSprintTickets(filterData);
   };
@@ -256,45 +300,56 @@ export default function BoardPage() {
               className="relative flex justify-start flex-row overflow-x-auto"
               style={{ maxWidth: '1920px' }}
             >
-              <DragDropContext onDragEnd={onTicketDrop}>
-                {ticketsByStatus.map(({ status, tickets: groupedSortedTickets }) => (
-                  <DroppableColumn
-                    key={status.id}
-                    name={status.name}
-                    id={status.id}
-                    totalTicket={groupedSortedTickets.length ?? 0}
-                    projectId={projectId}
-                    sprintId={selectedSprint?.id}
-                    createBtn={
-                      <CreateBoardTicket
-                        onTicketCreate={(data) => {
-                          onTicketCreate({
-                            title: data.name,
-                            status: status.id,
-                            type: data.type,
-                            projectId,
-                            sprintId: selectedSprint.id,
-                            dueAt: new Date()
-                          });
-                        }}
-                        className="cardAddNewCard"
-                      />
-                    }
-                  >
-                    {groupedSortedTickets?.map((item, index) => (
-                      <DraggableBoardCard
-                        key={item.id}
-                        item={item}
-                        index={index}
-                        projectId={projectId}
-                        onTicketUpdated={() => fetchSprintTickets()}
-                        unresolvedQuestions={
-                          item.id ? unresolvedQuestionsByTicket[item.id] || [] : []
-                        }
-                      />
-                    ))}
-                  </DroppableColumn>
-                ))}
+              <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId="board-columns" direction="horizontal" type="COLUMN">
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="flex">
+                      {ticketsByStatus.map(
+                        ({ status, tickets: groupedSortedTickets }, columnIndex) => (
+                          <DroppableColumn
+                            key={status.id}
+                            index={columnIndex}
+                            name={status.name}
+                            id={status.id}
+                            totalTicket={groupedSortedTickets.length ?? 0}
+                            projectId={projectId}
+                            sprintId={selectedSprint?.id}
+                            createBtn={
+                              <CreateBoardTicket
+                                onTicketCreate={(data) => {
+                                  onTicketCreate({
+                                    title: data.name,
+                                    status: status.id,
+                                    type: data.type,
+                                    projectId,
+                                    sprintId: selectedSprint.id,
+                                    dueAt: new Date()
+                                  });
+                                }}
+                                className="cardAddNewCard"
+                              />
+                            }
+                          >
+                            {groupedSortedTickets?.map((item, index) => (
+                              <DraggableBoardCard
+                                key={item.id}
+                                item={item}
+                                index={index}
+                                projectId={projectId}
+                                onTicketUpdated={() => fetchSprintTickets()}
+                                unresolvedQuestions={
+                                  item.id ? unresolvedQuestionsByTicket[item.id] || [] : []
+                                }
+                              />
+                            ))}
+                          </DroppableColumn>
+                        )
+                      )}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+                {checkAccess('edit:settings', projectId) && <AddBoardColumn onAdd={onAddColumn} />}
               </DragDropContext>
             </div>
           </>

@@ -3,6 +3,7 @@ import axios from 'axios';
 import config from '../../config/config';
 import { buildSearchTicketQuery } from '../../utils/queryUtils';
 import { IFilterData } from '../../components/Board/BoardSearch/TicketSearch';
+import { alphaApiV2 } from '../../config/api';
 
 export const getBoard = async (
   id: string,
@@ -43,4 +44,20 @@ export const getSprintTickets = async (id: string, filterData?: IFilterData) => 
 
 export function getBoardDetails(boardId: string) {
   return axios.get(`${config.apiAddressV2}/board/${boardId}`);
+}
+
+export async function addStatusToBoard(boardId: string, projectId: string, name: string) {
+  const res = await alphaApiV2.post(`/projects/${projectId}/boards/${boardId}/statuses`, { name });
+  return res.data;
+}
+
+export async function reorderBoardStatuses(
+  boardId: string,
+  projectId: string,
+  statusIds: string[]
+) {
+  const res = await alphaApiV2.put(`/projects/${projectId}/boards/${boardId}/statuses`, {
+    statusIds
+  });
+  return res.data;
 }
