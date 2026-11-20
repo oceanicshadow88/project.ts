@@ -132,7 +132,13 @@ function Dropdown(props: IDropdown) {
     if (displayIcon) {
       return null;
     }
-    return labelDisplay ?? placeHolder;
+    const text = labelDisplay ?? placeHolder;
+    // truncated so a long label can't squeeze the icon beside it out of shape
+    return (
+      <span className="truncate" title={typeof text === 'string' ? text : undefined}>
+        {text}
+      </span>
+    );
   };
 
   const renderStyledDropdown = () => {
@@ -149,17 +155,18 @@ function Dropdown(props: IDropdown) {
         )}
         {options?.length > 0
           ? options.map((item) => {
+              const labelText = typeof item.label === 'string' ? item.label : undefined;
               return (
                 <button
                   key={item.value}
                   className={item.value === value ? defaultStyles.selected : undefined}
                   onClick={() => handleSelect(item.value)}
-                  data-testid={`leader-name-${
-                    typeof item.label === 'string' ? item.label : item.value
-                  }`}
+                  data-testid={`leader-name-${labelText ?? item.value}`}
                 >
                   {item.icon}
-                  {item.label}
+                  <span className="truncate" title={labelText}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })
