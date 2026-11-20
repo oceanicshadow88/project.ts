@@ -28,6 +28,7 @@ interface IDropdown {
   alignCenter?: boolean;
   padding?: boolean;
   buttonClassName?: string;
+  listClassName?: string;
 }
 
 function Dropdown(props: IDropdown) {
@@ -51,7 +52,8 @@ function Dropdown(props: IDropdown) {
     overWriteButtonStyle,
     alignCenter = false,
     padding = false,
-    buttonClassName = ''
+    buttonClassName = '',
+    listClassName = ''
   } = props;
 
   const [isActive, setIsActive] = useState(false);
@@ -145,7 +147,7 @@ function Dropdown(props: IDropdown) {
     const menu = (
       <div
         ref={menuRef}
-        className={defaultStyles.dropDownList}
+        className={[defaultStyles.dropDownList, listClassName].filter(Boolean).join(' ')}
         style={{ position: 'fixed', ...menuPosition }}
       >
         {addNullOptions && (
