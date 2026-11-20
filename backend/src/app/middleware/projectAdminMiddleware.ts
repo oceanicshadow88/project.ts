@@ -3,7 +3,7 @@ import status from 'http-status';
 import * as Role from '../model/role';
 import * as Project from '../model/project';
 
-const requireProjectAdmin = async (req: Request, res: Response, next: NextFunction) => {
+export const requireProjectAdmin = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
   const projectId = req.params.id;
 
@@ -34,5 +34,3 @@ const requireProjectAdmin = async (req: Request, res: Response, next: NextFuncti
 
   return next();
 };
-
-export { requireProjectAdmin };

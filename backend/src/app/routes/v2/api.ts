@@ -75,7 +75,7 @@ import * as apiTokenController from '../../controllers/v1/apiTokenController';
 import * as apiTokenValidation from '../../validations/apiToken';
 import { mcpAuthMiddleware } from '../../middleware/mcpAuthMiddleware';
 
-// MCP requests
+// MCP
 router.post(
   '/tickets/validate-title',
   mcpAuthMiddleware,
