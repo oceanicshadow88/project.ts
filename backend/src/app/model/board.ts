@@ -2,7 +2,7 @@ import mongoose, { Mongoose, Types, Schema } from 'mongoose';
 
 export interface IBoard {
   title: string;
-  project: string;
+  project: Schema.Types.ObjectId;
   tenant: Schema.Types.ObjectId;
   statuses: Types.ObjectId[];
   isPublic: boolean;
@@ -19,6 +19,10 @@ const boardSchema = new mongoose.Schema<IBoard>(
       type: Schema.Types.ObjectId,
       ref: 'tenants',
       require: true,
+    },
+    project: {
+      type: Schema.Types.ObjectId,
+      ref: 'projects',
     },
     statuses: [
       {

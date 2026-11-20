@@ -244,6 +244,10 @@ export default function BoardPage() {
       : projectDetails.sprints.find((item) => item.status === 'active');
 
     if (!currentSprint) {
+      // Clear the previous project's board when switching to a project with no active sprint
+      setSelectedSprint(undefined);
+      setBoardDetails(undefined);
+      setTickets([]);
       return;
     }
     setSelectedSprint(currentSprint);

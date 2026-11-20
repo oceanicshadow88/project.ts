@@ -39,6 +39,18 @@ export const getAllBoards = async (req: Request) => {
   return replaceId(board);
 };
 
+// Boards owned by the project, plus boards its sprints use (older boards have no project field)
+export const getProjectBoards = async (req: Request, projectId: string, sprintBoardIds: string[]) => {
+  const boardModel = Board.getModel(req.dbConnection);
+  const boards = await boardModel
+    .find({
+      tenant: req.tenantId,
+      $or: [{ project: projectId }, { _id: { $in: sprintBoardIds } }],
+    })
+    .populate('statuses');
+  return replaceId(boards);
+};
+
 export const addStatusToBoard = async (req: Request) => {
   const { boardId } = req.params;
   const { name } = req.body;

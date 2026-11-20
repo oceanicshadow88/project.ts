@@ -73,7 +73,8 @@ export default function CreateEditSprint({
     if (projectDetails.isLoadingDetails) {
       return;
     }
-    setBoardId(projectDetails.boards[0].id);
+    // Keep the sprint's board when editing; default to the project's board when creating
+    setBoardId(currentSprint?.board || projectDetails.boards[0]?.id || '');
     setRetroBoardId(projectDetails.details.defaultRetroBoard);
   }, [projectDetails]);
 

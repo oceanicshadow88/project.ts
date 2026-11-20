@@ -12,7 +12,7 @@ import { getUserProjectRole } from './roleService';
 import typeService from './typeService';
 import { findSprints } from './sprintService';
 import { getAllStatus } from './statusService';
-import { getAllBoards } from './boardService';
+import { getProjectBoards } from './boardService';
 import { init } from '../database/init';
 import { getRetroBoards } from './retroBoardService';
 import { getEpicByProject } from './epicService';
@@ -23,7 +23,8 @@ const findOrCreteBoard = async (dbConnection: Mongoose, body: any, tenantId: str
   const tenantObjectId = new Types.ObjectId(tenantId);
   const boardModel = Board.getModel(dbConnection);
   const existingBoard = await boardModel.findOne({
-    isPublic: true,
+    tenant: tenantObjectId,
+    project: body.projectId,
     title: 'Default',
   });
 
@@ -32,6 +33,7 @@ const findOrCreteBoard = async (dbConnection: Mongoose, body: any, tenantId: str
     const board = await boardModel.create({
       title: 'Default',
       tenant: tenantObjectId,
+      project: body.projectId,
       statuses: body.statuses,
     });
     return board;
@@ -52,7 +54,12 @@ const findOrCreateStatus = async (dbConnection: Mongoose, tenantId: string) => {
   }));
 
   await statusModel.bulkWrite(bulkOps);
-  const statuses = await statusModel.find({ tenant: tenantObjectId });
+  // New project boards start with only the default statuses
+  const defaultSlugs = DEFAULT_STATUS.map((status) => status.slug);
+  const statuses = await statusModel.find({
+    tenant: tenantObjectId,
+    slug: { $in: defaultSlugs },
+  });
 
   return statuses;
 };
@@ -87,9 +94,9 @@ export const initProject = async (
       defaultRetroBoard: defaultRetroBoard?.id,
     });
     const statuses = await findOrCreateStatus(dbConnection, tenantId);
-    findOrCreteBoard(
+    await findOrCreteBoard(
       dbConnection,
-      { name: body.name, statuses: statuses.map((doc) => doc._id) },
+      { name: body.name, projectId: project._id, statuses: statuses.map((doc) => doc._id) },
       tenantId,
     );
     return project;
@@ -125,23 +132,42 @@ export const projectDetails = async (req: Request) => {
   if (!details) {
     throw new Error('Cannot find project');
   }
-  const [labels, users, ticketTypes, sprints, statuses, boards, epics, retroBoards] =
-    await Promise.all([
-      getLabels(req),
-      getUserProjectRole(req),
-      typeService.getTicketType(req),
-      findSprints(req.params.id, req.dbConnection),
-      getAllStatus(req),
-      getAllBoards(req),
-      getEpicByProject(req.params.id, req.dbConnection),
-      getRetroBoards(req),
-    ]);
+  const [labels, users, ticketTypes, sprints, statuses, epics, retroBoards] = await Promise.all([
+    getLabels(req),
+    getUserProjectRole(req),
+    typeService.getTicketType(req),
+    findSprints(req.params.id, req.dbConnection),
+    getAllStatus(req),
+    getEpicByProject(req.params.id, req.dbConnection),
+    getRetroBoards(req),
+  ]);
+
+  const sprintBoardIds = sprints
+    .filter((sprint: any) => sprint.board)
+    .map((sprint: any) => sprint.board.toString());
+  const boards = await getProjectBoards(req, req.params.id, sprintBoardIds);
+
+  // Only return statuses used by this project's boards, in column order
+  const projectStatuses: any[] = [];
+  boards.forEach((board: any) => {
+    board.statuses.forEach((status: any) => {
+      if (!projectStatuses.some((item) => item.id.toString() === status.id.toString())) {
+        projectStatuses.push(status);
+      }
+    });
+  });
+  // Fall back to the default statuses if the project has no boards
+  if (projectStatuses.length === 0) {
+    const defaultSlugs = DEFAULT_STATUS.map((status) => status.slug);
+    projectStatuses.push(...statuses.filter((status: any) => defaultSlugs.includes(status.slug)));
+  }
+
   return {
     labels,
     users,
     ticketTypes,
     sprints,
-    statuses,
+    statuses: projectStatuses,
     boards,
     epics,
     details,
