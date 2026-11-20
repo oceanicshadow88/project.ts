@@ -59,22 +59,6 @@ const checkAccess = (accessLevel: string, projectId?: string) => {
   }
 };
 
-interface ProjectRole {
-  project: string;
-  role: string | { slug: string };
-}
-
-export const isProjectAdmin = (currentUser: IUserInfo, projectId: string): boolean => {
-  if (!currentUser.id) return false;
-
-  const projectRoles: ProjectRole[] = currentUser.projectsRoles ?? [];
-  const isAdmin = projectRoles.some(
-    ({ project, role }) =>
-      project === projectId && typeof role === 'object' && role?.slug === 'admin'
-  );
-  return isAdmin;
-};
-
 export const projectRolesToObject = (projectsRoles: any) => {
   const obj: any = {};
   const keys = projectsRoles.map((item: any) => {
@@ -106,6 +90,32 @@ export const getOwner = (projectId: string) => {
   }
   projectData = JSON.parse(projects);
   return projectData[projectId]?.owner;
+};
+
+interface IUserProjectRole {
+  project: string;
+  role: string | { slug: string };
+}
+
+export const isProjectAdmin = (currentUser: IUserInfo, projectId: string): boolean => {
+  const projectRoles: IUserProjectRole[] = currentUser.projectsRoles ?? [];
+  const isAdmin = projectRoles.some(({ project, role }) => {
+    if (project !== projectId) return false;
+    if (typeof role !== 'object') return false;
+
+    return role?.slug === 'admin';
+  });
+  return isAdmin;
+};
+
+export const accessServiceAccount = (currentUser: IUserInfo, projectId: string): boolean => {
+  if (!currentUser.id || !projectId) return false;
+
+  const isSuperUser = localStorage.getItem('is_superUser') === 'true';
+  const isOwner = getOwner(projectId)?.id === currentUser.id;
+  const isAdmin = isProjectAdmin(currentUser, projectId);
+
+  return isSuperUser || isOwner || isAdmin;
 };
 
 interface IRoles {

@@ -4,7 +4,7 @@ import { AiOutlineSetting, AiOutlineUnorderedList } from 'react-icons/ai';
 import { BsBriefcase } from 'react-icons/bs';
 import { MdLabel, MdCheckCircle, MdManageAccounts } from 'react-icons/md';
 import styles from './SettingNavigations.module.scss';
-import checkAccess, { isProjectAdmin } from '../../../utils/helpers';
+import checkAccess, { accessServiceAccount } from '../../../utils/helpers';
 import { UserContext } from '../../../context/UserInfoProvider';
 
 interface IItem {
@@ -25,7 +25,7 @@ export default function SettingNavigations() {
   const [isMenuOpen, setIsMenuOpen] = useState(true);
   const { projectId = '' } = useParams();
   const currentUser = useContext(UserContext);
-  const isAdmin = isProjectAdmin(currentUser, projectId);
+  const viewServiceAccount = accessServiceAccount(currentUser, projectId);
 
   const buttons = [
     {
@@ -59,7 +59,7 @@ export default function SettingNavigations() {
     },
     {
       name: 'Service Account',
-      isVisible: isAdmin,
+      isVisible: viewServiceAccount,
       url: `/projects/${projectId}/settings/service-account`,
       icon: <MdManageAccounts />,
       dataTestId: 'service-account',
