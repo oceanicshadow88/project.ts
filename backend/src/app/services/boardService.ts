@@ -4,6 +4,7 @@ import * as Board from '../model/board';
 import * as Ticket from '../model/ticket';
 import * as User from '../model/user';
 import * as Status from '../model/status';
+import * as Sprint from '../model/sprint';
 import { replaceId } from './replaceService';
 import { Request } from 'express';
 
@@ -51,12 +52,28 @@ export const getProjectBoards = async (req: Request, projectId: string, sprintBo
   return replaceId(boards);
 };
 
-export const addStatusToBoard = async (req: Request) => {
-  const { boardId } = req.params;
-  const { name } = req.body;
+// Only find the board if it belongs to this tenant and project
+// (older boards have no project field, so allow them if one of the project's sprints uses them)
+const findProjectBoard = async (req: Request) => {
+  const { boardId, projectId } = req.params;
   const boardModel = Board.getModel(req.dbConnection);
+  const sprintModel = Sprint.getModel(req.dbConnection);
+  const board = await boardModel.findOne({ _id: boardId, tenant: req.tenantId });
+
+  if (!board) {
+    return null;
+  }
+  if (board.project) {
+    return board.project.toString() === projectId ? board : null;
+  }
+  const usedByProject = await sprintModel.exists({ project: projectId, board: boardId });
+  return usedByProject ? board : null;
+};
+
+export const addStatusToBoard = async (req: Request) => {
+  const { name } = req.body;
   const statusModel = Status.getModel(req.dbConnection);
-  const board = await boardModel.findById(boardId);
+  const board = await findProjectBoard(req);
 
   if (!board) {
     return null;
@@ -82,10 +99,8 @@ export const addStatusToBoard = async (req: Request) => {
 };
 
 export const reorderBoardStatuses = async (req: Request) => {
-  const { boardId } = req.params;
   const { statusIds } = req.body;
-  const boardModel = Board.getModel(req.dbConnection);
-  const board = await boardModel.findById(boardId);
+  const board = await findProjectBoard(req);
 
   if (!board) {
     return null;
