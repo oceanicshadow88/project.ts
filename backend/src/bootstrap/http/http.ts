@@ -11,6 +11,7 @@ import { Application as AppContext } from '../application';
 import compression from 'compression';
 import apiRouterV2 from '../../app/routes/v2/api';
 import { mcpEndpoint } from '../../app/mcpServer/mcpEndpoint';
+import { mcpAuthMiddleware } from '../../app/middleware/mcpAuthMiddleware';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -32,7 +33,7 @@ export function startHttp(appCtx: AppContext): express.Express {
       server.use(limiter);
     }
     server.use(helmet());
-    server.post('/mcp', mcpEndpoint);
+    server.post('/mcp', mcpAuthMiddleware, mcpEndpoint);
     server.use(`${config.api.prefix}/v2`, globalAsyncErrorHandler(apiRouterV2));
     server.use((err: Error, req: express.Request, res: express.Response, next: NextFunction) => {
       if (process.env.NODE_ENV === 'local') {
