@@ -19,6 +19,7 @@ import { IQuestion } from '../../../api/question/entity/question';
 import Dropdown from '../../../lib/FormV3/Dropdown/Dropdown';
 import AddBoardColumn from './components/AddBoardColumn/AddBoardColumn';
 import checkAccess from '../../../utils/helpers';
+import BoardColumnsPlaceholder from '../../../components/Loading/BoardColumnsPlaceholder';
 
 interface IGroupedTickets {
   status: IStatus;
@@ -32,6 +33,7 @@ export default function BoardPage() {
   const projectDetails: IProjectDetails = useContext(ProjectDetailsContext);
 
   const [tickets, setTickets] = useState<ISprintTicket[]>([]);
+  const [isTicketsLoading, setIsTicketsLoading] = useState(true);
   const [boardDetails, setBoardDetails] = useState<IBoard>();
   const [selectedSprint, setSelectedSprint] = useState<ISprint | undefined>();
   const [unresolvedQuestionsByTicket, setUnresolvedQuestionsByTicket] = useState<{
@@ -248,6 +250,7 @@ export default function BoardPage() {
       setSelectedSprint(undefined);
       setBoardDetails(undefined);
       setTickets([]);
+      setIsTicketsLoading(false);
       return;
     }
     setSelectedSprint(currentSprint);
@@ -259,8 +262,11 @@ export default function BoardPage() {
       return;
     }
     (async () => {
-      await fetchSprintTickets();
-      await fetchBoardDetails();
+      try {
+        await Promise.all([fetchSprintTickets(), fetchBoardDetails()]);
+      } finally {
+        setIsTicketsLoading(false);
+      }
     })();
   }, [selectedSprint]);
 
@@ -269,15 +275,29 @@ export default function BoardPage() {
     fetchUnresolvedQuestions();
   }, [projectId]);
 
+  // Statuses are not known yet at this point, so the column count is a guess.
   if (isLoadingProjectDetails) {
-    return <></>;
+    return (
+      <ProjectHOC title="Board">
+        <div className="px-5">
+          <BoardColumnsPlaceholder withToolbar dataTestId="board-loading" />
+        </div>
+      </ProjectHOC>
+    );
   }
 
   return (
     <ProjectHOC title="Board">
       <div className="px-5">
-        {!hasSprint && <p>No Active Sprint</p>}
-        {hasSprint && (
+        {isTicketsLoading && (
+          <BoardColumnsPlaceholder
+            withToolbar
+            columns={projectDetails.statuses?.length || undefined}
+            dataTestId="board-loading"
+          />
+        )}
+        {!isTicketsLoading && !hasSprint && <p>No Active Sprint</p>}
+        {!isTicketsLoading && hasSprint && (
           <>
             <div className="flex justify-between items-center">
               <div style={{ maxWidth: '250px', width: '100%' }}>
