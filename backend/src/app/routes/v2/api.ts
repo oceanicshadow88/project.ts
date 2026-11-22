@@ -70,6 +70,8 @@ import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
 import * as promptValidation from '../../validations/promptValidation';
 import * as promptController from '../../controllers/v1/promptController';
+import * as aiChatController from '../../controllers/v1/aiChatController';
+import * as aiChatValidation from '../../validations/aiChatValidation';
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -540,6 +542,12 @@ router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 
 // Claude Function call
 router.post('/ai/optimize', aiController.optimize);
+router.post(
+  '/projects/:id/ai/chat',
+  authenticationTokenMiddleware,
+  aiChatValidation.chat,
+  aiChatController.chat,
+);
 
 // Prompts CRUD API
 router.get('/prompts', 
