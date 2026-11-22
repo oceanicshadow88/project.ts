@@ -1,21 +1,18 @@
+import { alphaApiV2 } from '../../config/api';
 import { ITicketInput } from '../../types';
-import { AiChatProject, AiChatReply, AiChatRequest, SavedTicket } from '../../types/aiChat';
-import { mockCreateTicket, mockSendAiChat } from './mockChat';
+import { AiChatReply, AiChatRequest, SavedTicket } from '../../types/aiChat';
+import { createNewTicket } from '../ticket/ticket';
 
-// TS-37 M1 only: the mock stands in for the backend. Delete this flag and mockChat.ts in M2
-export const USE_AI_CHAT_MOCK = true;
+// A little longer than the backend's 25 second limit for Claude, so the backend answers first
+const CHAT_TIMEOUT_MS = 30000;
 
-// Replaced by the Chat API and POST /tickets when the backend is connected (TS-37 M2)
-const notConnected = () => Promise.reject(new Error('The AI chat backend is not connected yet'));
-
-export function sendAiChat(
-  projectId: string,
-  request: AiChatRequest,
-  project: AiChatProject
-): Promise<AiChatReply> {
-  return USE_AI_CHAT_MOCK ? mockSendAiChat(request.message, project) : notConnected();
+export function sendAiChat(projectId: string, request: AiChatRequest): Promise<AiChatReply> {
+  return alphaApiV2
+    .post<AiChatReply>(`/projects/${projectId}/ai/chat`, request, { timeout: CHAT_TIMEOUT_MS })
+    .then((res) => res.data);
 }
 
+// The confirmed draft goes through the same POST /tickets as the rest of the app
 export function createTicketFromDraft(input: ITicketInput): Promise<SavedTicket> {
-  return USE_AI_CHAT_MOCK ? mockCreateTicket(input) : notConnected();
+  return createNewTicket(input).then((res) => res.data);
 }

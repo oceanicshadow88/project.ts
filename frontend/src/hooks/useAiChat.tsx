@@ -16,7 +16,6 @@ import {
   EMPTY_CONVERSATION,
   fetchReply,
   finishRequest,
-  isDemoMode,
   isWaitingForReply,
   removeMessage,
   shouldShowAiChat,
@@ -63,7 +62,7 @@ export function useAiChat(projectId: string) {
   const requestReply = async (text: string) => {
     const requestId = createRequestId();
     updateConversation((current) => startRequest(current, requestId));
-    const reply = await fetchReply(projectId, text, project);
+    const reply = await fetchReply(projectId, text);
     const message = createAssistantMessage(reply, text);
     updateConversation((current) => finishRequest(current, requestId, message));
   };
@@ -97,7 +96,6 @@ export function useAiChat(projectId: string) {
   return {
     messages: conversation.messages,
     isPending,
-    isDemoMode: isDemoMode(),
     projectName: details.name,
     canCreate: canCreateTickets(projectId),
     send,

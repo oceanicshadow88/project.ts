@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { createTicketFromDraft, sendAiChat, USE_AI_CHAT_MOCK } from '../api/ai/chat';
+import { createTicketFromDraft, sendAiChat } from '../api/ai/chat';
 import {
   AiChatConversations,
   AiChatMessage,
@@ -59,8 +59,6 @@ export const updateConversationIn = (
   ...conversations,
   [projectId]: update(conversations[projectId] ?? EMPTY_CONVERSATION)
 });
-
-export const isDemoMode = () => USE_AI_CHAT_MOCK;
 
 export const isWaitingForReply = (conversation: IAiChatConversation) =>
   conversation.pendingRequestId !== null;
@@ -129,8 +127,8 @@ export const updateAssistantMessage = (
 const toKnownReply = (reply: AiChatReply | undefined): AiChatReply =>
   reply && REPLY_KINDS.includes(reply.kind) ? reply : ERROR_REPLY;
 
-export const fetchReply = (projectId: string, text: string, project: AiChatProject) =>
-  sendAiChat(projectId, { message: text }, project)
+export const fetchReply = (projectId: string, text: string) =>
+  sendAiChat(projectId, { message: text })
     .then(toKnownReply)
     .catch(() => ERROR_REPLY);
 
