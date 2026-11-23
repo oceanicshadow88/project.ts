@@ -408,14 +408,14 @@ router.get('/types', typeController.index);
 
 router.post('/projects/:projectId/boards/:boardId/statuses', 
   authenticationTokenMiddleware,
-  permissionMiddleware.permission('edit:settings'),
+  permissionMiddleware.permission('edit:boards'),
   boardValidation.addStatus,
   boardController.addStatus,
 );
 
 router.put('/projects/:projectId/boards/:boardId/statuses',
   authenticationTokenMiddleware,
-  permissionMiddleware.permission('edit:settings'),
+  permissionMiddleware.permission('edit:boards'),
   boardValidation.reorderStatus,
   boardController.reorderStatus,
 );

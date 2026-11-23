@@ -372,7 +372,7 @@ export default function BoardPage() {
                     </div>
                   )}
                 </Droppable>
-                {checkAccess('edit:settings', projectId) && <AddBoardColumn onAdd={onAddColumn} />}
+                {checkAccess('edit:boards', projectId) && <AddBoardColumn onAdd={onAddColumn} />}
               </DragDropContext>
             </div>
           </>

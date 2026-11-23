@@ -51,7 +51,7 @@ export default function DroppableColumn(props: IDroppableColumn) {
     <Draggable
       draggableId={`column-${id}`}
       index={index}
-      isDragDisabled={!checkAccess('edit:settings', projectId)}
+      isDragDisabled={!checkAccess('edit:boards', projectId)}
     >
       {(dragProvided) => renderColumn(dragProvided)}
     </Draggable>
