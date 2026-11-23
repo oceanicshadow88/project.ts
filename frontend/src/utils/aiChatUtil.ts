@@ -32,11 +32,11 @@ export type ConversationUpdate = (conversation: IAiChatConversation) => IAiChatC
 
 export type AssistantMessagePatch = Partial<Omit<IAiChatAssistantMessage, 'id' | 'role'>>;
 
-export type AskAiButtonState = 'enabled' | 'disabled' | 'hidden';
+type AskAiButtonState = 'enabled' | 'disabled' | 'hidden';
 
 export const EMPTY_CONVERSATION: IAiChatConversation = { messages: [], pendingRequestId: null };
 
-export const canUseAiChat = (projectId: string) => checkAccess(Permission.viewTickets, projectId);
+const canUseAiChat = (projectId: string) => checkAccess(Permission.viewTickets, projectId);
 
 export const canCreateTickets = (projectId: string) =>
   checkAccess(Permission.CreateTickets, projectId);
@@ -134,7 +134,8 @@ export const fetchReply = (projectId: string, text: string) =>
 
 export const getShownTickets = (tickets: TicketSummary[]) => tickets.slice(0, MAX_SEARCH_ROWS);
 
-export const getTicketStatusName = (ticket: TicketSummary) => ticket.status ?? 'Backlog';
+// A missing status means the backend couldn't find its name; Backlog is a sprint, not a status
+export const getTicketStatusName = (ticket: TicketSummary) => ticket.status ?? 'No status';
 
 export const isDraftValid = (draft: TicketDraft) =>
   draft.title.trim() !== '' && Boolean(draft.typeId);
@@ -173,7 +174,7 @@ const findName = (items: { id?: string; name?: string }[], id?: string | null) =
   id ? items.find((item) => item.id === id)?.name ?? null : null;
 
 // The body for POST /tickets
-export const toTicketInput = (draft: TicketDraft, projectId: string): ITicketInput => ({
+const toTicketInput = (draft: TicketDraft, projectId: string): ITicketInput => ({
   title: draft.title.trim(),
   type: draft.typeId,
   priority: draft.priority ?? DEFAULT_PRIORITY,
@@ -183,7 +184,7 @@ export const toTicketInput = (draft: TicketDraft, projectId: string): ITicketInp
   projectId
 });
 
-export const toCreatedTicket = (
+const toCreatedTicket = (
   draft: TicketDraft,
   saved: SavedTicket,
   project: AiChatProject
