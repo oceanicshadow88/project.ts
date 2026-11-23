@@ -5,7 +5,7 @@ interface IAddBoardColumn {
   onAdd: (name: string) => Promise<void>;
 }
 
-export default function AddBoardColumn({ onAdd }: IAddBoardColumn) {
+export default function AddBoardColumn({ onAdd }: Readonly<IAddBoardColumn>) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
 
@@ -14,15 +14,14 @@ export default function AddBoardColumn({ onAdd }: IAddBoardColumn) {
     setName('');
   };
 
-  const submit = async () => {
+  const submit = () => {
     const trimmedName = name.trim();
     if (!trimmedName) return;
-    try {
-      await onAdd(trimmedName);
-      close();
-    } catch {
-      // keep the input open so the user can retry
-    }
+    onAdd(trimmedName)
+      .then(close)
+      .catch(() => {
+        // keep the input open so the user can retry
+      });
   };
 
   if (!isOpen) {

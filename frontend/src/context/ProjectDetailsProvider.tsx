@@ -217,8 +217,8 @@ function ProjectDetailsProvider({ children }: IProjectDetailsProvider) {
 
   const onUpdateBoard = (board: IBoard) => {
     setDetails((prev) => {
-      const knownStatusIds = prev.statuses.map((item) => item.id);
-      const newStatuses = board.statuses.filter((item) => !knownStatusIds.includes(item.id));
+      const knownStatusIds = new Set(prev.statuses.map((item) => item.id));
+      const newStatuses = board.statuses.filter((item) => !knownStatusIds.has(item.id));
       const backlog = prev.statuses[prev.statuses.length - 1];
       return {
         ...prev,

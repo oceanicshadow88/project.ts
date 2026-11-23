@@ -186,7 +186,7 @@ export default function BoardPage() {
     await updateTicketStatus(currentTicketId, destination.droppableId, newRank);
   };
 
-  const onColumnDrop = async (dropResult: DropResult) => {
+  const onColumnDrop = (dropResult: DropResult) => {
     const { source, destination } = dropResult;
     if (!boardDetails || !destination || destination.index === source.index) {
       return;
@@ -198,16 +198,14 @@ export default function BoardPage() {
     statuses.splice(destination.index, 0, movedStatus);
     setBoardDetails({ ...boardDetails, statuses });
 
-    try {
-      const updatedBoard = await reorderBoardStatuses(
-        boardDetails.id,
-        projectId,
-        statuses.map((status) => status.id)
-      );
-      projectDetails.onUpdateBoard(updatedBoard);
-    } catch {
-      setBoardDetails(previousBoard);
-    }
+    reorderBoardStatuses(
+      boardDetails.id,
+      projectId,
+      statuses.map((status) => status.id)
+    )
+      .then((updatedBoard) => projectDetails.onUpdateBoard(updatedBoard))
+      // Put the old order back if saving fails
+      .catch(() => setBoardDetails(previousBoard));
   };
 
   const onAddColumn = async (name: string) => {
@@ -224,7 +222,8 @@ export default function BoardPage() {
       onColumnDrop(dropResult);
       return;
     }
-    onTicketDrop(dropResult);
+    // Reload the tickets if saving the move fails, so the board matches the server
+    onTicketDrop(dropResult).catch(() => fetchSprintTickets());
   };
 
   const onChangeFilter = async (filterData: IFilterData) => {

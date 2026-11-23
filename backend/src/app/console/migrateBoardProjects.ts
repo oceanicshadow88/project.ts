@@ -42,78 +42,113 @@ const migrateBoardProjects = async (dbConnection: mongoose.Connection) => {
 
   const boards = await boardModel.find({ project: null }).lean();
 
-  for (const board of boards) {
-    // Oldest sprint first, so the first project to use the board keeps it
-    const sprints = await sprintModel
-      .find({ board: board._id, project: { $ne: null } }, { project: 1 })
-      .sort({ createdAt: 1 })
-      .lean();
+  // Load every sprint that uses these boards in one query, oldest first,
+  // so the first project to use a board keeps it
+  const sprints = await sprintModel
+    .find({ board: { $in: boards.map((board: any) => board._id) }, project: { $ne: null } }, {
+      board: 1,
+      project: 1,
+    })
+    .sort({ createdAt: 1 })
+    .lean();
 
-    const projectIds = [...new Set(sprints.map((sprint: any) => sprint.project.toString()))];
+  // Work out every change first, then save them all together at the end
+  const linkOps: any[] = [];
+  const boardsToCreate: any[] = [];
+  const sprintOps: any[] = [];
+
+  boards.forEach((board: any) => {
+    const boardSprints = sprints.filter(
+      (sprint: any) => sprint.board.toString() === board._id.toString(),
+    );
+    const projectIds = [...new Set(boardSprints.map((sprint: any) => sprint.project.toString()))];
 
     if (projectIds.length === 0) {
       result.unused += 1;
       console.log(`    - board ${board._id}: not used by any sprint, skipped`);
-      continue;
+      return;
     }
 
     const [ownerProjectId, ...otherProjectIds] = projectIds;
     console.log(`    - board ${board._id}: linked to project ${ownerProjectId}`);
-    if (!isDryRun) {
-      await boardModel.updateOne({ _id: board._id }, { $set: { project: ownerProjectId } });
-    }
+    linkOps.push({
+      updateOne: { filter: { _id: board._id }, update: { $set: { project: ownerProjectId } } },
+    });
     projectsWithBoard.add(ownerProjectId);
     result.linked += 1;
 
-    for (const projectId of otherProjectIds) {
-      const sprintCount = sprints.filter((sprint: any) => sprint.project.toString() === projectId)
-        .length;
+    otherProjectIds.forEach((projectId) => {
+      const sprintCount = boardSprints.filter(
+        (sprint: any) => sprint.project.toString() === projectId,
+      ).length;
       console.log(
         `    - board ${board._id}: copied for project ${projectId} (${sprintCount} sprints moved)`,
       );
-      if (!isDryRun) {
-        const copy = await boardModel.create({
-          title: board.title,
-          tenant: board.tenant,
-          project: projectId,
-          statuses: board.statuses,
-          isPublic: board.isPublic,
-        });
-        await sprintModel.updateMany(
-          { board: board._id, project: projectId },
-          { $set: { board: copy._id } },
-        );
-      }
+      // Create the copy's id now so its sprints can be moved in the same batch
+      const copyId = new mongoose.Types.ObjectId();
+      boardsToCreate.push({
+        _id: copyId,
+        title: board.title,
+        tenant: board.tenant,
+        project: projectId,
+        statuses: board.statuses,
+        isPublic: board.isPublic,
+      });
+      sprintOps.push({
+        updateMany: {
+          filter: { board: board._id, project: projectId },
+          update: { $set: { board: copyId } },
+        },
+      });
       projectsWithBoard.add(projectId);
       result.copied += 1;
       result.sprintsMoved += sprintCount;
-    }
-  }
+    });
+  });
 
   const defaultSlugs = DEFAULT_STATUS.map((status) => status.slug);
   const projects = await projectModel.find({ isDelete: { $ne: true } }, { tenant: 1 }).lean();
+  const projectsWithoutBoard = (projects as any[]).filter(
+    (project) => !projectsWithBoard.has(project._id.toString()),
+  );
 
-  for (const project of projects as any[]) {
-    if (projectsWithBoard.has(project._id.toString())) {
-      continue;
-    }
+  // Load the default statuses for every tenant that needs a new board in one query
+  const defaultStatuses = await statusModel
+    .find(
+      {
+        tenant: { $in: projectsWithoutBoard.map((project) => project.tenant) },
+        slug: { $in: defaultSlugs },
+      },
+      { slug: 1, tenant: 1 },
+    )
+    .lean();
+
+  projectsWithoutBoard.forEach((project) => {
     console.log(`    - project ${project._id}: no board, created a Default board`);
-    if (!isDryRun) {
-      const statuses = await statusModel
-        .find({ tenant: project.tenant, slug: { $in: defaultSlugs } }, { slug: 1 })
-        .lean();
-      // Keep the default column order
-      statuses.sort(
-        (a: any, b: any) => defaultSlugs.indexOf(a.slug) - defaultSlugs.indexOf(b.slug),
-      );
-      await boardModel.create({
-        title: 'Default',
-        tenant: project.tenant,
-        project: project._id,
-        statuses: statuses.map((status: any) => status._id),
-      });
-    }
+    // Keep the default column order
+    const statuses = defaultStatuses
+      .filter((status: any) => status.tenant?.toString() === project.tenant?.toString())
+      .sort((a: any, b: any) => defaultSlugs.indexOf(a.slug) - defaultSlugs.indexOf(b.slug));
+    boardsToCreate.push({
+      title: 'Default',
+      tenant: project.tenant,
+      project: project._id,
+      statuses: statuses.map((status: any) => status._id),
+    });
     result.created += 1;
+  });
+
+  if (!isDryRun) {
+    if (linkOps.length > 0) {
+      await boardModel.bulkWrite(linkOps);
+    }
+    // Create the copies before moving sprints onto them
+    if (boardsToCreate.length > 0) {
+      await boardModel.insertMany(boardsToCreate);
+    }
+    if (sprintOps.length > 0) {
+      await sprintModel.bulkWrite(sprintOps);
+    }
   }
 
   return result;

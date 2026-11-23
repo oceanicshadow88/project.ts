@@ -158,8 +158,8 @@ export const projectDetails = async (req: Request) => {
   });
   // Fall back to the default statuses if the project has no boards
   if (projectStatuses.length === 0) {
-    const defaultSlugs = DEFAULT_STATUS.map((status) => status.slug);
-    projectStatuses.push(...statuses.filter((status: any) => defaultSlugs.includes(status.slug)));
+    const defaultSlugs = new Set(DEFAULT_STATUS.map((status) => status.slug));
+    projectStatuses.push(...statuses.filter((status: any) => defaultSlugs.has(status.slug)));
   }
 
   return {
