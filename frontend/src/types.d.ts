@@ -32,7 +32,7 @@ export interface ITicketBasic {
   storyPoint?: string;
   dueAt?: Date;
   reporter?: string;
-  assign?: string;
+  assign?: string | IAssign;
   type?: ITypes;
   isActive: boolean;
   attachmentUrls?: string[];
@@ -107,7 +107,7 @@ export interface ITicketDetails {
   storyPoint?: string;
   dueAt?: Date;
   reporter?: string;
-  assign?: string;
+  assign?: string | IAssign;
   type?: ITypes;
   isActive: boolean;
   attachmentUrls?: any;

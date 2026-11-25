@@ -1,11 +1,13 @@
 import React from 'react';
 import Dropdown from '../../../lib/FormV3/Dropdown/Dropdown';
-import { IUserInfo, IMinEvent } from '../../../types';
+import { IUserInfo, IMinEvent, IAssign } from '../../../types';
 import { updateTicket } from '../../../api/ticket/ticket';
 import Avatar from '../../Avatar/Avatar';
 
 interface IAssigneeBtn {
-  assigneeId?: string | null;
+  // the ticket endpoints populate `assign` into a user object, while the detail
+  // card and the question list pass the raw id, so accept either shape
+  assigneeId?: string | IAssign | null;
   ticketId: string;
   userList: IUserInfo[];
   getBacklogDataApi?: () => void;
@@ -25,6 +27,8 @@ export default function AssigneeBtn({
   name,
   onChange
 }: IAssigneeBtn) {
+  const selectedAssigneeId = typeof assigneeId === 'object' ? assigneeId?.id : assigneeId;
+
   // Create dropdown options from user list
   const dropdownOptions = [
     {
@@ -62,7 +66,7 @@ export default function AssigneeBtn({
     <Dropdown
       label=""
       name={`assignee-${ticketId}`}
-      value={assigneeId || null}
+      value={selectedAssigneeId || null}
       options={dropdownOptions}
       onValueChanged={onAssigneeChange}
       placeHolder="Unassigned"
