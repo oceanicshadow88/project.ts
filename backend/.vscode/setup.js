@@ -10,7 +10,6 @@ const requiredExtensions = [
   'dbaeumer.vscode-eslint',
   'esbenp.prettier-vscode',
   'eamodio.gitlens',
-  'sonarsource.sonarlint-vscode',
 ];
 
 // Install each extension
@@ -46,7 +45,6 @@ if (fs.existsSync(path.join(__dirname, '.git'))) {
 code --list-extensions | grep -q "dbaeumer.vscode-eslint" || echo "Warning: ESLint extension not installed"
 code --list-extensions | grep -q "esbenp.prettier-vscode" || echo "Warning: Prettier extension not installed"
 code --list-extensions | grep -q "eamodio.gitlens" || echo "Warning: GitLens extension not installed"
-code --list-extensions | grep -q "sonarsource.sonarlint-vscode" || echo "Warning: SonarLint extension not installed"
 `,
       { mode: 0o755 },
     );
