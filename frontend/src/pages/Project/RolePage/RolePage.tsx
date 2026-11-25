@@ -1,12 +1,19 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
-import Loading from '../../../components/Loading/Loading';
+import BounceLoading from '../../../components/Loading/BounceLoading';
 import RoleTable from './RoleTable/RoleTable';
 import PermissionSelector from './PermissionSelector/PermissionSelector';
 import ButtonV2 from '../../../lib/FormV2/ButtonV2/ButtonV2';
-import { IPermissions, IRole } from '../../../types';
-import { getRoles, addRole, updateRole, deleteRole, getPermissions } from '../../../api/role/role';
+import { IPermissions, IRole, IRoleReassignment } from '../../../types';
+import {
+  getRoles,
+  addRole,
+  updateRole,
+  deleteRole,
+  getPermissions,
+  getRoleMembers
+} from '../../../api/role/role';
 import styles from './RolePage.module.scss';
 import RoleNav from './RoleNav/roleNav';
 import { ModalContext } from '../../../context/ModalProvider';
@@ -70,10 +77,10 @@ function RolePage() {
     );
   };
 
-  const deleteRoleHanlder = async (roleId: string) => {
+  const deleteRoleHanlder = async (roleId: string, reassignments: IRoleReassignment[]) => {
     try {
       setLoader(true);
-      await deleteRole(projectId, roleId);
+      await deleteRole(projectId, roleId, reassignments);
       closeModal('selectedRole');
     } catch (err) {
       setLoader(false);
@@ -92,6 +99,10 @@ function RolePage() {
         }
         closeHandler={() => closeModal('selectedRole')}
         deleteRoleHandler={deleteRoleHanlder}
+        // the popup is rendered outside the project route, so projectId is filled in here
+        loadRoleMembers={(roleId) => getRoleMembers(projectId, roleId)}
+        // options for each member's new role; the popup removes the role being deleted
+        roles={roles}
         permissions={permissions}
         role={role}
       />
@@ -111,7 +122,7 @@ function RolePage() {
           <ButtonV2 text="Add Role" onClick={newRoleHandler} dataTestId="add-role-btn" fill />
         </div>
         {loader && roles.length === 0 ? (
-          <Loading />
+          <BounceLoading />
         ) : (
           <RoleTable roles={roles} onEditRole={onEditRole} />
         )}

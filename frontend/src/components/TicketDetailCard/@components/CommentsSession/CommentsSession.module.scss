@@ -3,7 +3,6 @@
 $text-secondary: #737373;
 $text-muted: #a3a3a3;
 $danger: rgb(221, 42, 59);
-$skeleton: #eeeeef;
 
 
 .commentContent {
@@ -85,50 +84,6 @@ $skeleton: #eeeeef;
   border: none;
   background: $danger;
   color: #fff;
-}
-
-.loading {
-  padding: 16px;
-}
-
-.skeletonItem {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 0;
-}
-
-.skeletonHeader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.skeletonAvatar {
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  background: $skeleton;
-}
-
-.skeletonName,
-.skeletonLine {
-  height: 12px;
-  border-radius: 6px;
-  background: $skeleton;
-}
-
-.skeletonName {
-  width: 100px;
-}
-
-.skeletonLine {
-  width: 80%;
-  margin-left: 35px;
-
-  &.short {
-    width: 50%;
-  }
 }
 
 .empty {

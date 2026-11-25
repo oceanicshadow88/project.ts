@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import Loading from '../../../components/Loading/Loading';
+import BounceLoading from '../../../components/Loading/BounceLoading';
 import ProjectHOC from '../../../components/HOC/ProjectHOC';
 import ValueCard from './components/ValueCard/ValueCard';
 import useFetchDashboardData from './hooks/useFetchDashboardData';
@@ -231,7 +231,7 @@ function DashBoardPage() {
       </div>
 
       {isLoading ? (
-        <Loading />
+        <BounceLoading />
       ) : (
         <div className="flex-1 pl-5 overflow-x-hidden">
           {dailyReport.length > 0 && (
@@ -274,7 +274,7 @@ function DashBoardPage() {
                 )}
               </div>
             </div>
-            {isPDFLoading ? <Loading /> : null}
+            {isPDFLoading ? <BounceLoading /> : null}
             <div className="dashboard-grid-layout">
               <div className="value-cards-column">
                 {valueCardList.map(({ title, value }, index) => (

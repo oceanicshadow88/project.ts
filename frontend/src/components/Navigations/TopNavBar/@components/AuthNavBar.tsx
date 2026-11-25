@@ -13,6 +13,7 @@ import { UserContext, UserDispatchContext } from '../../../../context/UserInfoPr
 import Avatar from '../../../Avatar/Avatar';
 import { createCustomerPortal, getCustomerId } from '../../../../api/payment/payment';
 import Icon from './IconTab/IconTab';
+import AskAiButton from './AskAiButton';
 
 const btnsForDomainOwner = [
   {
@@ -247,6 +248,7 @@ function AuthNavBar() {
             />
           </form>
         </div>
+        <AskAiButton />
         <button
           className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 rounded transition-all text-sm font-medium bg-transparent border-0"
           data-testid="user-settings"

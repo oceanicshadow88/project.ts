@@ -23,12 +23,14 @@
   position: absolute;
   width: 100%;
   min-width: 175px;
+  max-width: 420px;
 
   button {
     display: flex;
     align-items: center;
     gap: 10px;
     width: 100%;
+    box-sizing: border-box;
     line-height: 20px;
     background: transparent;
     border: none;

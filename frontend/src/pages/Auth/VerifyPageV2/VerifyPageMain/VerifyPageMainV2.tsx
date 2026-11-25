@@ -8,7 +8,7 @@ import { UserDispatchContext } from '../../../../context/UserInfoProvider';
 import styles from './VerifyPageMainV2.module.scss';
 import Icon from '../../../../assets/logo.svg';
 import Error from '../../../../assets/error.png';
-import Loading from '../../../../components/Loading/Loading';
+import BounceLoading from '../../../../components/Loading/BounceLoading';
 import { setUserPermissionsLocalStorage } from '../../../../utils/helpers';
 import { register } from '../../../../api/register/register';
 
@@ -125,7 +125,7 @@ export default function VerifyPageMainV2() {
         )}
         {isLoading && (
           <div className={styles.loadingContainer}>
-            <Loading height="352px" />
+            <BounceLoading height="352px" />
             <p>Hold on while we are setting up your environment</p>
           </div>
         )}
