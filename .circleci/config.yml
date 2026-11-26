@@ -78,9 +78,31 @@ jobs:
           name: Build frontend
           command: yarn workspace fe.techscrum build
 
+  ai_code_review:
+    executor: node
+    steps:
+      - checkout
+      - run:
+          name: Install AI review tool
+          command: npm ci --prefix tools/ai-review --no-audit --no-fund
+      - run:
+          name: AI review of changed files
+          # Diffs against develop (main when on develop); fails on high-severity findings.
+          # Needs ANTHROPIC_API_KEY in the CircleCI project environment variables.
+          command: node tools/ai-review/review.mjs
+          environment:
+            AI_REVIEW_REPORT_DIR: /tmp/ai-review-report
+      - store_artifacts:
+          path: /tmp/ai-review-report
+          destination: ai-review
+
 workflows:
   ci:
     jobs:
       - backend_lint_build
       - backend_test
       - frontend_lint_build
+      - ai_code_review:
+          filters:
+            branches:
+              ignore: main
