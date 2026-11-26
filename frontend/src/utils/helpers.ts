@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 import axios from 'axios';
 import config from '../config/config';
-import { IProjectRole, IPermission } from '../types';
+import { IProjectRole, IPermission, IUserInfo } from '../types';
 
 let roleData: any = {};
 let userProjectRoles: any = {};
@@ -90,6 +90,32 @@ export const getOwner = (projectId: string) => {
   }
   projectData = JSON.parse(projects);
   return projectData[projectId]?.owner;
+};
+
+interface IUserProjectRole {
+  project: string;
+  role: string | { slug: string };
+}
+
+export const isProjectAdmin = (currentUser: IUserInfo, projectId: string): boolean => {
+  const projectRoles: IUserProjectRole[] = currentUser.projectsRoles ?? [];
+  const isAdmin = projectRoles.some(({ project, role }) => {
+    if (project !== projectId) return false;
+    if (typeof role !== 'object') return false;
+
+    return role?.slug === 'admin';
+  });
+  return isAdmin;
+};
+
+export const accessServiceAccount = (currentUser: IUserInfo, projectId: string): boolean => {
+  if (!currentUser.id || !projectId) return false;
+
+  const isSuperUser = localStorage.getItem('is_superUser') === 'true';
+  const isOwner = getOwner(projectId)?.id === currentUser.id;
+  const isAdmin = isProjectAdmin(currentUser, projectId);
+
+  return isSuperUser || isOwner || isAdmin;
 };
 
 interface IRoles {

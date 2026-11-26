@@ -1,0 +1,13 @@
+{
+  "name": "ai-review",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI code review of files changed on a branch (run in CI)",
+  "type": "module",
+  "scripts": {
+    "review": "node review.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.8.0"
+  }
+}

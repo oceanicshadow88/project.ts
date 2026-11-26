@@ -14,7 +14,7 @@ interface IPriorityBtn {
   displayIcon?: boolean;
 }
 
-function PriorityIcon({
+export function PriorityIcon({
   imgUrl,
   p,
   displayIcon = false

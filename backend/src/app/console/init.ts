@@ -4,8 +4,6 @@ export {};
 import readline from 'readline';
 import mongoose from 'mongoose';
 import config from '../config/app';
-import fs from 'fs';
-import path from 'path';
 import * as Tenant from '../model/tenants';
 import * as healthCheckService from '../services/healthCheckService';
 import { createUser } from './temp';
@@ -100,13 +98,6 @@ const askForDomain = (next: any) => {
     },
   );
 };
-
-try {
-  if (config.devopsMode) {
-    fs.rmSync('.circleci', { recursive: true, force: true });
-    fs.unlinkSync(path.join(process.cwd(), 'sonar-project.properties'));
-  }
-} catch (e) {}
 
 if (
   process.env.ENVIRONMENT !== 'production' &&

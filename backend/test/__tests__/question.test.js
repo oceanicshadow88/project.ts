@@ -14,7 +14,7 @@ let emailStub = null;
 
 beforeAll(() => {
   // Mock the email sending function to avoid actual email sending and template errors
-  emailStub = sinon.stub(emailSender, 'emailRecipientTemplate').resolves({});
+  emailStub = sinon.stub(emailSender, 'sendQuestionsToPOEmail').resolves({});
 });
 
 afterAll(() => {
