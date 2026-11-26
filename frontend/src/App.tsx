@@ -6,6 +6,7 @@ import LoginPageV2 from './pages/Auth/LoginV2/LoginPageV2';
 import Setting from './pages/Project/Setting/Setting';
 import LabelsSettings from './pages/Project/Setting/LabelsSettings/LabelsSettings';
 import StatusesSettings from './pages/Project/Setting/StatusesSettings/StatusesSettings';
+import ServiceAccountSettings from './pages/Project/Setting/ServiceAccountSettings/ServiceAccountSettings';
 import PrivacyStatementPage from './staticPages/PrivacyStatementPage/PrivacyStatementPage';
 import UserPage from './pages/Global/UserPage/UserPage';
 import UserMePage from './pages/Global/UserMePage/UserMePage';
@@ -170,6 +171,7 @@ function App() {
                     <Route path="questions" element={<QuestionsPage />} />
                     <Route path="settings/labels" element={<LabelsSettings />} />
                     <Route path="settings/statuses" element={<StatusesSettings />} />
+                    <Route path="settings/service-account" element={<ServiceAccountSettings />} />
                     <Route path="settings" element={<Setting />} />
                   </Route>
                   <Route path="/payment/success" element={<SubscriptionSuccessPage />} />
