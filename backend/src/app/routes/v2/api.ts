@@ -8,6 +8,7 @@ import { authenticationTokenMiddleware } from '../../middleware/authMiddleware';
 import { authenticationEmailTokenMiddlewareV2 } from '../../middleware/registerMiddlewareV2';
 import { authenticationForgetPasswordMiddleware } from '../../middleware/forgetPasswordMiddleware';
 import { requireProductOwner } from '../../middleware/productOwnerMiddleware';
+import { requireProjectAdmin } from '../../middleware/projectAdminMiddleware';
 import * as loginControllerV2 from '../../controllers/v1/loginControllerV2';
 import * as loginValidation from '../../validations/login';
 import * as registerValidation from '../../validations/register';
@@ -72,6 +73,17 @@ import * as promptValidation from '../../validations/promptValidation';
 import * as promptController from '../../controllers/v1/promptController';
 import * as aiChatController from '../../controllers/v1/aiChatController';
 import * as aiChatValidation from '../../validations/aiChatValidation';
+import * as apiTokenController from '../../controllers/v1/apiTokenController';
+import * as apiTokenValidation from '../../validations/apiToken';
+import { mcpAuthMiddleware } from '../../middleware/mcpAuthMiddleware';
+
+// MCP
+router.post(
+  '/tickets/validate-title',
+  mcpAuthMiddleware,
+  ticketValidation.validateProposedTitle,
+  ticketTitleValidationController.validateProposedTitle,
+);
 
 // ----------------------- register -------------------------
 //apply tenant and register-stepOne-V2
@@ -231,13 +243,6 @@ router.get(
 router.get('/tickets/:id', ticketValidation.show, ticketController.show);
 
 router.post(
-  '/tickets/validate-title',
-  authenticationTokenMiddleware,
-  ticketValidation.validateProposedTitle,
-  ticketTitleValidationController.validateProposedTitle,
-);
-
-router.post(
   '/tickets/:id/validate-title',
   authenticationTokenMiddleware,
   ticketValidation.validateTitle,
@@ -331,6 +336,13 @@ router.delete(
   permissionMiddleware.permission('delete:projects'),
   projectValidation.remove,
   projectsController.deleteOne,
+);
+router.post(
+  '/projects/:id/api-tokens',
+  authenticationTokenMiddleware,
+  apiTokenValidation.store,
+  requireProjectAdmin,
+  apiTokenController.store,
 );
 //TODO: s
 router.post('/projects/:id/shortcuts', shortcutValidation.store, shortcutControllers.store);
