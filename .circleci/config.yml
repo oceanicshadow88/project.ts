@@ -1,0 +1,86 @@
+# CircleCI config for the TechScrum yarn-workspaces monorepo (backend + frontend).
+# CircleCI only reads this root file; the old per-package configs were removed.
+# Commits containing "[skip ci]" are skipped natively by CircleCI.
+version: 2.1
+
+executors:
+  node:
+    docker:
+      - image: cimg/node:22.20
+    working_directory: ~/repo
+    environment:
+      # Cypress is only used locally; skip the large binary download on install
+      CYPRESS_INSTALL_BINARY: '0'
+      HUSKY: '0'
+
+commands:
+  install_deps:
+    description: Install workspace dependencies with caching
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v2-yarn-{{ checksum "yarn.lock" }}
+            - v2-yarn-
+      - run:
+          name: Install dependencies
+          command: yarn install --frozen-lockfile --cache-folder ~/.cache/yarn
+      - save_cache:
+          key: v2-yarn-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
+jobs:
+  backend_lint_build:
+    executor: node
+    steps:
+      - install_deps
+      - run:
+          name: Lint backend
+          command: yarn workspace be.techscrum lint
+      - run:
+          name: Build backend
+          command: yarn workspace be.techscrum build
+
+  backend_test:
+    executor: node
+    environment:
+      # Dummy values for tests only (JWT signing); not real secrets
+      ACCESS_SECRET: ci-access-secret
+      EMAIL_SECRET: ci-email-secret
+      FORGET_SECRET: ci-forget-secret
+      # mongodb-memory-server defaults to MongoDB 5.0 which needs libssl1.1 (absent on
+      # current cimg images); use a MongoDB 7 Ubuntu 22.04 build instead and cache it.
+      MONGOMS_VERSION: 7.0.14
+      MONGOMS_ARCHIVE_NAME: mongodb-linux-x86_64-ubuntu2204-7.0.14.tgz
+      MONGOMS_DOWNLOAD_DIR: /home/circleci/.cache/mongodb-binaries
+    steps:
+      - install_deps
+      - restore_cache:
+          keys:
+            - v1-mongodb-binaries-7.0.14
+      - run:
+          name: Test backend
+          command: yarn workspace be.techscrum test --ci
+      - save_cache:
+          key: v1-mongodb-binaries-7.0.14
+          paths:
+            - ~/.cache/mongodb-binaries
+
+  frontend_lint_build:
+    executor: node
+    steps:
+      - install_deps
+      - run:
+          name: Lint frontend
+          command: yarn workspace fe.techscrum lint
+      - run:
+          name: Build frontend
+          command: yarn workspace fe.techscrum build
+
+workflows:
+  ci:
+    jobs:
+      - backend_lint_build
+      - backend_test
+      - frontend_lint_build
