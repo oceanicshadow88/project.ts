@@ -6,11 +6,12 @@ import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/Proj
 import SettingCard from '../../../../components/SettingCard/SettingCard';
 import { UserContext } from '../../../../context/UserInfoProvider';
 import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
-import { getApiTokens } from '../../../../api/serviceAccount/serviceAccount';
+import { getApiTokens, revokeApiToken } from '../../../../api/serviceAccount/serviceAccount';
 import type { IApiTokenRecord, ICreatedApiToken } from '../../../../types/serviceAccount';
 import ApiTokenTable from './ApiTokenTable/ApiTokenTable';
 import CopyApiTokenModal from './CopyApiTokenModal/CopyApiTokenModal';
 import CreateApiTokenModal from './CreateApiTokenModal/CreateApiTokenModal';
+import RevokeApiTokenModal from './RevokeApiTokenModal/RevokeApiTokenModal';
 import styles from './ServiceAccountSettings.module.scss';
 
 export default function ServiceAccountSettings() {
@@ -19,11 +20,13 @@ export default function ServiceAccountSettings() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createdToken, setCreatedToken] = useState<ICreatedApiToken | null>(null);
   const [apiTokens, setApiTokens] = useState<IApiTokenRecord[]>([]);
+  const [tokenToRevoke, setTokenToRevoke] = useState<IApiTokenRecord | null>(null);
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     let active = true;
     setApiTokens([]);
+    setTokenToRevoke(null);
 
     const fetchApiTokens = async () => {
       try {
@@ -52,6 +55,16 @@ export default function ServiceAccountSettings() {
     setCount((value) => value + 1);
   };
 
+  const handleRevokeToken = async () => {
+    if (!tokenToRevoke) return;
+
+    const { revokedAt } = await revokeApiToken(projectId, tokenToRevoke.id);
+    setApiTokens((records) =>
+      records.map((record) => (record.id === tokenToRevoke.id ? { ...record, revokedAt } : record))
+    );
+    setTokenToRevoke((selected) => (selected?.id === tokenToRevoke.id ? null : selected));
+  };
+
   return (
     <ProjectSettingHOC>
       <SettingCard
@@ -66,7 +79,7 @@ export default function ServiceAccountSettings() {
           />
         }
       >
-        <ApiTokenTable apiTokens={apiTokens} />
+        <ApiTokenTable apiTokens={apiTokens} onRevoke={setTokenToRevoke} />
       </SettingCard>
       {showCreateModal && (
         <CreateApiTokenModal
@@ -76,6 +89,13 @@ export default function ServiceAccountSettings() {
         />
       )}
       {createdToken && <CopyApiTokenModal token={createdToken.token} onClose={handleCloseModal} />}
+      {tokenToRevoke && (
+        <RevokeApiTokenModal
+          tokenName={tokenToRevoke.name}
+          onClose={() => setTokenToRevoke(null)}
+          onRevoke={handleRevokeToken}
+        />
+      )}
     </ProjectSettingHOC>
   );
 }

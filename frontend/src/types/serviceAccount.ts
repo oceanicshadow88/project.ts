@@ -7,4 +7,5 @@ export interface IApiTokenRecord {
   name: string;
   createdBy: string;
   lastUsedAt: string | null;
+  revokedAt: string | null;
 }

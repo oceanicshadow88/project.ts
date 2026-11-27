@@ -1,12 +1,14 @@
 import React from 'react';
 import type { IApiTokenRecord } from '../../../../../types/serviceAccount';
 import styles from './ApiTokenTable.module.scss';
+import ButtonV2 from '../../../../../lib/FormV2/ButtonV2/ButtonV2';
 
 interface IApiTokenTableProps {
   apiTokens: IApiTokenRecord[];
+  onRevoke: (token: IApiTokenRecord) => void;
 }
 
-export default function ApiTokenTable({ apiTokens }: Readonly<IApiTokenTableProps>) {
+export default function ApiTokenTable({ apiTokens, onRevoke }: Readonly<IApiTokenTableProps>) {
   if (apiTokens.length === 0) {
     return <p className={styles.emptyState}>Create an API token to connect to the MCP server</p>;
   }
@@ -32,6 +34,15 @@ export default function ApiTokenTable({ apiTokens }: Readonly<IApiTokenTableProp
                 {token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleDateString() : 'Never'}
               </td>
               <td>Never</td>
+              <td>
+                <ButtonV2
+                  text={token.revokedAt ? 'Revoked' : 'Revoke'}
+                  danger
+                  disabled={token.revokedAt !== null}
+                  customStyles={styles.revokeButton}
+                  onClick={() => onRevoke(token)}
+                />
+              </td>
             </tr>
           ))}
         </tbody>

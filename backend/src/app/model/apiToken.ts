@@ -7,6 +7,7 @@ export interface IApiToken {
   project: Types.ObjectId;
   createdBy: Types.ObjectId;
   lastUsedAt: Date | null;
+  revokedAt: Date | null;
 }
 
 const apiTokenSchema = new mongoose.Schema<IApiToken>(
@@ -38,6 +39,10 @@ const apiTokenSchema = new mongoose.Schema<IApiToken>(
       required: true,
     },
     lastUsedAt: {
+      type: Date,
+      default: null,
+    },
+    revokedAt: {
       type: Date,
       default: null,
     },

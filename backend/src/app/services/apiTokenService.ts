@@ -20,7 +20,7 @@ export const authenticateApiToken = async (
 ): Promise<boolean> => {
   const apiTokenModel = ApiToken.getModel(connection);
   const result = await apiTokenModel.updateOne(
-    { tokenHash: hashApiToken(token) },
+    { tokenHash: hashApiToken(token), revokedAt: null },
     { $currentDate: { lastUsedAt: true } },
   );
   return result.matchedCount > 0;
@@ -31,7 +31,7 @@ export const listApiTokens = async (req: Request) => {
   const userModel = User.getModel(req.tenantsConnection);
   const records = await apiTokenModel
     .find({ project: req.params.id, tenant: req.tenantId })
-    .select('name createdBy lastUsedAt')
+    .select('name createdBy lastUsedAt revokedAt')
     .sort({ createdAt: -1 })
     .populate<IApiTokenWithCreator>({
     path: 'createdBy',
@@ -44,6 +44,7 @@ export const listApiTokens = async (req: Request) => {
     name: record.name || 'Unnamed token',
     createdBy: record.createdBy?.name || 'Unknown user',
     lastUsedAt: record.lastUsedAt ?? null,
+    revokedAt: record.revokedAt ?? null,
   }));
 
   return tokens;
@@ -63,4 +64,15 @@ export const createApiToken = async (req: Request) => {
   });
 
   return { token };
+};
+
+export const revokeApiToken = async (req: Request) => {
+  const apiTokenModel = ApiToken.getModel(req.dbConnection);
+  const record = await apiTokenModel.findOneAndUpdate(
+    { _id: req.params.tokenId, project: req.params.id, tenant: req.tenantId },
+    { $set: { revokedAt: new Date() } },
+    { new: true },
+  );
+
+  return record;
 };

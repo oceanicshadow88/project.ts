@@ -16,3 +16,8 @@ export const store = [
 ];
 
 export const index = validateProjectId;
+
+export const revoke = [
+  ...validateProjectId,
+  param('tokenId').isMongoId().withMessage('Token ID must be a valid ObjectId'),
+];

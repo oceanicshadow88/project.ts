@@ -12,3 +12,10 @@ export const createApiToken = async (projectId: string, name: string) => {
   });
   return response.data;
 };
+
+export const revokeApiToken = async (projectId: string, tokenId: string) => {
+  const response = await alphaApiV2.delete<{ revokedAt: string }>(
+    `/projects/${projectId}/api-tokens/${tokenId}`
+  );
+  return response.data;
+};
