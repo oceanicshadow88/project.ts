@@ -1,7 +1,9 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic, { ClientOptions } from '@anthropic-ai/sdk';
 import { CLAUDE_API_KEY } from '../config/claudeAi';
 import type { TicketTitleValidationResult } from '../types/ticketTitleValidationResult';
+import type { ChatIntentResult, ChatOptionNames } from '../types/chatIntentResult';
 import { validateTicketTitleResult } from '../validations/ticketTitleResultValidation';
+import { validateChatIntentResult } from '../validations/chatIntentResultValidation';
 
 const VALIDATION_RULES = `
 Objective
@@ -45,7 +47,57 @@ Return JSON only, using this structure:
 {"classification":"clear|unclear|ambiguous","recommendedTitle":"recommended ticket title","reason":"explanation"}
 `;
 
-export const validateTicketTitleByClaude = async (title: string): Promise<TicketTitleValidationResult> => {
+const CHAT_INTENT_RULES = `
+Objective
+
+Decide what a TechScrum user wants from one chat message and extract the
+details.
+
+Intents
+
+- create: the user wants a new ticket.
+- search: the user wants to find or list existing tickets.
+- other: anything else, including editing, deleting, estimating, or questions
+  about TechScrum.
+
+Rules
+
+- Use only information in the message. Do not invent values.
+- Choose type, assignee and sprint names only from the given options. Use ""
+  when none match.
+- Use "me" when the user means themselves and "current" for the current sprint.
+- In search, use "unassigned" for tickets with no assignee.
+- priority is one of Highest, High, Medium, Low, Lowest, or "".
+- For create, write a short, actionable title and put any extra detail in
+  description.
+
+Return JSON only, using this structure:
+
+{"intent":"create|search|other","ticket":{"title":"","type":"","priority":"","assignee":"","sprint":"","description":""},"search":{"keyword":"","type":"","priority":"","assignee":"","sprint":""}}
+`;
+
+const CHAT_TIMEOUT_MS = 25000;
+
+// Claude sometimes wraps the JSON in a json code fence
+const parseJsonReply = (response: Anthropic.Message, missingMessage: string): unknown => {
+  const textBlock = response.content.find(
+    (block) => block.type === 'text',
+  );
+
+  if (!textBlock) {
+    throw new Error(missingMessage);
+  }
+
+  const json = textBlock.text
+    .trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/```$/, '')
+    .trim();
+
+  return JSON.parse(json);
+};
+
+const createClaudeClient = (options: Omit<ClientOptions, 'apiKey'> = {}) => {
   const model = process.env.MCP_CLAUDE_MODEL;
 
   if (!CLAUDE_API_KEY || !model) {
@@ -54,7 +106,11 @@ export const validateTicketTitleByClaude = async (title: string): Promise<Ticket
     );
   }
 
-  const anthropic = new Anthropic({ apiKey: CLAUDE_API_KEY });
+  return { model, anthropic: new Anthropic({ apiKey: CLAUDE_API_KEY, ...options }) };
+};
+
+export const validateTicketTitleByClaude = async (title: string): Promise<TicketTitleValidationResult> => {
+  const { anthropic, model } = createClaudeClient();
   const response = await anthropic.messages.create({
     model,
     max_tokens: 300,
@@ -70,21 +126,38 @@ export const validateTicketTitleByClaude = async (title: string): Promise<Ticket
     ],
   });
 
-  const textBlock = response.content.find(
-    (block) => block.type === 'text',
+  return validateTicketTitleResult(
+    parseJsonReply(response, 'Claude did not return a ticket title validation result'),
   );
+};
 
-  if (!textBlock) {
-    throw new Error(
-      'Claude did not return a ticket title validation result',
-    );
+export const detectChatIntentByClaude = async (
+  message: string,
+  options: ChatOptionNames,
+): Promise<ChatIntentResult> => {
+  // Answer before the frontend gives up at 30 seconds; the SDK would otherwise retry twice
+  const { anthropic, model } = createClaudeClient({ timeout: CHAT_TIMEOUT_MS, maxRetries: 0 });
+  const response = await anthropic.messages.create({
+    model,
+    max_tokens: 1000,
+    temperature: 0,
+    system: CHAT_INTENT_RULES,
+    messages: [
+      {
+        role: 'user',
+        content: JSON.stringify({ message, options }),
+      },
+    ],
+  });
+
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('Claude chat intent reply was cut off');
+  }
+  if (response.stop_reason === 'refusal') {
+    return validateChatIntentResult({ intent: 'other' });
   }
 
-  const json = textBlock.text
-    .trim()
-    .replace(/^```json\s*/i, '')
-    .replace(/```$/, '')
-    .trim();
-
-  return validateTicketTitleResult(JSON.parse(json));
+  return validateChatIntentResult(
+    parseJsonReply(response, 'Claude did not return a chat intent'),
+  );
 };

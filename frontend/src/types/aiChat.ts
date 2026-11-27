@@ -6,7 +6,7 @@ export const TICKET_PRIORITIES: TicketPriority[] = ['Highest', 'High', 'Medium',
 
 export const DEFAULT_PRIORITY: TicketPriority = 'Medium';
 
-// The body of the Chat API request. The backend part adds `history` here (TS-37 M2)
+// The body of POST /projects/:id/ai/chat
 export interface AiChatRequest {
   message: string;
 }

@@ -71,6 +71,8 @@ import { config } from '../../config/app';
 import * as aiController from '../../controllers/v1/aiController';
 import * as promptValidation from '../../validations/promptValidation';
 import * as promptController from '../../controllers/v1/promptController';
+import * as aiChatController from '../../controllers/v1/aiChatController';
+import * as aiChatValidation from '../../validations/aiChatValidation';
 import * as apiTokenController from '../../controllers/v1/apiTokenController';
 import * as apiTokenValidation from '../../validations/apiToken';
 import { mcpAuthMiddleware } from '../../middleware/mcpAuthMiddleware';
@@ -552,6 +554,12 @@ router.get('/temp/projects/:projectId/import', projectsController.tempImport);
 
 // Claude Function call
 router.post('/ai/optimize', aiController.optimize);
+router.post(
+  '/projects/:id/ai/chat',
+  authenticationTokenMiddleware,
+  aiChatValidation.chat,
+  aiChatController.chat,
+);
 
 // Prompts CRUD API
 router.get('/prompts', 

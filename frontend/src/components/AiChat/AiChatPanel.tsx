@@ -56,7 +56,6 @@ export default function AiChatPanel({ projectId }: IAiChatPanel) {
       <div className={styles.header}>
         <FaRobot className={styles.headerIcon} aria-hidden="true" />
         <h2 className={styles.headerTitle}>TechScrum AI</h2>
-        {chat.isDemoMode && <span className={styles.demoTag}>Demo data</span>}
         <div className={styles.headerActions}>
           <IconButton
             icon={<AiOutlinePlus aria-label="New chat" />}

@@ -1,9 +1,9 @@
 import { Request } from 'express';
 import httpStatus from 'http-status';
 import * as Ticket from '../model/ticket';
-import * as Project from '../model/project';
 import type { TicketTitleValidationResult } from '../types/ticketTitleValidationResult';
 import { validateTicketTitleByClaude } from './claudeService';
+import { getProjectAccessStatus } from './projectAccessService';
 
 type TicketTitleValidationResponse = {
   status: number;
@@ -17,19 +17,8 @@ export const validateTicketTitle = async (req: Request): Promise<TicketTitleVali
   });
   if (!ticket) return { status: httpStatus.NOT_FOUND };
 
-  const project = await Project.getModel(req.dbConnection).findOne({
-    _id: ticket.project,
-    tenant: req.tenantId,
-    isDelete: false,
-  });
-  if (!project) return { status: httpStatus.NOT_FOUND };
-
-  const accessibleProjectIds =
-    req.user?.projectsRoles?.filter((pr) => pr.project).map((pr) => pr.project.toString()) ?? [];
-
-  if (req.ownerId !== req.userId) {
-    if (!accessibleProjectIds.includes(project.id)) return { status: httpStatus.FORBIDDEN };
-  }
+  const accessStatus = await getProjectAccessStatus(req, ticket.project);
+  if (accessStatus !== httpStatus.OK) return { status: accessStatus };
 
   const result = await validateTicketTitleByClaude(ticket.title);
   return { status: httpStatus.OK, result: { title: ticket.title, ...result } };
