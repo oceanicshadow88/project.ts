@@ -68,11 +68,11 @@ export const createApiToken = async (req: Request) => {
 
 export const revokeApiToken = async (req: Request) => {
   const apiTokenModel = ApiToken.getModel(req.dbConnection);
-  const record = await apiTokenModel.findOneAndUpdate(
-    { _id: req.params.tokenId, project: req.params.id, tenant: req.tenantId },
-    { $set: { revokedAt: new Date() } },
-    { new: true },
-  );
+  const result = await apiTokenModel.deleteOne({
+    _id: req.params.tokenId,
+    project: req.params.id,
+    tenant: req.tenantId,
+  });
 
-  return record;
+  return result.deletedCount > 0;
 };

@@ -1,11 +1,6 @@
 import { alphaApiV2 } from '../../config/api';
 import type { IApiTokenRecord, ICreatedApiToken } from '../../types/serviceAccount';
 
-export const getApiTokens = async (projectId: string) => {
-  const response = await alphaApiV2.get<IApiTokenRecord[]>(`/projects/${projectId}/api-tokens`);
-  return response.data;
-};
-
 export const createApiToken = async (projectId: string, name: string) => {
   const response = await alphaApiV2.post<ICreatedApiToken>(`/projects/${projectId}/api-tokens`, {
     name
@@ -13,9 +8,11 @@ export const createApiToken = async (projectId: string, name: string) => {
   return response.data;
 };
 
-export const revokeApiToken = async (projectId: string, tokenId: string) => {
-  const response = await alphaApiV2.delete<{ revokedAt: string }>(
-    `/projects/${projectId}/api-tokens/${tokenId}`
-  );
+export const getApiTokens = async (projectId: string) => {
+  const response = await alphaApiV2.get<IApiTokenRecord[]>(`/projects/${projectId}/api-tokens`);
   return response.data;
 };
+
+export function revokeApiToken(projectId: string, tokenId: string) {
+  return alphaApiV2.delete(`/projects/${projectId}/api-tokens/${tokenId}`);
+}

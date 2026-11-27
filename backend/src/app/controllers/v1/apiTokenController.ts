@@ -29,5 +29,5 @@ export const revoke = asyncHandler(async (req: Request, res: Response) => {
   }
   const result = await revokeApiToken(req);
   if (!result) return res.sendStatus(status.NOT_FOUND);
-  return res.status(status.OK).send(result);
+  return res.status(status.NO_CONTENT).send();
 });

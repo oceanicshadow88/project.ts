@@ -55,10 +55,12 @@ export default function ServiceAccountSettings() {
   };
 
   const handleRevokeToken = async () => {
-    if (!revokeToken) return;
-    await revokeApiToken(projectId, revokeToken.id);
+    if (!revokeToken) return false;
+    const response = await revokeApiToken(projectId, revokeToken.id);
+    if (!response) return false;
     setRevokeToken(null);
     setCount((value) => value + 1);
+    return true;
   };
 
   return (

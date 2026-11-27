@@ -32,9 +32,8 @@ export default function ApiTokenTable({ apiTokens, onRevoke }: Readonly<IApiToke
               <td>Never</td>
               <td>
                 <ButtonV2
-                  text={token.revokedAt ? 'Revoked' : 'Revoke'}
+                  text="Revoke"
                   danger
-                  disabled={token.revokedAt !== null}
                   customStyles={styles.revokeButton}
                   onClick={() => onRevoke(token)}
                 />

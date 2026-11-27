@@ -9,7 +9,7 @@ import ButtonV2 from '../../../../../lib/FormV2/ButtonV2/ButtonV2';
 interface IRevokeApiTokenModalProps {
   tokenName: string;
   onClose: () => void;
-  onRevoke: () => Promise<void>;
+  onRevoke: () => Promise<boolean>;
 }
 
 export default function RevokeApiTokenModal({
