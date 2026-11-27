@@ -1,6 +1,5 @@
 import { Request } from 'express';
 import httpStatus from 'http-status';
-import * as Project from '../model/project';
 import type {
   AiChatFilter,
   AiChatReply,
@@ -15,6 +14,7 @@ import type {
 } from '../types/chatIntentResult';
 import { BacklogSearchFilters, findBacklogTickets } from './backlogService';
 import { detectChatIntentByClaude } from './claudeService';
+import { getProjectAccessStatus } from './projectAccessService';
 import { projectDetails } from './projectService';
 
 type AiChatResponse = {
@@ -23,6 +23,21 @@ type AiChatResponse = {
 };
 
 type NamedItem = { id: string; name: string };
+
+// What the chat reads from the documents projectDetails returns
+type NamedDocument = { id?: string; name?: string };
+type SprintDocument = NamedDocument & { status?: string };
+
+// What the chat reads from a ticket that findTickets has populated
+type PopulatedTicket = {
+  id: string;
+  title: string;
+  ticketNumber?: number;
+  priority: TicketPriority;
+  status?: unknown;
+  type?: { name?: string } | null;
+  assign?: { name?: string } | null;
+};
 
 type ProjectOptions = {
   key: string;
@@ -45,7 +60,10 @@ const OPTIONAL_DRAFT_FIELDS: [string, keyof TicketDraft][] = [
   ['Sprint', 'sprintId'],
 ];
 
-const toNamedItem = (item: any): NamedItem => ({ id: item.id, name: item.name });
+const toNamedItem = ({ id, name }: NamedDocument): NamedItem => ({
+  id: String(id),
+  name: name ?? '',
+});
 
 const isSameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
@@ -62,8 +80,8 @@ const loadProjectOptions = async (req: Request): Promise<ProjectOptions> => {
     types: ticketTypes.map(toNamedItem),
     members: users.map(toNamedItem),
     sprints: sprints
-      .filter((sprint: any) => sprint.status !== 'completed')
-      .map((sprint: any) => ({ ...toNamedItem(sprint), status: sprint.status })),
+      .filter((sprint: SprintDocument) => sprint.status !== 'completed')
+      .map((sprint: SprintDocument) => ({ ...toNamedItem(sprint), status: sprint.status ?? '' })),
     statuses: statuses.map(toNamedItem),
   };
 };
@@ -104,7 +122,7 @@ const toSearchFilters = (req: Request, search: ChatSearchFields, options: Projec
     chips.push({ label: 'Type', value: search.type });
   }
   if (search.priority) {
-    filters.priority = search.priority;
+    filters.priority = PRIORITIES.find((priority) => priority === search.priority);
     chips.push({ label: 'Priority', value: search.priority });
   }
   if (search.assignee) {
@@ -122,7 +140,7 @@ const toSearchFilters = (req: Request, search: ChatSearchFields, options: Projec
   return { filters, chips, matchesNothing };
 };
 
-const toTicketSummary = (ticket: any, options: ProjectOptions): TicketSummary => ({
+const toTicketSummary = (ticket: PopulatedTicket, options: ProjectOptions): TicketSummary => ({
   id: ticket.id,
   key: `${options.key}-${ticket.ticketNumber}`,
   title: ticket.title,
@@ -182,20 +200,8 @@ const toDraftReply = (
 };
 
 export const replyToChatMessage = async (req: Request): Promise<AiChatResponse> => {
-  // Same project and access checks as ticketTitleValidationService
-  const project = await Project.getModel(req.dbConnection).findOne({
-    _id: req.params.id,
-    tenant: req.tenantId,
-    isDelete: false,
-  });
-  if (!project) return { status: httpStatus.NOT_FOUND };
-
-  const accessibleProjectIds =
-    req.user?.projectsRoles?.filter((pr) => pr.project).map((pr) => pr.project.toString()) ?? [];
-
-  if (req.ownerId !== req.userId) {
-    if (!accessibleProjectIds.includes(project.id)) return { status: httpStatus.FORBIDDEN };
-  }
+  const accessStatus = await getProjectAccessStatus(req, req.params.id);
+  if (accessStatus !== httpStatus.OK) return { status: accessStatus };
 
   const options = await loadProjectOptions(req);
   const { intent, ticket, search } = await detectChatIntentByClaude(

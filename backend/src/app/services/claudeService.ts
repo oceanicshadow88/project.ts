@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Anthropic, { ClientOptions } from '@anthropic-ai/sdk';
 import { CLAUDE_API_KEY } from '../config/claudeAi';
 import type { TicketTitleValidationResult } from '../types/ticketTitleValidationResult';
 import type { ChatIntentResult, ChatOptionNames } from '../types/chatIntentResult';
@@ -97,7 +97,7 @@ const parseJsonReply = (response: Anthropic.Message, missingMessage: string): un
   return JSON.parse(json);
 };
 
-export const validateTicketTitleByClaude = async (title: string): Promise<TicketTitleValidationResult> => {
+const createClaudeClient = (options: Omit<ClientOptions, 'apiKey'> = {}) => {
   const model = process.env.MCP_CLAUDE_MODEL;
 
   if (!CLAUDE_API_KEY || !model) {
@@ -106,7 +106,11 @@ export const validateTicketTitleByClaude = async (title: string): Promise<Ticket
     );
   }
 
-  const anthropic = new Anthropic({ apiKey: CLAUDE_API_KEY });
+  return { model, anthropic: new Anthropic({ apiKey: CLAUDE_API_KEY, ...options }) };
+};
+
+export const validateTicketTitleByClaude = async (title: string): Promise<TicketTitleValidationResult> => {
+  const { anthropic, model } = createClaudeClient();
   const response = await anthropic.messages.create({
     model,
     max_tokens: 300,
@@ -131,20 +135,8 @@ export const detectChatIntentByClaude = async (
   message: string,
   options: ChatOptionNames,
 ): Promise<ChatIntentResult> => {
-  const model = process.env.MCP_CLAUDE_MODEL;
-
-  if (!CLAUDE_API_KEY || !model) {
-    throw new Error(
-      'Missing CLAUDE_API_KEY or MCP_CLAUDE_MODEL',
-    );
-  }
-
   // Answer before the frontend gives up at 30 seconds; the SDK would otherwise retry twice
-  const anthropic = new Anthropic({
-    apiKey: CLAUDE_API_KEY,
-    timeout: CHAT_TIMEOUT_MS,
-    maxRetries: 0,
-  });
+  const { anthropic, model } = createClaudeClient({ timeout: CHAT_TIMEOUT_MS, maxRetries: 0 });
   const response = await anthropic.messages.create({
     model,
     max_tokens: 1000,
