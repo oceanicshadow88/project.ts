@@ -20,7 +20,6 @@ import { winstonLogger } from '../../bootstrap/logger';
 // Run with --dry-run to see what would change without writing anything.
 
 const options = {
-  useNewURLParser: true,
   useUnifiedTopology: true,
   maxPoolSize: 10,
   socketTimeoutMS: 30000,
@@ -69,35 +68,33 @@ interface ISprintMove {
   projectId: Types.ObjectId;
 }
 
-const migrateBoardProjects = async (dbConnection: mongoose.Connection) => {
-  const boardModel = Board.getModel(dbConnection as unknown as mongoose.Mongoose);
-  const sprintModel = Sprint.getModel(dbConnection);
-  const projectModel = Project.getModel(dbConnection);
-  const statusModel = Status.getModel(dbConnection);
-  const result = { linked: 0, copied: 0, sprintsMoved: 0, unused: 0, created: 0 };
+interface ISharedBoardPlan {
+  boardLinks: IBoardLink[];
+  boardCopies: INewBoard[];
+  sprintMoves: ISprintMove[];
+  sprintsMoved: number;
+  unused: number;
+}
 
-  // Projects that already have (or will get) a board
-  const linkedBoards = await boardModel
-    .find({ project: { $ne: null } }, { project: 1 })
-    .lean<IBoardDoc[]>();
-  const projectsWithBoard = new Set(linkedBoards.map((board) => String(board.project)));
+interface IMigrationModels {
+  boardModel: ReturnType<typeof Board.getModel>;
+  sprintModel: ReturnType<typeof Sprint.getModel>;
+}
 
-  const boards = await boardModel.find({ project: null }).lean<IBoardDoc[]>();
-
-  // Load every sprint that uses these boards in one query, oldest first,
-  // so the first project to use a board keeps it
-  const sprints: ISprintDoc[] = await sprintModel
-    .find({ board: { $in: boards.map((board) => board._id) }, project: { $ne: null } }, {
-      board: 1,
-      project: 1,
-    })
-    .sort({ createdAt: 1 })
-    .lean();
-
-  // Work out every change first, then save them all together at the end
-  const boardLinks: IBoardLink[] = [];
-  const boardsToCreate: INewBoard[] = [];
-  const sprintMoves: ISprintMove[] = [];
+// Works out which project keeps each board and which projects need their own copy
+const planSharedBoardChanges = (
+  boards: IBoardDoc[],
+  sprints: ISprintDoc[],
+  projects: IProjectDoc[],
+): ISharedBoardPlan => {
+  const projectTenants = new Map(projects.map((project) => [String(project._id), project.tenant]));
+  const plan: ISharedBoardPlan = {
+    boardLinks: [],
+    boardCopies: [],
+    sprintMoves: [],
+    sprintsMoved: 0,
+    unused: 0,
+  };
 
   boards.forEach((board) => {
     const boardSprints = sprints.filter(
@@ -106,16 +103,14 @@ const migrateBoardProjects = async (dbConnection: mongoose.Connection) => {
     const projectIds = [...new Set(boardSprints.map((sprint) => sprint.project.toString()))];
 
     if (projectIds.length === 0) {
-      result.unused += 1;
+      plan.unused += 1;
       winstonLogger.info(`board ${board._id}: not used by any sprint, skipped`);
       return;
     }
 
     const [ownerProjectId, ...otherProjectIds] = projectIds;
     winstonLogger.info(`board ${board._id}: linked to project ${ownerProjectId}`);
-    boardLinks.push({ boardId: board._id, projectId: new Types.ObjectId(ownerProjectId) });
-    projectsWithBoard.add(ownerProjectId);
-    result.linked += 1;
+    plan.boardLinks.push({ boardId: board._id, projectId: new Types.ObjectId(ownerProjectId) });
 
     otherProjectIds.forEach((projectId) => {
       const sprintCount = boardSprints.filter(
@@ -126,79 +121,137 @@ const migrateBoardProjects = async (dbConnection: mongoose.Connection) => {
       );
       // Create the copy's id now so its sprints can be moved in the same batch
       const copyId = new Types.ObjectId();
-      boardsToCreate.push({
+      plan.boardCopies.push({
         _id: copyId,
         title: board.title,
-        tenant: board.tenant,
+        // The copy belongs to the project's tenant, which may differ from the original board's
+        tenant: projectTenants.get(projectId) ?? board.tenant,
         project: new Types.ObjectId(projectId),
         statuses: board.statuses,
-        isPublic: board.isPublic,
+        isPublic: false,
       });
-      sprintMoves.push({ boardId: board._id, copyId, projectId: new Types.ObjectId(projectId) });
-      projectsWithBoard.add(projectId);
-      result.copied += 1;
-      result.sprintsMoved += sprintCount;
+      plan.sprintMoves.push({
+        boardId: board._id,
+        copyId,
+        projectId: new Types.ObjectId(projectId),
+      });
+      plan.sprintsMoved += sprintCount;
     });
   });
 
+  return plan;
+};
+
+// A new "Default" board (default statuses in default order) for each project without a board
+const planDefaultBoards = (
+  projectsWithoutBoard: IProjectDoc[],
+  defaultStatuses: IStatusDoc[],
+): INewBoard[] => {
   const defaultSlugs = DEFAULT_STATUS.map((status) => status.slug);
-  const projects: IProjectDoc[] = await projectModel
-    .find({ isDelete: { $ne: true } }, { tenant: 1 })
-    .lean();
-  const projectsWithoutBoard = projects.filter(
-    (project) => !projectsWithBoard.has(project._id.toString()),
-  );
-
-  // Load the default statuses for every tenant that needs a new board in one query
-  const defaultStatuses: IStatusDoc[] = await statusModel
-    .find(
-      {
-        tenant: { $in: projectsWithoutBoard.map((project) => project.tenant) },
-        slug: { $in: defaultSlugs },
-      },
-      { slug: 1, tenant: 1 },
-    )
-    .lean();
-
-  projectsWithoutBoard.forEach((project) => {
+  return projectsWithoutBoard.map((project) => {
     winstonLogger.info(`project ${project._id}: no board, created a Default board`);
-    // Keep the default column order
     const statuses = defaultStatuses
       .filter((status) => status.tenant?.toString() === project.tenant?.toString())
       .sort((a, b) => defaultSlugs.indexOf(a.slug) - defaultSlugs.indexOf(b.slug));
-    boardsToCreate.push({
+    return {
       title: 'Default',
       tenant: project.tenant,
       project: project._id,
       statuses: statuses.map((status) => status._id),
-    });
-    result.created += 1;
+    };
   });
+};
 
-  if (!isDryRun) {
-    if (boardLinks.length > 0) {
-      await boardModel.bulkWrite(
-        boardLinks.map(({ boardId, projectId }) => ({
-          updateOne: { filter: { _id: boardId }, update: { $set: { project: projectId } } },
-        })),
-      );
-    }
-    // Create the copies before moving sprints onto them
-    if (boardsToCreate.length > 0) {
-      await boardModel.insertMany(boardsToCreate);
-    }
-    if (sprintMoves.length > 0) {
-      await sprintModel.bulkWrite(
-        sprintMoves.map(({ boardId, copyId, projectId }) => ({
-          updateMany: {
-            filter: { board: boardId, project: projectId },
-            update: { $set: { board: copyId } },
-          },
-        })),
-      );
-    }
+const applyChanges = async (
+  { boardModel, sprintModel }: IMigrationModels,
+  boardLinks: IBoardLink[],
+  boardsToCreate: INewBoard[],
+  sprintMoves: ISprintMove[],
+) => {
+  if (boardLinks.length > 0) {
+    await boardModel.bulkWrite(
+      boardLinks.map(({ boardId, projectId }) => ({
+        updateOne: { filter: { _id: boardId }, update: { $set: { project: projectId } } },
+      })),
+    );
+  }
+  // Create the copies before moving sprints onto them
+  if (boardsToCreate.length > 0) {
+    await boardModel.insertMany(boardsToCreate);
+  }
+  if (sprintMoves.length > 0) {
+    await sprintModel.bulkWrite(
+      sprintMoves.map(({ boardId, copyId, projectId }) => ({
+        updateMany: {
+          filter: { board: boardId, project: projectId },
+          update: { $set: { board: copyId } },
+        },
+      })),
+    );
+  }
+};
+
+const migrateBoardProjects = async (dbConnection: mongoose.Connection) => {
+  const boardModel = Board.getModel(dbConnection as unknown as mongoose.Mongoose);
+  const sprintModel = Sprint.getModel(dbConnection);
+  const projectModel = Project.getModel(dbConnection);
+  const statusModel = Status.getModel(dbConnection);
+
+  const linkedBoards = await boardModel
+    .find({ project: { $ne: null } }, { project: 1 })
+    .lean<IBoardDoc[]>();
+  const boards = await boardModel.find({ project: null }).lean<IBoardDoc[]>();
+  // Oldest first, so the first project to use a board keeps it
+  const sprints: ISprintDoc[] = await sprintModel
+    .find({ board: { $in: boards.map((board) => board._id) }, project: { $ne: null } }, {
+      board: 1,
+      project: 1,
+    })
+    .sort({ createdAt: 1 })
+    .lean();
+  const projects: IProjectDoc[] = await projectModel
+    .find({ isDelete: { $ne: true } }, { tenant: 1 })
+    .lean();
+
+  const sharedBoardPlan = planSharedBoardChanges(boards, sprints, projects);
+
+  // Projects that already have (or will get) a board
+  const projectsWithBoard = new Set([
+    ...linkedBoards.map((board) => String(board.project)),
+    ...sharedBoardPlan.boardLinks.map((link) => String(link.projectId)),
+    ...sharedBoardPlan.boardCopies.map((copy) => String(copy.project)),
+  ]);
+  const projectsWithoutBoard = projects.filter(
+    (project) => !projectsWithBoard.has(project._id.toString()),
+  );
+  const defaultStatuses: IStatusDoc[] = await statusModel
+    .find(
+      {
+        tenant: { $in: projectsWithoutBoard.map((project) => project.tenant) },
+        slug: { $in: DEFAULT_STATUS.map((status) => status.slug) },
+      },
+      { slug: 1, tenant: 1 },
+    )
+    .lean();
+  const defaultBoards = planDefaultBoards(projectsWithoutBoard, defaultStatuses);
+
+  const result = {
+    linked: sharedBoardPlan.boardLinks.length,
+    copied: sharedBoardPlan.boardCopies.length,
+    sprintsMoved: sharedBoardPlan.sprintsMoved,
+    unused: sharedBoardPlan.unused,
+    created: defaultBoards.length,
+  };
+  if (isDryRun) {
+    return result;
   }
 
+  await applyChanges(
+    { boardModel, sprintModel },
+    sharedBoardPlan.boardLinks,
+    [...sharedBoardPlan.boardCopies, ...defaultBoards],
+    sharedBoardPlan.sprintMoves,
+  );
   return result;
 };
 

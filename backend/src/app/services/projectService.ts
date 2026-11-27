@@ -18,9 +18,8 @@ import { init } from '../database/init';
 import { getRetroBoards } from './retroBoardService';
 import { getEpicByProject } from './epicService';
 import { DEFAULT_STATUS } from '../database/seeders/statusSeeder';
-//Typo error
 
-const findOrCreteBoard = async (dbConnection: Mongoose, body: any, tenantId: string) => {
+const findOrCreateBoard = async (dbConnection: Mongoose, body: any, tenantId: string) => {
   const tenantObjectId = new Types.ObjectId(tenantId);
   const boardModel = Board.getModel(dbConnection);
   const existingBoard = await boardModel.findOne({
@@ -95,7 +94,7 @@ export const initProject = async (
       defaultRetroBoard: defaultRetroBoard?.id,
     });
     const statuses = await findOrCreateStatus(dbConnection, tenantId);
-    await findOrCreteBoard(
+    await findOrCreateBoard(
       dbConnection,
       { name: body.name, projectId: project._id, statuses: statuses.map((doc) => doc._id) },
       tenantId,
