@@ -15,6 +15,8 @@ import * as registerValidation from '../../validations/register';
 import * as forgetPasswordController from '../../controllers/v1/forgetPasswordController';
 import * as forgetPasswordValidation from '../../validations/forgetPassword';
 import * as boardController from '../../controllers/v1/boardController';
+import * as boardStatusController from '../../controllers/v1/boardStatusController';
+import * as boardStatusValidation from '../../validations/boardStatus';
 import * as ticketController from '../../controllers/v1/ticketController';
 import * as ticketTitleValidationController from '../../controllers/v1/ticketTitleValidationController';
 import * as ticketValidation from '../../validations/ticketValidation';
@@ -416,6 +418,20 @@ router.post('/uploads', multerMiddleware.upload.array('photos') as any, (req: an
 });
 
 router.get('/types', typeController.index);
+
+router.post('/projects/:projectId/boards/:boardId/statuses',
+  authenticationTokenMiddleware,
+  permissionMiddleware.permission('edit:boards'),
+  boardStatusValidation.store,
+  boardStatusController.store,
+);
+
+router.put('/projects/:projectId/boards/:boardId/statuses',
+  authenticationTokenMiddleware,
+  permissionMiddleware.permission('edit:boards'),
+  boardStatusValidation.update,
+  boardStatusController.update,
+);
 
 router.get('/board/:boardId', boardController.showBoard);
 router.get('/sprints/:sprintId/tickets', boardController.showBoardTickets);

@@ -12,18 +12,19 @@ import { getUserProjectRole } from './roleService';
 import typeService from './typeService';
 import { findSprints } from './sprintService';
 import { getAllStatus } from './statusService';
-import { getAllBoards } from './boardService';
+import { getProjectBoards, IProjectBoard } from './boardService';
+import { ISprintDocument } from '../model/sprint';
 import { init } from '../database/init';
 import { getRetroBoards } from './retroBoardService';
 import { getEpicByProject } from './epicService';
 import { DEFAULT_STATUS } from '../database/seeders/statusSeeder';
-//Typo error
 
-const findOrCreteBoard = async (dbConnection: Mongoose, body: any, tenantId: string) => {
+const findOrCreateBoard = async (dbConnection: Mongoose, body: any, tenantId: string) => {
   const tenantObjectId = new Types.ObjectId(tenantId);
   const boardModel = Board.getModel(dbConnection);
   const existingBoard = await boardModel.findOne({
-    isPublic: true,
+    tenant: tenantObjectId,
+    project: body.projectId,
     title: 'Default',
   });
 
@@ -32,6 +33,7 @@ const findOrCreteBoard = async (dbConnection: Mongoose, body: any, tenantId: str
     const board = await boardModel.create({
       title: 'Default',
       tenant: tenantObjectId,
+      project: body.projectId,
       statuses: body.statuses,
     });
     return board;
@@ -52,7 +54,12 @@ const findOrCreateStatus = async (dbConnection: Mongoose, tenantId: string) => {
   }));
 
   await statusModel.bulkWrite(bulkOps);
-  const statuses = await statusModel.find({ tenant: tenantObjectId });
+  // New project boards start with only the default statuses
+  const defaultSlugs = DEFAULT_STATUS.map((status) => status.slug);
+  const statuses = await statusModel.find({
+    tenant: tenantObjectId,
+    slug: { $in: defaultSlugs },
+  });
 
   return statuses;
 };
@@ -87,9 +94,9 @@ export const initProject = async (
       defaultRetroBoard: defaultRetroBoard?.id,
     });
     const statuses = await findOrCreateStatus(dbConnection, tenantId);
-    findOrCreteBoard(
+    await findOrCreateBoard(
       dbConnection,
-      { name: body.name, statuses: statuses.map((doc) => doc._id) },
+      { name: body.name, projectId: project._id, statuses: statuses.map((doc) => doc._id) },
       tenantId,
     );
     return project;
@@ -125,23 +132,44 @@ export const projectDetails = async (req: Request) => {
   if (!details) {
     throw new Error('Cannot find project');
   }
-  const [labels, users, ticketTypes, sprints, statuses, boards, epics, retroBoards] =
-    await Promise.all([
-      getLabels(req),
-      getUserProjectRole(req),
-      typeService.getTicketType(req),
-      findSprints(req.params.id, req.dbConnection),
-      getAllStatus(req),
-      getAllBoards(req),
-      getEpicByProject(req.params.id, req.dbConnection),
-      getRetroBoards(req),
-    ]);
+  const [labels, users, ticketTypes, sprints, statuses, epics, retroBoards] = await Promise.all([
+    getLabels(req),
+    getUserProjectRole(req),
+    typeService.getTicketType(req),
+    findSprints(req.params.id, req.dbConnection),
+    getAllStatus(req),
+    getEpicByProject(req.params.id, req.dbConnection),
+    getRetroBoards(req),
+  ]);
+
+  const sprintBoardIds = (sprints as ISprintDocument[])
+    .filter((sprint) => sprint.board)
+    .map((sprint) => String(sprint.board));
+  const boards = await getProjectBoards(req, req.params.id, sprintBoardIds);
+
+  // Only return statuses used by this project's boards, in column order
+  // (a Map keeps insertion order and skips statuses shared by several boards)
+  const boardStatuses = new Map<string, IProjectBoard['statuses'][number]>();
+  boards.forEach((board) => {
+    board.statuses.forEach((status) => {
+      if (!boardStatuses.has(status.id)) {
+        boardStatuses.set(status.id, status);
+      }
+    });
+  });
+  // Fall back to the default statuses if the project has no boards
+  const defaultSlugs = new Set(DEFAULT_STATUS.map((status) => status.slug));
+  const projectStatuses =
+    boardStatuses.size > 0
+      ? [...boardStatuses.values()]
+      : statuses.filter((status) => defaultSlugs.has(status.slug));
+
   return {
     labels,
     users,
     ticketTypes,
     sprints,
-    statuses,
+    statuses: projectStatuses,
     boards,
     epics,
     details,
