@@ -22,6 +22,7 @@ export const createApiToken = async (req: Request) => {
   const apiTokenModel = ApiToken.getModel(dbConnection);
   const token = randomBytes(32).toString('base64url');
   await apiTokenModel.create({
+    name: req.body.name,
     tokenHash: hashApiToken(token),
     tenant: tenantId,
     project: projectId,

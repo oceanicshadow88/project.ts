@@ -1,6 +1,7 @@
 import mongoose, { Model, Schema, Types } from 'mongoose';
 
 export interface IApiToken {
+  name: string;
   tokenHash: string;
   tenant: string;
   project: Types.ObjectId;
@@ -10,6 +11,12 @@ export interface IApiToken {
 
 const apiTokenSchema = new mongoose.Schema<IApiToken>(
   {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 30,
+    },
     tokenHash: {
       type: String,
       required: true,

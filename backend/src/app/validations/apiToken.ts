@@ -1,4 +1,4 @@
-import { param } from 'express-validator';
+import { body, param } from 'express-validator';
 
 export const store = [
   param('id')
@@ -7,4 +7,5 @@ export const store = [
     .bail()
     .isMongoId()
     .withMessage('Project ID must be a valid ObjectId'),
+  body('name').isString().bail().trim().notEmpty().isLength({ max: 30 }),
 ];
