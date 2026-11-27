@@ -109,5 +109,4 @@ Kitman Yiu - [Kitman Yiu](www.kitmanyiu.com)
 
 - Eslint Airbnb
 - Prettier
-- Sonar
 - https://www.notion.so/Coding-Guidelines-bfa77d75476a4b19a195ddb20b02bb33
