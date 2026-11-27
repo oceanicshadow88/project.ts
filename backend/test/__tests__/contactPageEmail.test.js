@@ -1,5 +1,20 @@
 import request from 'supertest';
+import sinon from 'sinon';
 import app from '../setup/app';
+import * as emailSender from '../../src/app/utils/emailSender';
+
+let emailStub = null;
+
+beforeAll(() => {
+  // Avoid sending real emails through AWS SES during tests
+  emailStub = sinon.stub(emailSender, 'emailContactUsTemplate').resolves({});
+});
+
+afterAll(() => {
+  if (emailStub) {
+    emailStub.restore();
+  }
+});
 
 describe('Post /emailus', () => {
   it('should return a 400 status code for invalid req.body', async () => {
