@@ -1,11 +1,13 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 import { IMinEvent, IOptions } from '../../../types';
 import styles from '../../FormV2/FormV2.module.scss';
 import defaultStyles from './Dropdown.module.scss';
+
+const VIEWPORT_MARGIN = 8;
 
 interface IDropdown {
   label: string;
@@ -115,6 +117,18 @@ function Dropdown(props: IDropdown) {
       window.removeEventListener('scroll', closeMenu, true);
       window.removeEventListener('resize', closeMenu);
     };
+  }, [showMenu]);
+
+  // Dropdown expands right if possible, left if overflow
+  useLayoutEffect(() => {
+    if (!showMenu || !menuRef.current || !buttonRef.current) return;
+    const menuWidth = menuRef.current.getBoundingClientRect().width;
+    const button = buttonRef.current.getBoundingClientRect();
+    const furthestLeft = window.innerWidth - menuWidth - VIEWPORT_MARGIN;
+    if (button.left <= furthestLeft) return;
+    // line the menu's right edge up with the button's, then keep it on screen
+    const left = Math.max(VIEWPORT_MARGIN, Math.min(button.right - menuWidth, furthestLeft));
+    setMenuPosition((prev) => (prev.left === left ? prev : { ...prev, left }));
   }, [showMenu]);
 
   if (loading) {
