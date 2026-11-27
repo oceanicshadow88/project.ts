@@ -155,7 +155,7 @@ const toFoundText = (total: number) => {
   return `Found ${total} ${total === 1 ? 'ticket' : 'tickets'}.`;
 };
 
-const toSearchReply = async (
+const findSearchReply = async (
   req: Request,
   search: ChatSearchFields,
   options: ProjectOptions,
@@ -210,7 +210,7 @@ export const replyToChatMessage = async (req: Request): Promise<AiChatResponse> 
   );
 
   if (intent === 'search') {
-    return { status: httpStatus.OK, result: await toSearchReply(req, search, options) };
+    return { status: httpStatus.OK, result: await findSearchReply(req, search, options) };
   }
   if (intent === 'create') {
     return { status: httpStatus.OK, result: toDraftReply(req, ticket, options) };
