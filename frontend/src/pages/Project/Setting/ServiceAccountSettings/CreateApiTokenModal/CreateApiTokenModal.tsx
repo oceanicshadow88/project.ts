@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import ButtonV2 from '../../../../../lib/FormV2/ButtonV2/ButtonV2';
 import { createApiToken } from '../../../../../api/serviceAccount/serviceAccount';
 import type { ICreatedApiToken } from '../../../../../types/serviceAccount';
 import Modal from '../../../../../lib/Modal/Modal';
@@ -53,35 +54,33 @@ export default function CreateApiTokenModal({
       <DefaultModalBody defaultPadding={false} classesName={styles.body}>
         <form onSubmit={handleSubmit}>
           <label htmlFor="api-token-name">
-            <span className={`${styles.description} block`}>Token name</span>
+            <span className={styles.description}>Token name</span>
             <input
               id="api-token-name"
-              className={styles.token}
+              className={styles.name}
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. MCP token"
+              placeholder="Please enter your token name"
               maxLength={30}
               required
               disabled={loading}
             />
           </label>
           <div className={styles.btnContainer}>
-            <button
-              type="button"
-              className={styles.doneButton}
+            <ButtonV2
+              text="Cancel"
+              customStyles={styles.cancelButton}
               onClick={handleClose}
               disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className={styles.copyButton}
+            />
+            <ButtonV2
+              text={loading ? 'Creating…' : 'Create'}
+              btnType="submit"
+              fill
+              customStyles={styles.createButton}
               disabled={loading || !name.trim()}
               onClick={handleCreate}
-            >
-              {loading ? 'Creating…' : 'Create'}
-            </button>
+            />
           </div>
         </form>
       </DefaultModalBody>

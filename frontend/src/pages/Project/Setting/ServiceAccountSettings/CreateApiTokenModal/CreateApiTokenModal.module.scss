@@ -1,7 +1,5 @@
 @import '../../../../../variables-only.scss';
 
-$colorGray: rgb(102, 106, 133);
-
 .modal {
   width: 500px;
   max-width: calc(100vw - 32px);
@@ -14,16 +12,18 @@ $colorGray: rgb(102, 106, 133);
 }
 
 .description {
-  margin: 0 0 12px;
+  display: block;
+  margin: 0 0 16px;
   font-size: 14px;
   line-height: 1.5;
 }
 
-.token {
+.name {
   display: block;
   width: 100%;
   box-sizing: border-box;
   min-width: 0;
+  margin-bottom: 15px;
   margin: 0;
   padding: 10px 15px;
   border: 2px solid #eeeff6;
@@ -50,29 +50,11 @@ $colorGray: rgb(102, 106, 133);
   margin-top: 32px;
 }
 
-.doneButton,
-.copyButton {
-  height: 100%;
-  border-radius: 5px;
-  width: 30%;
-  cursor: pointer;
-  font-size: 16px;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+.cancelButton:hover {
+  color: #6b7280;
 }
 
-.doneButton {
-  border: 1px solid $colorGray;
-  color: $colorGray;
-  background-color: white;
+.createButton:disabled {
+  color: #6b7280;
+  background-color: white !important;
 }
-
-.copyButton {
-  border: none;
-  color: white;
-  background-color: $primaryColor;
-}
-

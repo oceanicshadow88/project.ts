@@ -1,7 +1,5 @@
 @import '../../../../../variables-only.scss';
 
-$colorGray: rgb(102, 106, 133);
-
 .modal {
   width: 500px;
   max-width: calc(100vw - 32px);
@@ -50,29 +48,11 @@ $colorGray: rgb(102, 106, 133);
   margin-top: 32px;
 }
 
-.doneButton,
-.copyButton {
-  height: 100%;
-  border-radius: 5px;
-  width: 30%;
-  cursor: pointer;
-  font-size: 16px;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+.doneButton:hover {
+  color: #6b7280;
 }
 
-.doneButton {
-  border: 1px solid $colorGray;
-  color: $colorGray;
-  background-color: white;
+.doneButton:disabled {
+  color: #6b7280;
+  background-color: white !important;
 }
-
-.copyButton {
-  border: none;
-  color: white;
-  background-color: $primaryColor;
-}
-

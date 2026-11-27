@@ -1,5 +1,6 @@
 import React from 'react';
 import { toast } from 'react-toastify';
+import ButtonV2 from '../../../../../lib/FormV2/ButtonV2/ButtonV2';
 import Modal from '../../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import DefaultModalBody from '../../../../../lib/Modal/ModalBody/DefaultModalHeader/DefaultModalBody';
@@ -32,12 +33,8 @@ export default function CopyApiTokenModal({ token, onClose }: Readonly<ICopyApiT
         </p>
         <input type="text" aria-label="API token" className={styles.token} value={token} />
         <div className={styles.btnContainer}>
-          <button type="button" className={styles.doneButton} onClick={onClose}>
-            Done
-          </button>
-          <button type="button" className={styles.copyButton} onClick={onClickCopyToken}>
-            Copy
-          </button>
+          <ButtonV2 text="Done" customStyles={styles.doneButton} onClick={onClose} />
+          <ButtonV2 text="Copy" fill customStyles={styles.copyButton} onClick={onClickCopyToken} />
         </div>
       </DefaultModalBody>
     </Modal>

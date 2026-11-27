@@ -74,12 +74,10 @@
   width: 96px;
   min-width: 0;
   height: 35px;
-  font-size: 12px;
-
   &:hover {
-    color: #ef4444;
+    border-color: #c92a2a;
+    color: #c92a2a;
   }
-
   &:disabled {
     color: #6b7280;
   }
