@@ -9,10 +9,6 @@ interface IApiTokenTableProps {
 }
 
 export default function ApiTokenTable({ apiTokens, onRevoke }: Readonly<IApiTokenTableProps>) {
-  if (apiTokens.length === 0) {
-    return <p className={styles.emptyState}>Create an API token to connect to the MCP server</p>;
-  }
-
   return (
     <div className={styles.tableContainer}>
       <table className={styles.tokenTable} aria-label="API token records">

@@ -20,13 +20,13 @@ export default function ServiceAccountSettings() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createdToken, setCreatedToken] = useState<ICreatedApiToken | null>(null);
   const [apiTokens, setApiTokens] = useState<IApiTokenRecord[]>([]);
-  const [tokenToRevoke, setTokenToRevoke] = useState<IApiTokenRecord | null>(null);
+  const [revokeToken, setRevokeToken] = useState<IApiTokenRecord | null>(null);
   const [count, setCount] = useState(0);
 
   useEffect(() => {
     let active = true;
     setApiTokens([]);
-    setTokenToRevoke(null);
+    setRevokeToken(null);
 
     const fetchApiTokens = async () => {
       try {
@@ -44,7 +44,6 @@ export default function ServiceAccountSettings() {
     };
   }, [projectId, count]);
 
-  const handleCloseModal = () => setCreatedToken(null);
   const handleCreateModal = () => {
     if (!currentUser.id || !projectId) return;
     setShowCreateModal(true);
@@ -56,13 +55,10 @@ export default function ServiceAccountSettings() {
   };
 
   const handleRevokeToken = async () => {
-    if (!tokenToRevoke) return;
-
-    const { revokedAt } = await revokeApiToken(projectId, tokenToRevoke.id);
-    setApiTokens((records) =>
-      records.map((record) => (record.id === tokenToRevoke.id ? { ...record, revokedAt } : record))
-    );
-    setTokenToRevoke((selected) => (selected?.id === tokenToRevoke.id ? null : selected));
+    if (!revokeToken) return;
+    await revokeApiToken(projectId, revokeToken.id);
+    setRevokeToken(null);
+    setCount((value) => value + 1);
   };
 
   return (
@@ -79,7 +75,11 @@ export default function ServiceAccountSettings() {
           />
         }
       >
-        <ApiTokenTable apiTokens={apiTokens} onRevoke={setTokenToRevoke} />
+        {apiTokens.length === 0 ? (
+          <p className={styles.emptyState}>Create an API token to connect to the MCP server</p>
+        ) : (
+          <ApiTokenTable apiTokens={apiTokens} onRevoke={setRevokeToken} />
+        )}
       </SettingCard>
       {showCreateModal && (
         <CreateApiTokenModal
@@ -88,11 +88,13 @@ export default function ServiceAccountSettings() {
           onClose={() => setShowCreateModal(false)}
         />
       )}
-      {createdToken && <CopyApiTokenModal token={createdToken.token} onClose={handleCloseModal} />}
-      {tokenToRevoke && (
+      {createdToken && (
+        <CopyApiTokenModal token={createdToken.token} onClose={() => setCreatedToken(null)} />
+      )}
+      {revokeToken && (
         <RevokeApiTokenModal
-          tokenName={tokenToRevoke.name}
-          onClose={() => setTokenToRevoke(null)}
+          tokenName={revokeToken.name}
+          onClose={() => setRevokeToken(null)}
           onRevoke={handleRevokeToken}
         />
       )}
