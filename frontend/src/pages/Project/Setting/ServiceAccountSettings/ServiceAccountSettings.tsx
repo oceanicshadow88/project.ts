@@ -1,11 +1,14 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { IoIosAdd } from 'react-icons/io';
 import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/ProjectSettingHOC';
 import SettingCard from '../../../../components/SettingCard/SettingCard';
 import { UserContext } from '../../../../context/UserInfoProvider';
 import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
-import type { ICreatedApiToken } from '../../../../types/serviceAccount';
+import { getApiTokens } from '../../../../api/serviceAccount/serviceAccount';
+import type { IApiTokenRecord, ICreatedApiToken } from '../../../../types/serviceAccount';
+import ApiTokenTable from './ApiTokenTable/ApiTokenTable';
 import CopyApiTokenModal from './CopyApiTokenModal/CopyApiTokenModal';
 import CreateApiTokenModal from './CreateApiTokenModal/CreateApiTokenModal';
 import styles from './ServiceAccountSettings.module.scss';
@@ -15,6 +18,28 @@ export default function ServiceAccountSettings() {
   const { projectId = '' } = useParams();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createdToken, setCreatedToken] = useState<ICreatedApiToken | null>(null);
+  const [apiTokens, setApiTokens] = useState<IApiTokenRecord[]>([]);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+    setApiTokens([]);
+
+    const fetchApiTokens = async () => {
+      try {
+        const records = await getApiTokens(projectId);
+        if (active) setApiTokens(records);
+      } catch {
+        if (active) toast.error('Unable to load API tokens. Please try again.');
+      }
+    };
+
+    if (projectId) fetchApiTokens();
+
+    return () => {
+      active = false;
+    };
+  }, [projectId, count]);
 
   const handleCloseModal = () => setCreatedToken(null);
   const handleCreateModal = () => {
@@ -24,6 +49,7 @@ export default function ServiceAccountSettings() {
   const handleCreateToken = (token: ICreatedApiToken) => {
     setShowCreateModal(false);
     setCreatedToken(token);
+    setCount((value) => value + 1);
   };
 
   return (
@@ -40,7 +66,7 @@ export default function ServiceAccountSettings() {
           />
         }
       >
-        <p className={styles.emptyState}> Create an API token to connect to the MCP server </p>
+        <ApiTokenTable apiTokens={apiTokens} />
       </SettingCard>
       {showCreateModal && (
         <CreateApiTokenModal

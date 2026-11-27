@@ -1,7 +1,16 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { Request } from 'express';
 import * as ApiToken from '../model/apiToken';
+import * as User from '../model/user';
 import mongoose from 'mongoose';
+
+interface IApiTokenCreator {
+  name: string;
+}
+
+interface IApiTokenWithCreator {
+  createdBy: IApiTokenCreator | null;
+}
 
 const hashApiToken = (token: string) => createHash('sha256').update(token).digest('hex');
 
@@ -10,10 +19,34 @@ export const authenticateApiToken = async (
   token: string,
 ): Promise<boolean> => {
   const apiTokenModel = ApiToken.getModel(connection);
-  const record = await apiTokenModel.exists({
-    tokenHash: hashApiToken(token),
+  const result = await apiTokenModel.updateOne(
+    { tokenHash: hashApiToken(token) },
+    { $currentDate: { lastUsedAt: true } },
+  );
+  return result.matchedCount > 0;
+};
+
+export const listApiTokens = async (req: Request) => {
+  const apiTokenModel = ApiToken.getModel(req.dbConnection);
+  const userModel = User.getModel(req.tenantsConnection);
+  const records = await apiTokenModel
+    .find({ project: req.params.id, tenant: req.tenantId })
+    .select('name createdBy lastUsedAt')
+    .sort({ createdAt: -1 })
+    .populate<IApiTokenWithCreator>({
+    path: 'createdBy',
+    model: userModel,
+    select: 'name',
   });
-  return record !== null;
+
+  const tokens = records.map((record) => ({
+    id: record.id,
+    name: record.name || 'Unnamed token',
+    createdBy: record.createdBy?.name || 'Unknown user',
+    lastUsedAt: record.lastUsedAt ?? null,
+  }));
+
+  return tokens;
 };
 
 export const createApiToken = async (req: Request) => {

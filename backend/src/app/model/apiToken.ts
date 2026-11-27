@@ -6,7 +6,7 @@ export interface IApiToken {
   tenant: string;
   project: Types.ObjectId;
   createdBy: Types.ObjectId;
-  createdAt: Date;
+  lastUsedAt: Date | null;
 }
 
 const apiTokenSchema = new mongoose.Schema<IApiToken>(
@@ -36,6 +36,10 @@ const apiTokenSchema = new mongoose.Schema<IApiToken>(
       type: Schema.Types.ObjectId,
       ref: 'users',
       required: true,
+    },
+    lastUsedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },

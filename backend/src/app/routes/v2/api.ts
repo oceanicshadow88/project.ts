@@ -342,6 +342,13 @@ router.post(
   requireProjectAdmin,
   apiTokenController.store,
 );
+router.get(
+  '/projects/:id/api-tokens',
+  authenticationTokenMiddleware,
+  apiTokenValidation.index,
+  requireProjectAdmin,
+  apiTokenController.index,
+);
 //TODO: s
 router.post('/projects/:id/shortcuts', shortcutValidation.store, shortcutControllers.store);
 router.put(
