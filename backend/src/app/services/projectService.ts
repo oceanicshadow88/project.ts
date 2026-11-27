@@ -12,7 +12,8 @@ import { getUserProjectRole } from './roleService';
 import typeService from './typeService';
 import { findSprints } from './sprintService';
 import { getAllStatus } from './statusService';
-import { getProjectBoards } from './boardService';
+import { getProjectBoards, IProjectBoard } from './boardService';
+import { ISprintDocument } from '../model/sprint';
 import { init } from '../database/init';
 import { getRetroBoards } from './retroBoardService';
 import { getEpicByProject } from './epicService';
@@ -142,25 +143,27 @@ export const projectDetails = async (req: Request) => {
     getRetroBoards(req),
   ]);
 
-  const sprintBoardIds = sprints
-    .filter((sprint: any) => sprint.board)
-    .map((sprint: any) => sprint.board.toString());
+  const sprintBoardIds = (sprints as ISprintDocument[])
+    .filter((sprint) => sprint.board)
+    .map((sprint) => String(sprint.board));
   const boards = await getProjectBoards(req, req.params.id, sprintBoardIds);
 
   // Only return statuses used by this project's boards, in column order
-  const projectStatuses: any[] = [];
-  boards.forEach((board: any) => {
-    board.statuses.forEach((status: any) => {
-      if (!projectStatuses.some((item) => item.id.toString() === status.id.toString())) {
-        projectStatuses.push(status);
+  // (a Map keeps insertion order and skips statuses shared by several boards)
+  const boardStatuses = new Map<string, IProjectBoard['statuses'][number]>();
+  boards.forEach((board) => {
+    board.statuses.forEach((status) => {
+      if (!boardStatuses.has(status.id)) {
+        boardStatuses.set(status.id, status);
       }
     });
   });
   // Fall back to the default statuses if the project has no boards
-  if (projectStatuses.length === 0) {
-    const defaultSlugs = new Set(DEFAULT_STATUS.map((status) => status.slug));
-    projectStatuses.push(...statuses.filter((status: any) => defaultSlugs.has(status.slug)));
-  }
+  const defaultSlugs = new Set(DEFAULT_STATUS.map((status) => status.slug));
+  const projectStatuses =
+    boardStatuses.size > 0
+      ? [...boardStatuses.values()]
+      : statuses.filter((status) => defaultSlugs.has(status.slug));
 
   return {
     labels,

@@ -40,8 +40,19 @@ export const getAllBoards = async (req: Request) => {
   return replaceId(board);
 };
 
+// A board with its statuses populated, after replaceId has turned _id into id
+export interface IProjectBoard {
+  id: string;
+  title: string;
+  statuses: (Status.IStatus & { id: string })[];
+}
+
 // Boards owned by the project, plus boards its sprints use (older boards have no project field)
-export const getProjectBoards = async (req: Request, projectId: string, sprintBoardIds: string[]) => {
+export const getProjectBoards = async (
+  req: Request,
+  projectId: string,
+  sprintBoardIds: string[],
+): Promise<IProjectBoard[]> => {
   const boardModel = Board.getModel(req.dbConnection);
   const boards = await boardModel
     .find({
@@ -66,8 +77,8 @@ const findProjectBoard = async (req: Request) => {
   if (board.project) {
     return board.project.toString() === projectId ? board : null;
   }
-  const usedByProject = await sprintModel.exists({ project: projectId, board: boardId });
-  return usedByProject ? board : null;
+  const isUsedByProject = await sprintModel.exists({ project: projectId, board: boardId });
+  return isUsedByProject ? board : null;
 };
 
 export const addStatusToBoard = async (req: Request) => {
@@ -86,11 +97,11 @@ export const addStatusToBoard = async (req: Request) => {
     status = await statusModel.create({ name, slug, tenant: req.tenantId });
   }
 
-  const alreadyOnBoard = board.statuses.some(
+  const isOnBoard = board.statuses.some(
     (id) => id.toString() === status._id.toString(),
   );
 
-  if (!alreadyOnBoard) {
+  if (!isOnBoard) {
     board.statuses.push(status._id);
     await board.save();
   }
@@ -122,4 +133,3 @@ export const reorderBoardStatuses = async (req: Request) => {
 
   return replaceId(await board.populate('statuses'));
 };
-

@@ -2,8 +2,8 @@ import mongoose, { Mongoose, Types, Schema } from 'mongoose';
 
 export interface IBoard {
   title: string;
-  project: Schema.Types.ObjectId;
-  tenant: Schema.Types.ObjectId;
+  project?: Types.ObjectId;
+  tenant: Types.ObjectId;
   statuses: Types.ObjectId[];
   isPublic: boolean;
 }
