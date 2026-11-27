@@ -6,7 +6,7 @@ import SettingCard from '../../../../components/SettingCard/SettingCard';
 import { UserContext } from '../../../../context/UserInfoProvider';
 import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
 import type { ICreatedApiToken } from '../../../../types/serviceAccount';
-import ApiTokenModal from './ApiTokenModal/ApiTokenModal';
+import CopyApiTokenModal from './CopyApiTokenModal/CopyApiTokenModal';
 import CreateApiTokenModal from './CreateApiTokenModal/CreateApiTokenModal';
 import styles from './ServiceAccountSettings.module.scss';
 
@@ -49,7 +49,7 @@ export default function ServiceAccountSettings() {
           onClose={() => setShowCreateModal(false)}
         />
       )}
-      {createdToken && <ApiTokenModal token={createdToken.token} onClose={handleCloseModal} />}
+      {createdToken && <CopyApiTokenModal token={createdToken.token} onClose={handleCloseModal} />}
     </ProjectSettingHOC>
   );
 }

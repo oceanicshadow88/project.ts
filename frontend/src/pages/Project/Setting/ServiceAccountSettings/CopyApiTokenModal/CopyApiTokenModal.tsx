@@ -3,14 +3,14 @@ import { toast } from 'react-toastify';
 import Modal from '../../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import DefaultModalBody from '../../../../../lib/Modal/ModalBody/DefaultModalHeader/DefaultModalBody';
-import styles from './ApiTokenModal.module.scss';
+import styles from './CopyApiTokenModal.module.scss';
 
-interface IApiTokenModalProps {
+interface ICopyApiTokenModalProps {
   token: string;
   onClose: () => void;
 }
 
-export default function ApiTokenModal({ token, onClose }: Readonly<IApiTokenModalProps>) {
+export default function CopyApiTokenModal({ token, onClose }: Readonly<ICopyApiTokenModalProps>) {
   const onClickCopyToken = async () => {
     try {
       await navigator.clipboard.writeText(token);
