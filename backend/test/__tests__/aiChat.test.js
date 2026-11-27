@@ -13,6 +13,8 @@ import TicketBuilder from './builders/ticketBuilder';
 import TypeBuilder from './builders/typeBuilder';
 import SprintBuilder from './builders/sprintBuilder';
 import UserBuilder from './builders/userBuilder';
+import PermissionBuilder from './builders/permissionBuilder';
+import * as Role from '../../src/app/model/role';
 
 const EMPTY_TICKET = { title: '', type: '', priority: '', assignee: '', sprint: '', description: '' };
 const EMPTY_SEARCH = { keyword: '', type: '', priority: '', assignee: '', sprint: '' };
@@ -37,18 +39,30 @@ const findType = async (name) => {
   return types.find((type) => type.name === name);
 };
 
-// The next request runs as a user who is neither the tenant owner nor a project member
-const actAsNonMember = () => {
+// The next request runs as a user who is not the tenant owner. By default they have no role
+const actAs = (user = {}) => {
+  const userId = new mongoose.Types.ObjectId().toString();
   const saasStub = saasMiddleware.saas;
   saasStub.onCall(saasStub.callCount).callsFake((req, res, next) => {
     req.dbConnection = db.dbConnection;
     req.tenantsConnection = db.tenantsConnection;
     req.tenantId = db.defaultTenant._id;
-    req.userId = new mongoose.Types.ObjectId().toString();
+    req.userId = user.id ?? userId;
     req.ownerId = db.defaultUser._id.toString();
-    req.user = { projectsRoles: [] };
+    req.user = { projectsRoles: [], ...user };
     return next();
   });
+};
+
+// A member of the project whose role has only the given permission
+const memberWith = async (project, slug) => {
+  const permission = await new PermissionBuilder().withSlug(slug).withDescription(slug).save();
+  const role = await Role.getModel(db.dbConnection).create({
+    name: 'Test Role',
+    slug: 'test-role',
+    permissions: [permission._id],
+  });
+  return { projectsRoles: [{ project: project._id, role: role._id }] };
 };
 
 describe('AI chat API', () => {
@@ -231,7 +245,40 @@ describe('AI chat API', () => {
 
     it('should return 403 for a user who is not the owner or a member', async () => {
       const project = await new ProjectBuilder().save();
-      actAsNonMember();
+      actAs();
+
+      await sendChat(project.id).expect(403);
+      expect(intentStub.called).toBe(false);
+    });
+
+    it('should allow a super user who is not a member', async () => {
+      const project = await new ProjectBuilder().save();
+      intentStub.resolves({ intent: 'other', ticket: EMPTY_TICKET, search: EMPTY_SEARCH });
+      actAs({ isSuperUser: 1 });
+
+      await sendChat(project.id).expect(200);
+    });
+
+    it('should allow the project owner who has no role', async () => {
+      const ownerId = new mongoose.Types.ObjectId();
+      const project = await new ProjectBuilder().withOwner(ownerId).save();
+      intentStub.resolves({ intent: 'other', ticket: EMPTY_TICKET, search: EMPTY_SEARCH });
+      actAs({ id: ownerId.toString() });
+
+      await sendChat(project.id).expect(200);
+    });
+
+    it('should allow a member whose role has view:tickets', async () => {
+      const project = await new ProjectBuilder().save();
+      intentStub.resolves({ intent: 'other', ticket: EMPTY_TICKET, search: EMPTY_SEARCH });
+      actAs(await memberWith(project, 'view:tickets'));
+
+      await sendChat(project.id).expect(200);
+    });
+
+    it('should return 403 for a member whose role lacks view:tickets', async () => {
+      const project = await new ProjectBuilder().save();
+      actAs(await memberWith(project, 'view:projects'));
 
       await sendChat(project.id).expect(403);
       expect(intentStub.called).toBe(false);
@@ -258,5 +305,39 @@ describe('validateChatIntentResult', () => {
     await expect(
       validateChatIntentResult({ intent: 'create', ticket: { priority: 'Urgent' } }),
     ).rejects.toThrow('Invalid chat intent result');
+  });
+});
+
+describe('Improve Ticket Title access (unchanged by TS-48)', () => {
+  let titleStub;
+
+  beforeEach(() => {
+    titleStub = sinon
+      .stub(claudeService, 'validateTicketTitleByClaude')
+      .resolves({ classification: 'clear', recommendedTitle: 'A title', reason: 'Clear' });
+  });
+
+  afterEach(() => {
+    titleStub.restore();
+  });
+
+  const validateTitle = (ticket) =>
+    request(app.application).post(`/api/v2/tickets/${ticket.id}/validate-title`);
+
+  it('should allow any project member, whatever the role permits', async () => {
+    const project = await new ProjectBuilder().save();
+    const ticket = await new TicketBuilder().withProject(project._id).save();
+    actAs(await memberWith(project, 'view:projects'));
+
+    await validateTitle(ticket).expect(200);
+  });
+
+  it('should still return 403 for a super user who is not a member', async () => {
+    const project = await new ProjectBuilder().save();
+    const ticket = await new TicketBuilder().withProject(project._id).save();
+    actAs({ isSuperUser: 1 });
+
+    await validateTitle(ticket).expect(403);
+    expect(titleStub.called).toBe(false);
   });
 });

@@ -14,7 +14,7 @@ import type {
 } from '../types/chatIntentResult';
 import { BacklogSearchFilters, findBacklogTickets } from './backlogService';
 import { detectChatIntentByClaude } from './claudeService';
-import { getProjectAccessStatus } from './projectAccessService';
+import { getChatAccessStatus } from './projectAccessService';
 import { projectDetails } from './projectService';
 
 type AiChatResponse = {
@@ -200,7 +200,7 @@ const toDraftReply = (
 };
 
 export const replyToChatMessage = async (req: Request): Promise<AiChatResponse> => {
-  const accessStatus = await getProjectAccessStatus(req, req.params.id);
+  const accessStatus = await getChatAccessStatus(req, req.params.id);
   if (accessStatus !== httpStatus.OK) return { status: accessStatus };
 
   const options = await loadProjectOptions(req);

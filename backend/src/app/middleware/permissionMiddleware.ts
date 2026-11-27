@@ -65,4 +65,4 @@ const permission = (slug: string) => {
   };
 };
 
-export { permission };
+export { permission, hasPermission };
