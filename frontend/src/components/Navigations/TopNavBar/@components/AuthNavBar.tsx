@@ -141,8 +141,12 @@ function AuthNavBar() {
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">{userInfo.name}</p>
-              <p className="text-xs text-gray">{userInfo.email}</p>
+              <p className="text-sm font-semibold text-gray-900 truncate" title={userInfo.name}>
+                {userInfo.name}
+              </p>
+              <p className="text-xs text-gray truncate" title={userInfo.email}>
+                {userInfo.email}
+              </p>
             </div>
           </div>
 
