@@ -1,34 +1,47 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import { IoIosAdd } from 'react-icons/io';
 import ProjectSettingHOC from '../../../../components/HOC/ProjectSettingHOC/ProjectSettingHOC';
 import SettingCard from '../../../../components/SettingCard/SettingCard';
+import { ModalContext } from '../../../../context/ModalProvider';
 import { UserContext } from '../../../../context/UserInfoProvider';
+import useApiTokens from '../../../../hooks/useApiTokens';
 import ButtonV2 from '../../../../lib/FormV2/ButtonV2/ButtonV2';
-import { createApiToken } from '../../../../api/serviceAccount/serviceAccount';
-import type { ICreatedApiToken } from '../../../../types/serviceAccount';
-import ApiTokenModal from './ApiTokenModal/ApiTokenModal';
+import type { IApiTokenRecord, ICreatedApiToken } from '../../../../types/serviceAccount';
+import ApiTokenTable from './ApiTokenTable/ApiTokenTable';
+import CopyApiTokenModal from './CopyApiTokenModal/CopyApiTokenModal';
+import CreateApiTokenModal from './CreateApiTokenModal/CreateApiTokenModal';
+import RevokeApiTokenModal from './RevokeApiTokenModal/RevokeApiTokenModal';
 import styles from './ServiceAccountSettings.module.scss';
 
 export default function ServiceAccountSettings() {
   const currentUser = useContext(UserContext);
+  const { showModal } = useContext(ModalContext);
   const { projectId = '' } = useParams();
-  const [loading, setLoading] = useState(false);
-  const [createdToken, setCreatedToken] = useState<ICreatedApiToken | null>(null);
+  const { apiTokens, create, revoke } = useApiTokens(projectId);
+  const [tokenToCopy, setTokenToCopy] = useState<ICreatedApiToken | null>(null);
 
-  const handleCloseModal = () => setCreatedToken(null);
-  const handleCreateToken = async () => {
-    if (loading || !currentUser.id || !projectId) return;
-    setLoading(true);
-    try {
-      const result = await createApiToken(projectId);
-      setCreatedToken(result);
-    } catch {
-      toast.error('Unable to create an API token. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    if (!tokenToCopy) return;
+    showModal('copy-api-token', <CopyApiTokenModal token={tokenToCopy.token} />);
+    setTokenToCopy(null);
+  }, [tokenToCopy, showModal]);
+
+  const handleTokenCreated = (token: ICreatedApiToken) => setTokenToCopy(token);
+
+  const openCreateModal = () => {
+    if (!currentUser.id || !projectId) return;
+    showModal(
+      'create-api-token',
+      <CreateApiTokenModal onCreate={create} onCreated={handleTokenCreated} />
+    );
+  };
+
+  const openRevokeModal = (token: IApiTokenRecord) => {
+    showModal(
+      'revoke-api-token',
+      <RevokeApiTokenModal tokenName={token.name} onRevoke={() => revoke(token.id)} />
+    );
   };
 
   return (
@@ -41,13 +54,16 @@ export default function ServiceAccountSettings() {
             icon={<IoIosAdd className="w-5 h-5" />}
             fill
             customStyles={styles.createButton}
-            onClick={handleCreateToken}
+            onClick={openCreateModal}
           />
         }
       >
-        <p className={styles.emptyState}> Create an API token to connect to the MCP server </p>
+        {apiTokens.length === 0 ? (
+          <p className={styles.emptyState}>Create an API token to connect to the MCP server</p>
+        ) : (
+          <ApiTokenTable apiTokens={apiTokens} onRevoke={openRevokeModal} />
+        )}
       </SettingCard>
-      {createdToken && <ApiTokenModal token={createdToken.token} onClose={handleCloseModal} />}
     </ProjectSettingHOC>
   );
 }

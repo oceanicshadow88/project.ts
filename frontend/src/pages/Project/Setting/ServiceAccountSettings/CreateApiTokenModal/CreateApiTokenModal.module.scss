@@ -1,0 +1,12 @@
+@import '../../../../../variables-only.scss';
+
+.modal {
+  width: 500px;
+  max-width: calc(100vw - 32px);
+  padding: 0;
+  color: $textPrimaryColor;
+}
+
+.body {
+  padding: 24px 40px;
+}

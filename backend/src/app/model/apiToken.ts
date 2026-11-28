@@ -1,15 +1,23 @@
 import mongoose, { Model, Schema, Types } from 'mongoose';
 
 export interface IApiToken {
+  name: string;
   tokenHash: string;
   tenant: string;
   project: Types.ObjectId;
   createdBy: Types.ObjectId;
-  createdAt: Date;
+  lastUsedAt: Date | null;
+  revokedAt: Date | null;
 }
 
 const apiTokenSchema = new mongoose.Schema<IApiToken>(
   {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 30,
+    },
     tokenHash: {
       type: String,
       required: true,
@@ -29,6 +37,14 @@ const apiTokenSchema = new mongoose.Schema<IApiToken>(
       type: Schema.Types.ObjectId,
       ref: 'users',
       required: true,
+    },
+    lastUsedAt: {
+      type: Date,
+      default: null,
+    },
+    revokedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },

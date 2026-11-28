@@ -342,6 +342,20 @@ router.post(
   requireProjectAdmin,
   apiTokenController.store,
 );
+router.get(
+  '/projects/:id/api-tokens',
+  authenticationTokenMiddleware,
+  apiTokenValidation.index,
+  requireProjectAdmin,
+  apiTokenController.index,
+);
+router.delete(
+  '/projects/:id/api-tokens/:tokenId',
+  authenticationTokenMiddleware,
+  apiTokenValidation.revoke,
+  requireProjectAdmin,
+  apiTokenController.revoke,
+);
 //TODO: s
 router.post('/projects/:id/shortcuts', shortcutValidation.store, shortcutControllers.store);
 router.put(
