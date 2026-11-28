@@ -18,7 +18,7 @@ export default function ServiceAccountSettings() {
   const currentUser = useContext(UserContext);
   const { showModal } = useContext(ModalContext);
   const { projectId = '' } = useParams();
-  const { apiTokens, refresh, revoke } = useApiTokens(projectId);
+  const { apiTokens, create, revoke } = useApiTokens(projectId);
   const [tokenToCopy, setTokenToCopy] = useState<ICreatedApiToken | null>(null);
 
   useEffect(() => {
@@ -27,15 +27,13 @@ export default function ServiceAccountSettings() {
     setTokenToCopy(null);
   }, [tokenToCopy, showModal]);
 
-  const handleTokenCreated = (token: ICreatedApiToken) => {
-    setTokenToCopy(token);
-    refresh();
-  };
+  const handleTokenCreated = (token: ICreatedApiToken) => setTokenToCopy(token);
+
   const openCreateModal = () => {
     if (!currentUser.id || !projectId) return;
     showModal(
       'create-api-token',
-      <CreateApiTokenModal projectId={projectId} onCreated={handleTokenCreated} />
+      <CreateApiTokenModal onCreate={create} onCreated={handleTokenCreated} />
     );
   };
 

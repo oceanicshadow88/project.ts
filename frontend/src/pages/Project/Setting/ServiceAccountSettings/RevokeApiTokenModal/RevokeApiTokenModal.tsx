@@ -1,5 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import React, { useContext, useState } from 'react';
 import { ModalContext } from '../../../../../context/ModalProvider';
 import Modal from '../../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
@@ -18,11 +17,6 @@ export default function RevokeApiTokenModal({
 }: Readonly<IRevokeApiTokenModalProps>) {
   const { closeModal } = useContext(ModalContext);
   const [loading, setLoading] = useState(false);
-  const [revoked, setRevoked] = useState(false);
-
-  useEffect(() => {
-    if (revoked) closeModal('revoke-api-token');
-  }, [revoked, closeModal]);
 
   const handleClose = () => {
     if (!loading) closeModal('revoke-api-token');
@@ -31,19 +25,12 @@ export default function RevokeApiTokenModal({
   const handleRevoke = async () => {
     if (loading) return;
     setLoading(true);
-    try {
-      const success = await onRevoke();
-      if (!success) return;
-      setRevoked(true);
-      toast.success('API token revoked', {
-        theme: 'colored',
-        className: 'primaryColorBackground'
-      });
-    } catch {
-      toast.error('Unable to revoke the API token. Please try again.');
-    } finally {
+    const success = await onRevoke();
+    if (!success) {
       setLoading(false);
+      return;
     }
+    closeModal('revoke-api-token');
   };
 
   return (
