@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { ModalContext } from '../../../../../context/ModalProvider';
 import Modal from '../../../../../lib/Modal/Modal';
 import DefaultModalHeader from '../../../../../lib/Modal/ModalHeader/DefaultModalHeader/DefaultModalHeader';
 import DefaultModalBody from '../../../../../lib/Modal/ModalBody/DefaultModalHeader/DefaultModalBody';
@@ -8,26 +9,32 @@ import ButtonV2 from '../../../../../lib/FormV2/ButtonV2/ButtonV2';
 
 interface IRevokeApiTokenModalProps {
   tokenName: string;
-  onClose: () => void;
   onRevoke: () => Promise<boolean>;
 }
 
 export default function RevokeApiTokenModal({
   tokenName,
-  onClose,
   onRevoke
 }: Readonly<IRevokeApiTokenModalProps>) {
+  const { closeModal } = useContext(ModalContext);
   const [loading, setLoading] = useState(false);
+  const [revoked, setRevoked] = useState(false);
+
+  useEffect(() => {
+    if (revoked) closeModal('revoke-api-token');
+  }, [revoked, closeModal]);
 
   const handleClose = () => {
-    if (!loading) onClose();
+    if (!loading) closeModal('revoke-api-token');
   };
 
   const handleRevoke = async () => {
     if (loading) return;
     setLoading(true);
     try {
-      await onRevoke();
+      const success = await onRevoke();
+      if (!success) return;
+      setRevoked(true);
       toast.success('API token revoked', {
         theme: 'colored',
         className: 'primaryColorBackground'

@@ -1,0 +1,48 @@
+@import '../../../../../variables-only.scss';
+
+.description {
+  display: block;
+  margin: 0 0 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.name {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding: 10px 15px;
+  border: 2px solid #eeeff6;
+  border-radius: 6px;
+  background-color: #fafbfc;
+  color: $textPrimaryColor;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+
+  &:focus {
+    outline: 2px solid $primaryColor;
+  }
+}
+
+.btnContainer {
+  max-width: 300px;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  justify-content: flex-end;
+  margin-left: auto;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.cancelButton:hover {
+  color: #6b7280;
+}
+
+.createButton:disabled {
+  color: #6b7280;
+  background-color: white !important;
+}
